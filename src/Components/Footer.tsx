@@ -11,11 +11,16 @@ export const FooterTop = () => {
   const postingMessage = () => {
     const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN || ''
     const groupToken = import.meta.env.VITE_TELEGRAM_GROUP_ID || ''
-    if (!botToken || !groupToken) return
-    fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${groupToken}`, {
+    const threadId = import.meta.env.VITE_TELEGRAM_THREAD_ID || ''
+    if (!botToken || !groupToken || !message.trim()) return
+    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
-      body: JSON.stringify({ chat_id: groupToken, text: `Newsletter: ${message}` }),
+      body: JSON.stringify({
+        chat_id: groupToken,
+        message_thread_id: threadId ? Number(threadId) : undefined,
+        text: `📧 Newsletter subscription:\n${message}`,
+      }),
     })
     setMessage('')
     alert(t('footer.subscribe') + '!')
