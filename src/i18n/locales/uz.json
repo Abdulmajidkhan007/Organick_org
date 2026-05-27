@@ -1,0 +1,310 @@
+{
+  "nav": {
+    "home": "Bosh sahifa",
+    "about": "Biz haqimizda",
+    "shop": "Do'kon",
+    "service": "Xizmat",
+    "contact": "Aloqa",
+    "blog": "Blog",
+    "team": "Jamoa",
+    "portfolio": "Portfolio",
+    "search": "Qidirish...",
+    "cart": "Savat",
+    "login": "Kirish",
+    "logout": "Chiqish",
+    "admin": "Admin",
+    "profile": "Profil"
+  },
+  "home": {
+    "hero": {
+      "subtitle": "100% Tabiiy Oziq-ovqat",
+      "title": "Sog'lom turmush tarzining eng yaxshi yo'lini tanlang",
+      "exploreBtn": "Kashf et"
+    },
+    "cards": {
+      "natural": "Tabiiy!!",
+      "freshFruits": "Bog'dan yangi mevalar oling",
+      "offer": "Taklif!!",
+      "discount": "Sabzavotlarda 10% chegirma"
+    },
+    "aboutUs": {
+      "subtitle": "Biz haqimizda",
+      "title": "Biz akkreditatsiyalangan fermerlar bilan ishlashga ishonimiz",
+      "description": "Bosma va nashr sanoatining shunchaki qo'shimcha matn. Lorem Ipsum sanoat standart qo'shimcha matn bo'lishdan to'xtagan, 1500-yillardan beri noma'lum bosmaxonachi galleyni olganida.",
+      "veganFood": {
+        "title": "Vegan Ovqat",
+        "desc": "Biz organik vegan ovqat taqdim etamiz."
+      },
+      "quality": {
+        "title": "Sifat Standartlari",
+        "desc": "Mahsulotlarimizda eng yuqori sifat standartlarini ta'minlaymiz."
+      },
+      "shopBtn": "Hozir xarid qiling"
+    },
+    "categories": {
+      "title": "Kategoriyalar",
+      "ourProducts": "Bizning Mahsulotlar",
+      "loadMore": "Ko'proq yuklash"
+    },
+    "testimonials": {
+      "title": "Fikrlar",
+      "subtitle": "Mijozlarimiz nima deydi?",
+      "organic": "Organik",
+      "activeProduct": "Faol Mahsulot",
+      "organicOrchards": "Organik Bog'lar",
+      "yearsOfFarming": "Yillik Fermerlik"
+    },
+    "offer": {
+      "title": "Taklif",
+      "subtitle": "Siz uchun organik taklif qilamiz",
+      "loadMore": "Ko'proq yuklash"
+    },
+    "ecoFriendly": {
+      "subtitle": "Eko Do'stona",
+      "title": "Econis do'stona organik do'kon",
+      "step1Title": "Birinchi bizning kompaniyamizdan boshlang",
+      "step1Desc": "Sed ut perspiciatis unde omnis iste natus error sit voluptat accusantium doloremque laudantium.",
+      "step2Title": "O'zingizni qanday o'stirishni o'rganing",
+      "step2Desc": "Sed ut perspiciatis unde omnis iste natus error sit voluptat accusantium doloremque laudantium.",
+      "step3Title": "Bugungi fermerlik strategiyalari",
+      "step3Desc": "Sed ut perspiciatis unde omnis iste natus error sit voluptat accusantium doloremque laudantium."
+    },
+    "news": {
+      "subtitle": "Yangiliklar",
+      "title": "Organik oziq-ovqat va boshqalar haqida haftalik kontentni kashf eting",
+      "moreNews": "Ko'proq yangiliklar",
+      "readMore": "Ko'proq o'qish"
+    }
+  },
+  "shop": {
+    "title": "Do'kon",
+    "allCategories": "Barcha kategoriyalar",
+    "addToCart": "Savatga qo'shish",
+    "noResults": "Mahsulot topilmadi",
+    "categories": {
+      "All": "Barchasi",
+      "Vegetable": "Sabzavot",
+      "Fresh": "Yangi",
+      "Millets": "Don",
+      "Health": "Salomatlik",
+      "Nuts": "Yong'oq",
+      "Spicy": "Ziravorli",
+      "Fruits": "Mevalar"
+    }
+  },
+  "productDetail": {
+    "addToCart": "Savatga qo'shish",
+    "quantity": "Miqdor",
+    "category": "Kategoriya",
+    "price": "Narx",
+    "oldPrice": "Eski narx",
+    "rating": "Reyting",
+    "description": "Tavsif",
+    "reviews": "Sharhlar",
+    "writeReview": "Sharh yozish",
+    "submitReview": "Sharh yuborish",
+    "relatedProducts": "O'xshash mahsulotlar",
+    "yourRating": "Sizning reytingingiz",
+    "inStock": "Mavjud",
+    "outOfStock": "Tugagan",
+    "backToShop": "Do'konga qaytish",
+    "defaultDesc": "Bu mahsulot eng yuqori sifat standartlari asosida tayyorlangan organik mahsulot. Tabiiy usulda o'stirilgan va hech qanday kimyoviy qo'shimchalarsiz taqdim etiladi."
+  },
+  "cart": {
+    "title": "Savat",
+    "empty": "Savatingiz bo'sh",
+    "emptyDesc": "Xarid qilishni boshlash uchun do'konga o'ting",
+    "total": "Jami",
+    "checkout": "To'lash",
+    "remove": "O'chirish",
+    "continueShopping": "Xarid qilishni davom etish",
+    "quantity": "Miqdor",
+    "subtotal": "Oraliq jami",
+    "shipping": "Yetkazib berish",
+    "free": "Bepul",
+    "orderSummary": "Buyurtma xulosasi",
+    "item": "mahsulot",
+    "items": "mahsulot"
+  },
+  "about": {
+    "title": "Biz haqimizda",
+    "subtitle": "Muvaffaqiyat uchun ijodiy narsalar qilamiz",
+    "description": "Bosma va nashr sanoatining shunchaki qo'shimcha matn. Lorem Ipsum sanoat standart qo'shimcha matn bo'lishdan to'xtagan, 1500-yillardan beri noma'lum bosmaxonachi galleyni olganida.",
+    "equipment": "Zamonaviy qishloq xo'jaligi uskunalari",
+    "noHormones": "O'sish gormonlari ishlatilmaydi",
+    "exploreBtn": "Ko'proq kashf et",
+    "whyUs": {
+      "title": "Nima uchun bizni tanlaysiz?",
+      "subtitle": "Biz ochiq bozor va savdogarlardan sotib olmaymiz.",
+      "desc": "Bosma va nashr sanoatining shunchaki qo'shimcha matn. Lorem Ipsum sanoat standart qo'shimcha matn bo'lishdan to'xtagan, 1500s-dan beri noma'lum bosmaxonachi.",
+      "returnPolicy": "Qaytarish siyosati",
+      "returnDesc": "Bosma va nashr sanoatining shunchaki qo'shimcha matn.",
+      "fresh": "100% Yangi",
+      "freshDesc": "Bosma va nashr sanoatining shunchaki qo'shimcha matn.",
+      "support": "24/7 Qo'llab-quvvatlash",
+      "supportDesc": "Bosma va nashr sanoatining shunchaki qo'shimcha matn.",
+      "secured": "Xavfsiz siyosat",
+      "securedDesc": "Bosma va nashr sanoatining shunchaki qo'shimcha matn."
+    },
+    "team": {
+      "subtitle": "Jamoa",
+      "title": "Bizning Organik Mutaxassislar",
+      "desc": "Bosma va nashr sanoatining shunchaki qo'shimcha matn. Lorem Ipsum sanoat standart qo'shimcha matn bo'lishdan to'xtagan, 1500-yillardan beri noma'lum bosmaxonachi galleyni olganida."
+    },
+    "offer": {
+      "subtitle": "Biz haqimizda",
+      "title": "Siz uchun nimalar taklif etamiz"
+    }
+  },
+  "contact": {
+    "title": "Bog'lanish",
+    "subtitle": "Qanday hamkorlik qilishimiz mumkinligi haqida gaplashishni xohlaymiz.",
+    "desc": "Bosma va nashr sanoatining shunchaki qo'shimcha matn. Lorem Ipsum sanoat standart qo'shimcha matn bo'lishdan to'xtagan, 1500-yillardan beri noma'lum bosmaxonachi galleyni olganida.",
+    "message": "Xabar",
+    "phone": "Telefon",
+    "location": {
+      "title": "Joylashuv",
+      "subtitle": "Bizning fermerlar",
+      "desc": "Belgilangan haqiqat shundaki, o'quvchi sahifaning o'qiladigan mazmuni bilan chalg'iydi.",
+      "ny": "Nyu-York, AQSh:",
+      "nyAddr": "299 Park Avenue New York, New York 10171",
+      "london": "London, Buyuk Britaniya",
+      "londonAddr": "30 Stamford Street, London SE1 9LQ"
+    },
+    "form": {
+      "fullName": "To'liq ism*",
+      "namePlaceholder": "Ismingiz",
+      "email": "Email*",
+      "emailPlaceholder": "misol@email.com",
+      "company": "Kompaniya*",
+      "companyPlaceholder": "Kompaniya nomingiz",
+      "subject": "Mavzu*",
+      "subjectPlaceholder": "Qanday yordam berishimiz mumkin",
+      "message": "Xabar*",
+      "messagePlaceholder": "Salom, men... haqida gaplashmoqchiman",
+      "sendBtn": "Xabar yuborish"
+    }
+  },
+  "blog": {
+    "title": "So'nggi Yangiliklar",
+    "readMore": "Ko'proq o'qish"
+  },
+  "team": {
+    "title": "Jamoa",
+    "subtitle": "Bizning Organik Mutaxassislar",
+    "desc": "Bosma va nashr sanoatining shunchaki qo'shimcha matn. Lorem Ipsum sanoat standart qo'shimcha matn bo'lishdan to'xtagan, 1500-yillardan beri noma'lum bosmaxonachi galleyni olganida.",
+    "fermer": "Fermer",
+    "designer": "Dizayner"
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "subtitle": "Portfolio Standarti"
+  },
+  "service": {
+    "title": "Xizmatlar",
+    "whatWeGrow": "Biz nima o'stiramiz",
+    "subtitle": "Kelajak uchun yaxshiroq qishloq xo'jaligi",
+    "videoSubtitle": "Faqat Organik",
+    "videoTitle": "Har kuni yangi va toza",
+    "videoDesc": "Bosma va nashr sanoatining shunchaki qo'shimcha matn. Lorem Ipsum sanoat standart qo'shimcha matn bo'lishdan to'xtagan, 1500-yillardan beri."
+  },
+  "auth": {
+    "login": "Kirish",
+    "register": "Ro'yxatdan o'tish",
+    "email": "Email",
+    "password": "Parol",
+    "confirmPassword": "Parolni tasdiqlang",
+    "phone": "Telefon raqam",
+    "phonePlaceholder": "+998901234567",
+    "verificationCode": "Tasdiqlash kodi",
+    "sendCode": "Kod yuborish",
+    "verify": "Tasdiqlash",
+    "googleLogin": "Google orqali kirish",
+    "emailLogin": "Email orqali kirish",
+    "phoneLogin": "Telefon orqali kirish",
+    "noAccount": "Hisobingiz yo'qmi?",
+    "hasAccount": "Hisobingiz bormi?",
+    "forgotPassword": "Parolni unutdingizmi?",
+    "name": "Ism",
+    "or": "yoki",
+    "loginTitle": "Xush kelibsiz",
+    "loginSubtitle": "Hisobingizga kiring",
+    "registerTitle": "Hisob yarating",
+    "registerSubtitle": "Ro'yxatdan o'ting",
+    "emailPlaceholder": "email@example.com",
+    "passwordPlaceholder": "Parolingiz",
+    "namePlaceholder": "Ismingiz",
+    "errors": {
+      "emailRequired": "Email kiritish shart",
+      "passwordRequired": "Parol kiritish shart",
+      "passwordMin": "Parol kamida 6 ta belgidan iborat bo'lishi kerak",
+      "passwordMatch": "Parollar mos kelmaydi",
+      "phoneRequired": "Telefon raqami kiritish shart"
+    }
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "dashboard": "Boshqaruv paneli",
+    "products": "Mahsulotlar",
+    "blogs": "Bloglar",
+    "users": "Foydalanuvchilar",
+    "settings": "Sozlamalar",
+    "pages": "Sahifalar",
+    "addProduct": "Mahsulot qo'shish",
+    "editProduct": "Mahsulotni tahrirlash",
+    "deleteProduct": "O'chirish",
+    "addBlog": "Blog qo'shish",
+    "editBlog": "Blogni tahrirlash",
+    "deleteBlog": "O'chirish",
+    "productName": "Mahsulot nomi",
+    "productCategory": "Kategoriya",
+    "productPrice": "Yangi narx",
+    "productOldPrice": "Eski narx (chegirma uchun)",
+    "productImage": "Rasm URL",
+    "productRating": "Reyting",
+    "productDesc": "Tavsif",
+    "blogTitle": "Blog sarlavhasi",
+    "blogContent": "Blog mazmuni",
+    "blogDate": "Sana",
+    "blogAuthor": "Muallif",
+    "blogImage": "Rasm URL",
+    "totalProducts": "Jami mahsulotlar",
+    "totalBlogs": "Jami bloglar",
+    "totalUsers": "Jami foydalanuvchilar",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "confirmDelete": "Haqiqatan ham o'chirmoqchimisiz?",
+    "yes": "Ha",
+    "no": "Yo'q",
+    "accessDenied": "Ruxsat yo'q",
+    "accessDeniedDesc": "Bu sahifaga faqat adminlar kirishi mumkin.",
+    "notAdmin": "Siz admin emassiz",
+    "actions": "Amallar",
+    "name": "Nom",
+    "category": "Kategoriya",
+    "price": "Narx",
+    "edit": "Tahrirlash"
+  },
+  "footer": {
+    "newsletter": "Yangiliklar xabariga obuna bo'ling",
+    "emailPlaceholder": "Email manzilingiz",
+    "subscribe": "Obuna bo'lish",
+    "contactUs": "Bog'lanish",
+    "email": "Email",
+    "phone": "Telefon",
+    "address": "Manzil",
+    "utilityPages": "Yordamchi sahifalar",
+    "styleGuide": "Uslub qo'llanmasi",
+    "notFound": "404 Topilmadi",
+    "password": "Parol himoyasi",
+    "licences": "Litsenziyalar",
+    "changelog": "O'zgarishlar jurnali",
+    "copyright": "Mualliflik huquqi © Organick | VictorFlow Templates tomonidan yaratilgan",
+    "description": "Bosma va nashr sanoatining shunchaki qo'shimcha matn. Lorem Ipsum bosma."
+  },
+  "notFound": {
+    "subtitle": "Sahifa topilmadi",
+    "desc": "Siz qidirgan sahifa mavjud emas yoki ko'chirilgan",
+    "backHome": "Bosh sahifaga qaytish"
+  }
+}
