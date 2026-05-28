@@ -1,0 +1,310 @@
+{
+  "nav": {
+    "home": "Главная",
+    "about": "О нас",
+    "shop": "Магазин",
+    "service": "Сервис",
+    "contact": "Контакты",
+    "blog": "Блог",
+    "team": "Команда",
+    "portfolio": "Портфолио",
+    "search": "Поиск...",
+    "cart": "Корзина",
+    "login": "Войти",
+    "logout": "Выйти",
+    "admin": "Админ",
+    "profile": "Профиль"
+  },
+  "home": {
+    "hero": {
+      "subtitle": "100% Натуральная еда",
+      "title": "Выберите лучший здоровый образ жизни",
+      "exploreBtn": "Исследовать"
+    },
+    "cards": {
+      "natural": "Натуральное!!",
+      "freshFruits": "Свежие фрукты из сада",
+      "offer": "Предложение!!",
+      "discount": "Скидка 10% на овощи"
+    },
+    "aboutUs": {
+      "subtitle": "О нас",
+      "title": "Мы верим в работу с аккредитованными фермерами",
+      "description": "Просто фиктивный текст печатной и наборной промышленности. Lorem Ipsum перестал быть стандартным фиктивным текстом с 1500-х годов.",
+      "veganFood": {
+        "title": "Веганская еда",
+        "desc": "Мы предоставляем органическую веганскую еду."
+      },
+      "quality": {
+        "title": "Стандарты качества",
+        "desc": "Мы обеспечиваем высочайшие стандарты качества в нашей продукции."
+      },
+      "shopBtn": "Купить сейчас"
+    },
+    "categories": {
+      "title": "Категории",
+      "ourProducts": "Наши продукты",
+      "loadMore": "Загрузить ещё"
+    },
+    "testimonials": {
+      "title": "Отзывы",
+      "subtitle": "Что говорят наши клиенты?",
+      "organic": "Органический",
+      "activeProduct": "Активные продукты",
+      "organicOrchards": "Органические сады",
+      "yearsOfFarming": "Лет фермерства"
+    },
+    "offer": {
+      "title": "Предложение",
+      "subtitle": "Мы предлагаем органику для вас",
+      "loadMore": "Загрузить ещё"
+    },
+    "ecoFriendly": {
+      "subtitle": "Экологичный",
+      "title": "Econis — дружественный органический магазин",
+      "step1Title": "Начните с нашей компании",
+      "step1Desc": "Sed ut perspiciatis unde omnis iste natus error sit voluptat accusantium doloremque laudantium.",
+      "step2Title": "Научитесь расти самостоятельно",
+      "step2Desc": "Sed ut perspiciatis unde omnis iste natus error sit voluptat accusantium doloremque laudantium.",
+      "step3Title": "Стратегии современного фермерства",
+      "step3Desc": "Sed ut perspiciatis unde omnis iste natus error sit voluptat accusantium doloremque laudantium."
+    },
+    "news": {
+      "subtitle": "Новости",
+      "title": "Открывайте еженедельный контент об органической еде и многом другом",
+      "moreNews": "Больше новостей",
+      "readMore": "Читать далее"
+    }
+  },
+  "shop": {
+    "title": "Магазин",
+    "allCategories": "Все категории",
+    "addToCart": "В корзину",
+    "noResults": "Товары не найдены",
+    "categories": {
+      "All": "Все",
+      "Vegetable": "Овощи",
+      "Fresh": "Свежее",
+      "Millets": "Зерно",
+      "Health": "Здоровье",
+      "Nuts": "Орехи",
+      "Spicy": "Острое",
+      "Fruits": "Фрукты"
+    }
+  },
+  "productDetail": {
+    "addToCart": "В корзину",
+    "quantity": "Количество",
+    "category": "Категория",
+    "price": "Цена",
+    "oldPrice": "Старая цена",
+    "rating": "Рейтинг",
+    "description": "Описание",
+    "reviews": "Отзывы",
+    "writeReview": "Написать отзыв",
+    "submitReview": "Отправить отзыв",
+    "relatedProducts": "Похожие товары",
+    "yourRating": "Ваш рейтинг",
+    "inStock": "В наличии",
+    "outOfStock": "Нет в наличии",
+    "backToShop": "Вернуться в магазин",
+    "defaultDesc": "Этот продукт изготовлен из лучших органических ингредиентов, выращенных природным путём без каких-либо химических добавок. Сертифицированный органический продукт для вашего здоровья."
+  },
+  "cart": {
+    "title": "Ваша корзина",
+    "empty": "Ваша корзина пуста",
+    "emptyDesc": "Перейдите в магазин, чтобы начать покупки",
+    "total": "Итого",
+    "checkout": "Оформить заказ",
+    "remove": "Удалить",
+    "continueShopping": "Продолжить покупки",
+    "quantity": "Количество",
+    "subtotal": "Подытог",
+    "shipping": "Доставка",
+    "free": "Бесплатно",
+    "orderSummary": "Сводка заказа",
+    "item": "товар",
+    "items": "товаров"
+  },
+  "about": {
+    "title": "О нас",
+    "subtitle": "Мы делаем творческие вещи для успеха",
+    "description": "Просто фиктивный текст печатной и наборной промышленности.",
+    "equipment": "Современное сельскохозяйственное оборудование",
+    "noHormones": "Гормоны роста не используются",
+    "exploreBtn": "Узнать больше",
+    "whyUs": {
+      "title": "Почему выбирают нас?",
+      "subtitle": "Мы не покупаем на открытом рынке у торговцев.",
+      "desc": "Просто фиктивный текст печатной и наборной промышленности.",
+      "returnPolicy": "Политика возврата",
+      "returnDesc": "Просто фиктивный текст печатной и наборной промышленности.",
+      "fresh": "100% Свежее",
+      "freshDesc": "Просто фиктивный текст печатной и наборной промышленности.",
+      "support": "Поддержка 24/7",
+      "supportDesc": "Просто фиктивный текст печатной и наборной промышленности.",
+      "secured": "Защищённая политика",
+      "securedDesc": "Просто фиктивный текст печатной и наборной промышленности."
+    },
+    "team": {
+      "subtitle": "Команда",
+      "title": "Наши органические эксперты",
+      "desc": "Просто фиктивный текст печатной и наборной промышленности."
+    },
+    "offer": {
+      "subtitle": "О нас",
+      "title": "Что мы предлагаем для вас"
+    }
+  },
+  "contact": {
+    "title": "Связаться с нами",
+    "subtitle": "Мы хотели бы поговорить о том, как мы можем работать вместе.",
+    "desc": "Просто фиктивный текст печатной и наборной промышленности.",
+    "message": "Сообщение",
+    "phone": "Контакт",
+    "location": {
+      "title": "Местоположение",
+      "subtitle": "Наши фермы",
+      "desc": "Установленный факт, что читатель отвлекается на читаемое содержимое страницы.",
+      "ny": "Нью-Йорк, США:",
+      "nyAddr": "299 Park Avenue New York, New York 10171",
+      "london": "Лондон, Великобритания",
+      "londonAddr": "30 Stamford Street, London SE1 9LQ"
+    },
+    "form": {
+      "fullName": "Полное имя*",
+      "namePlaceholder": "Ваше имя",
+      "email": "Email*",
+      "emailPlaceholder": "example@mail.com",
+      "company": "Компания*",
+      "companyPlaceholder": "Название компании",
+      "subject": "Тема*",
+      "subjectPlaceholder": "Как мы можем помочь",
+      "message": "Сообщение*",
+      "messagePlaceholder": "Здравствуйте, я хотел бы поговорить о...",
+      "sendBtn": "Отправить сообщение"
+    }
+  },
+  "blog": {
+    "title": "Последние новости",
+    "readMore": "Читать далее"
+  },
+  "team": {
+    "title": "Команда",
+    "subtitle": "Наши органические эксперты",
+    "desc": "Просто фиктивный текст печатной и наборной промышленности.",
+    "fermer": "Фермер",
+    "designer": "Дизайнер"
+  },
+  "portfolio": {
+    "title": "Портфолио",
+    "subtitle": "Стандарт портфолио"
+  },
+  "service": {
+    "title": "Услуги",
+    "whatWeGrow": "Что мы выращиваем",
+    "subtitle": "Лучшее сельское хозяйство для лучшего будущего",
+    "videoSubtitle": "Только органическое",
+    "videoTitle": "Каждый день свежее и чистое",
+    "videoDesc": "Просто фиктивный текст печатной и наборной промышленности."
+  },
+  "auth": {
+    "login": "Войти",
+    "register": "Регистрация",
+    "email": "Email",
+    "password": "Пароль",
+    "confirmPassword": "Подтвердите пароль",
+    "phone": "Номер телефона",
+    "phonePlaceholder": "+79001234567",
+    "verificationCode": "Код подтверждения",
+    "sendCode": "Отправить код",
+    "verify": "Подтвердить",
+    "googleLogin": "Войти через Google",
+    "emailLogin": "Войти через Email",
+    "phoneLogin": "Войти через телефон",
+    "noAccount": "Нет аккаунта?",
+    "hasAccount": "Уже есть аккаунт?",
+    "forgotPassword": "Забыли пароль?",
+    "name": "Полное имя",
+    "or": "или",
+    "loginTitle": "Добро пожаловать",
+    "loginSubtitle": "Войдите в свой аккаунт",
+    "registerTitle": "Создать аккаунт",
+    "registerSubtitle": "Зарегистрируйтесь, чтобы начать",
+    "emailPlaceholder": "email@example.com",
+    "passwordPlaceholder": "Ваш пароль",
+    "namePlaceholder": "Ваше имя",
+    "errors": {
+      "emailRequired": "Email обязателен",
+      "passwordRequired": "Пароль обязателен",
+      "passwordMin": "Пароль должен быть не менее 6 символов",
+      "passwordMatch": "Пароли не совпадают",
+      "phoneRequired": "Номер телефона обязателен"
+    }
+  },
+  "admin": {
+    "title": "Панель администратора",
+    "dashboard": "Панель управления",
+    "products": "Товары",
+    "blogs": "Блоги",
+    "users": "Пользователи",
+    "settings": "Настройки",
+    "pages": "Страницы",
+    "addProduct": "Добавить товар",
+    "editProduct": "Редактировать товар",
+    "deleteProduct": "Удалить",
+    "addBlog": "Добавить блог",
+    "editBlog": "Редактировать блог",
+    "deleteBlog": "Удалить",
+    "productName": "Название товара",
+    "productCategory": "Категория",
+    "productPrice": "Новая цена",
+    "productOldPrice": "Старая цена (для скидки)",
+    "productImage": "URL изображения",
+    "productRating": "Рейтинг",
+    "productDesc": "Описание",
+    "blogTitle": "Заголовок блога",
+    "blogContent": "Содержание блога",
+    "blogDate": "Дата",
+    "blogAuthor": "Автор",
+    "blogImage": "URL изображения",
+    "totalProducts": "Всего товаров",
+    "totalBlogs": "Всего блогов",
+    "totalUsers": "Всего пользователей",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "confirmDelete": "Вы уверены, что хотите удалить?",
+    "yes": "Да",
+    "no": "Нет",
+    "accessDenied": "Доступ запрещён",
+    "accessDeniedDesc": "Только администраторы могут получить доступ к этой странице.",
+    "notAdmin": "Вы не являетесь администратором",
+    "actions": "Действия",
+    "name": "Название",
+    "category": "Категория",
+    "price": "Цена",
+    "edit": "Редактировать"
+  },
+  "footer": {
+    "newsletter": "Подпишитесь на нашу рассылку",
+    "emailPlaceholder": "Ваш email адрес",
+    "subscribe": "Подписаться",
+    "contactUs": "Связаться с нами",
+    "email": "Email",
+    "phone": "Телефон",
+    "address": "Адрес",
+    "utilityPages": "Служебные страницы",
+    "styleGuide": "Руководство по стилю",
+    "notFound": "404 Не найдено",
+    "password": "Защита паролем",
+    "licences": "Лицензии",
+    "changelog": "Журнал изменений",
+    "copyright": "Авторские права © Organick | Разработано VictorFlow Templates",
+    "description": "Просто фиктивный текст печатной и наборной промышленности. Lorem Ipsum просто фиктивный текст."
+  },
+  "notFound": {
+    "subtitle": "Страница не найдена",
+    "desc": "Страница, которую вы ищете, не существует или была перемещена",
+    "backHome": "На главную"
+  }
+}

@@ -1,0 +1,310 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "shop": "Shop",
+    "service": "Service",
+    "contact": "Contact",
+    "blog": "Blog",
+    "team": "Team",
+    "portfolio": "Portfolio",
+    "search": "Search...",
+    "cart": "Cart",
+    "login": "Login",
+    "logout": "Logout",
+    "admin": "Admin",
+    "profile": "Profile"
+  },
+  "home": {
+    "hero": {
+      "subtitle": "100% Natural Food",
+      "title": "Choose the best healthier way of life",
+      "exploreBtn": "Explore Now"
+    },
+    "cards": {
+      "natural": "Natural!!",
+      "freshFruits": "Get Garden Fresh Fruits",
+      "offer": "Offer!!",
+      "discount": "Get 10% off on Vegetables"
+    },
+    "aboutUs": {
+      "subtitle": "About Us",
+      "title": "We Believe in Working Accredited Farmers",
+      "description": "Simply dummy text of the printing and typesetting industry. Lorem had ceased to been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley.",
+      "veganFood": {
+        "title": "Vegan Food",
+        "desc": "We provide organic vegan food. Lorem, ipsum dolor sit."
+      },
+      "quality": {
+        "title": "Quality Standards",
+        "desc": "We ensure the highest quality standards in our products."
+      },
+      "shopBtn": "Shop Now"
+    },
+    "categories": {
+      "title": "Categories",
+      "ourProducts": "Our Products",
+      "loadMore": "Load More"
+    },
+    "testimonials": {
+      "title": "Testimonials",
+      "subtitle": "What Our Customer Saying?",
+      "organic": "Organic",
+      "activeProduct": "Active Product",
+      "organicOrchards": "Organic Orchards",
+      "yearsOfFarming": "Years of Farming"
+    },
+    "offer": {
+      "title": "Offer",
+      "subtitle": "We Offer Organic For You",
+      "loadMore": "Load More"
+    },
+    "ecoFriendly": {
+      "subtitle": "Eco Friendly",
+      "title": "Econis is a Friendly Organic Store",
+      "step1Title": "Start with Our Company First",
+      "step1Desc": "Sed ut perspiciatis unde omnis iste natus error sit voluptat accusantium doloremque laudantium.",
+      "step2Title": "Learn How to Grow Yourself",
+      "step2Desc": "Sed ut perspiciatis unde omnis iste natus error sit voluptat accusantium doloremque laudantium.",
+      "step3Title": "Farming Strategies of Today",
+      "step3Desc": "Sed ut perspiciatis unde omnis iste natus error sit voluptat accusantium doloremque laudantium."
+    },
+    "news": {
+      "subtitle": "News",
+      "title": "Discover weekly content about organic food, & more",
+      "moreNews": "More News",
+      "readMore": "Read More"
+    }
+  },
+  "shop": {
+    "title": "Shop",
+    "allCategories": "All Categories",
+    "addToCart": "Add to Cart",
+    "noResults": "No products found",
+    "categories": {
+      "All": "All",
+      "Vegetable": "Vegetable",
+      "Fresh": "Fresh",
+      "Millets": "Millets",
+      "Health": "Health",
+      "Nuts": "Nuts",
+      "Spicy": "Spicy",
+      "Fruits": "Fruits"
+    }
+  },
+  "productDetail": {
+    "addToCart": "Add to Cart",
+    "quantity": "Quantity",
+    "category": "Category",
+    "price": "Price",
+    "oldPrice": "Old Price",
+    "rating": "Rating",
+    "description": "Description",
+    "reviews": "Reviews",
+    "writeReview": "Write a Review",
+    "submitReview": "Submit Review",
+    "relatedProducts": "Related Products",
+    "yourRating": "Your Rating",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "backToShop": "Back to Shop",
+    "defaultDesc": "This product is made from the finest organic ingredients, grown naturally without any chemical additives. Certified organic and sustainably sourced for your health and wellbeing."
+  },
+  "cart": {
+    "title": "Your Cart",
+    "empty": "Your cart is empty",
+    "emptyDesc": "Go to the shop to start shopping",
+    "total": "Total",
+    "checkout": "Checkout",
+    "remove": "Remove",
+    "continueShopping": "Continue Shopping",
+    "quantity": "Quantity",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "free": "Free",
+    "orderSummary": "Order Summary",
+    "item": "item",
+    "items": "items"
+  },
+  "about": {
+    "title": "About Us",
+    "subtitle": "We do Creative Things for Success",
+    "description": "Simply dummy text of the printing and typesetting industry. Lorem had ceased to been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley.",
+    "equipment": "Modern Agriculture Equipment",
+    "noHormones": "No growth hormones are used",
+    "exploreBtn": "Explore More",
+    "whyUs": {
+      "title": "Why Choose us?",
+      "subtitle": "We do not buy from the open market & traders.",
+      "desc": "Simply dummy text of the printing and typesetting industry. Lorem had ceased to been the industry's standard the 1500s, when an unknown.",
+      "returnPolicy": "Return Policy",
+      "returnDesc": "Simply dummy text of the printing and typesetting industry.",
+      "fresh": "100% Fresh",
+      "freshDesc": "Simply dummy text of the printing and typesetting industry.",
+      "support": "Support 24/7",
+      "supportDesc": "Simply dummy text of the printing and typesetting industry.",
+      "secured": "Secured Policy",
+      "securedDesc": "Simply dummy text of the printing and typesetting industry."
+    },
+    "team": {
+      "subtitle": "Team",
+      "title": "Our Organic Experts",
+      "desc": "Simply dummy text of the printing and typesetting industry. Lorem had ceased to been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley."
+    },
+    "offer": {
+      "subtitle": "About Us",
+      "title": "What We Offer for You"
+    }
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "We'd love to talk about how we can work together.",
+    "desc": "Simply dummy text of the printing and typesetting industry. Lorem had ceased to been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley.",
+    "message": "Message",
+    "phone": "Contact",
+    "location": {
+      "title": "Location",
+      "subtitle": "Our Farms",
+      "desc": "Established fact that a reader will be distracted by the readable content of a page when looking a layout.",
+      "ny": "New York, USA:",
+      "nyAddr": "299 Park Avenue New York, New York 10171",
+      "london": "London, UK",
+      "londonAddr": "30 Stamford Street, London SE1 9LQ"
+    },
+    "form": {
+      "fullName": "Full Name*",
+      "namePlaceholder": "Your Name",
+      "email": "Your Email*",
+      "emailPlaceholder": "example@yourmail.com",
+      "company": "Company*",
+      "companyPlaceholder": "Your company name",
+      "subject": "Subject*",
+      "subjectPlaceholder": "How can we help",
+      "message": "Message*",
+      "messagePlaceholder": "Hello there, I would like to talk about...",
+      "sendBtn": "Send Message"
+    }
+  },
+  "blog": {
+    "title": "Recent News",
+    "readMore": "Read More"
+  },
+  "team": {
+    "title": "Team",
+    "subtitle": "Our Organic Experts",
+    "desc": "Simply dummy text of the printing and typesetting industry. Lorem had ceased to been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley.",
+    "fermer": "Farmer",
+    "designer": "Designer"
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "subtitle": "Portfolio Standard"
+  },
+  "service": {
+    "title": "Services",
+    "whatWeGrow": "What we Grow",
+    "subtitle": "Better Agriculture for Better Future",
+    "videoSubtitle": "Organic Only",
+    "videoTitle": "Everyday Fresh & Clean",
+    "videoDesc": "Simply dummy text of the printing and typesetting industry. Lorem had ceased to been the industry's standard dummy text ever since the 1500s."
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "phone": "Phone Number",
+    "phonePlaceholder": "+1234567890",
+    "verificationCode": "Verification Code",
+    "sendCode": "Send Code",
+    "verify": "Verify",
+    "googleLogin": "Continue with Google",
+    "emailLogin": "Continue with Email",
+    "phoneLogin": "Continue with Phone",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "forgotPassword": "Forgot password?",
+    "name": "Full Name",
+    "or": "or",
+    "loginTitle": "Welcome Back",
+    "loginSubtitle": "Sign in to your account",
+    "registerTitle": "Create Account",
+    "registerSubtitle": "Sign up to get started",
+    "emailPlaceholder": "email@example.com",
+    "passwordPlaceholder": "Your password",
+    "namePlaceholder": "Your name",
+    "errors": {
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 6 characters",
+      "passwordMatch": "Passwords do not match",
+      "phoneRequired": "Phone number is required"
+    }
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "blogs": "Blogs",
+    "users": "Users",
+    "settings": "Settings",
+    "pages": "Pages",
+    "addProduct": "Add Product",
+    "editProduct": "Edit Product",
+    "deleteProduct": "Delete",
+    "addBlog": "Add Blog",
+    "editBlog": "Edit Blog",
+    "deleteBlog": "Delete",
+    "productName": "Product Name",
+    "productCategory": "Category",
+    "productPrice": "New Price",
+    "productOldPrice": "Old Price (for discount)",
+    "productImage": "Image URL",
+    "productRating": "Rating",
+    "productDesc": "Description",
+    "blogTitle": "Blog Title",
+    "blogContent": "Blog Content",
+    "blogDate": "Date",
+    "blogAuthor": "Author",
+    "blogImage": "Image URL",
+    "totalProducts": "Total Products",
+    "totalBlogs": "Total Blogs",
+    "totalUsers": "Total Users",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirmDelete": "Are you sure you want to delete?",
+    "yes": "Yes",
+    "no": "No",
+    "accessDenied": "Access Denied",
+    "accessDeniedDesc": "Only admins can access this page.",
+    "notAdmin": "You are not an admin",
+    "actions": "Actions",
+    "name": "Name",
+    "category": "Category",
+    "price": "Price",
+    "edit": "Edit"
+  },
+  "footer": {
+    "newsletter": "Subscribe to our Newsletter",
+    "emailPlaceholder": "Your email address",
+    "subscribe": "Subscribe",
+    "contactUs": "Contact Us",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "utilityPages": "Utility Pages",
+    "styleGuide": "Style Guide",
+    "notFound": "404 Not Found",
+    "password": "Password Protected",
+    "licences": "Licences",
+    "changelog": "Changelog",
+    "copyright": "Copyright © Organick | Designed by VictorFlow Templates",
+    "description": "Simply dummy text of the printing and typesetting industry. Lorem Ipsum simply dummy text of the printing."
+  },
+  "notFound": {
+    "subtitle": "Page Not Found",
+    "desc": "The page you are looking for doesn't exist or has been moved",
+    "backHome": "Go to Homepage"
+  }
+}
