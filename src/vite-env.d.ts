@@ -25,6 +25,8 @@ interface ImportMetaEnv {
   readonly VITE_TELEGRAM_BOT_TOKEN: string
   readonly VITE_TELEGRAM_GROUP_ID: string
   readonly VITE_TELEGRAM_THREAD_ID: string
+  readonly VITE_TELEGRAM_THREAD_ID_CONTACT: string
+  readonly VITE_TELEGRAM_THREAD_ID_ORDERS: string
   readonly VITE_FIREBASE_API_KEY: string
   readonly VITE_FIREBASE_AUTH_DOMAIN: string
   readonly VITE_FIREBASE_PROJECT_ID: string

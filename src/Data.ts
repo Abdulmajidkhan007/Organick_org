@@ -43,7 +43,10 @@ import blog6 from "./assets/blog/blog6.png"
 const loadProducts = (): Product[] => {
   try {
     const saved = localStorage.getItem('organick_products')
-    if (saved) return JSON.parse(saved)
+    if (saved) {
+      const products = JSON.parse(saved) as Product[]
+      return products.map(p => ({ ...p, stock: p.stock ?? 50 }))
+    }
   } catch { /* empty */ }
   return defaultProducts
 }
@@ -57,26 +60,26 @@ const loadBlogs = (): BlogPost[] => {
 }
 
 const defaultProducts: Product[] = [
-  { id: 1, category: "Vegetable", img: img1, name: "Calabrese Broccoli", oldPrice: 20, price: 13, rating: 5, description: "Fresh organic calabrese broccoli, rich in vitamins and minerals. Perfect for healthy meals." },
-  { id: 2, category: "Fresh", img: img2, name: "Fresh Banana Fruites", oldPrice: 20, price: 14, rating: 5, description: "Naturally ripened organic bananas, sweet and nutritious." },
-  { id: 3, category: "Millets", img: img3, name: "White Nuts", oldPrice: 20, price: 15, rating: 5, description: "Premium quality white nuts, packed with healthy fats and proteins." },
-  { id: 4, category: "Vegetable", img: img4, name: "Vegan Red Tomato", oldPrice: 20, price: 17, rating: 5, description: "Fresh organic red tomatoes, perfect for salads and cooking." },
-  { id: 5, category: "Health", img: img5, name: "Mung Bean", oldPrice: 20, price: 11, rating: 5, description: "Organic mung beans, high in protein and fiber for a healthy diet." },
-  { id: 6, category: "Nuts", img: img6, name: "Brown Hazelnut", oldPrice: 20, price: 12, rating: 5, description: "Premium organic brown hazelnuts, rich in vitamin E and healthy fats." },
-  { id: 7, category: "Fresh", img: img7, name: "Eggs", oldPrice: 20, price: 17, rating: 5, description: "Farm-fresh organic eggs from free-range chickens." },
-  { id: 8, category: "Fresh", img: img8, name: "Zelco Suji Elaichi Rusk", oldPrice: 20, price: 15, rating: 5, description: "Delicious organic rusk with cardamom flavor." },
-  { id: 9, category: "Health", img: img9, name: "Cucumber", oldPrice: 20, price: 11, rating: 5, description: "Fresh organic cucumbers, hydrating and full of nutrients." },
-  { id: 10, category: "Nuts", img: img10, name: "White Hazelnut", oldPrice: 20, price: 12, rating: 5, description: "Creamy white hazelnuts, perfect for snacking and baking." },
-  { id: 11, category: "Fresh", img: img11, name: "Fresh Corn", oldPrice: 20, price: 17, rating: 5, description: "Sweet organic corn, harvested at peak freshness." },
-  { id: 12, category: "Fresh", img: img12, name: "Organic Almonds", oldPrice: 20, price: 15, rating: 5, description: "Raw organic almonds, a powerhouse of nutrition." },
-  { id: 13, category: "Vegetable", img: img13, name: "Cauliflower", oldPrice: 20, price: 11, rating: 5, description: "Fresh organic cauliflower, versatile and nutritious." },
-  { id: 14, category: "Vegetable", img: img14, name: "Cucumber", oldPrice: 20, price: 12, rating: 5, description: "Crisp organic cucumbers, freshly harvested." },
-  { id: 15, category: "Vegetable", img: img15, name: "Onion", oldPrice: 20, price: 17, rating: 5, description: "Organic onions, a kitchen staple full of antioxidants." },
-  { id: 16, category: "Vegetable", img: img16, name: "Cabbage", oldPrice: 20, price: 17, rating: 5, description: "Fresh organic cabbage, packed with vitamins C and K." },
-  { id: 17, category: "Spicy", img: img17, name: "Spicy Food Mix", oldPrice: 20, price: 15, rating: 5, description: "Organic spicy food mix for bold flavors." },
-  { id: 18, category: "Nuts & Seeds", img: img18, name: "Mixed Seeds", oldPrice: 20, price: 15, rating: 5, description: "Organic mixed seeds blend, perfect for salads and smoothies." },
-  { id: 19, category: "Fruits", img: img19, name: "Pomegranate", oldPrice: 20, price: 15, rating: 5, description: "Juicy organic pomegranates, rich in antioxidants." },
-  { id: 20, category: "Vegetable", img: img20, name: "Potato", oldPrice: 20, price: 15, rating: 5, description: "Farm-fresh organic potatoes, versatile and filling." },
+  { id: 1, category: "Vegetable", img: img1, name: "Calabrese Broccoli", oldPrice: 20, price: 13, rating: 5, stock: 50, description: "Fresh organic calabrese broccoli, rich in vitamins and minerals. Perfect for healthy meals." },
+  { id: 2, category: "Fresh", img: img2, name: "Fresh Banana Fruites", oldPrice: 20, price: 14, rating: 5, stock: 45, description: "Naturally ripened organic bananas, sweet and nutritious." },
+  { id: 3, category: "Millets", img: img3, name: "White Nuts", oldPrice: 20, price: 15, rating: 5, stock: 60, description: "Premium quality white nuts, packed with healthy fats and proteins." },
+  { id: 4, category: "Vegetable", img: img4, name: "Vegan Red Tomato", oldPrice: 20, price: 17, rating: 5, stock: 40, description: "Fresh organic red tomatoes, perfect for salads and cooking." },
+  { id: 5, category: "Health", img: img5, name: "Mung Bean", oldPrice: 20, price: 11, rating: 5, stock: 80, description: "Organic mung beans, high in protein and fiber for a healthy diet." },
+  { id: 6, category: "Nuts", img: img6, name: "Brown Hazelnut", oldPrice: 20, price: 12, rating: 5, stock: 55, description: "Premium organic brown hazelnuts, rich in vitamin E and healthy fats." },
+  { id: 7, category: "Fresh", img: img7, name: "Eggs", oldPrice: 20, price: 17, rating: 5, stock: 30, description: "Farm-fresh organic eggs from free-range chickens." },
+  { id: 8, category: "Fresh", img: img8, name: "Zelco Suji Elaichi Rusk", oldPrice: 20, price: 15, rating: 5, stock: 70, description: "Delicious organic rusk with cardamom flavor." },
+  { id: 9, category: "Health", img: img9, name: "Cucumber", oldPrice: 20, price: 11, rating: 5, stock: 90, description: "Fresh organic cucumbers, hydrating and full of nutrients." },
+  { id: 10, category: "Nuts", img: img10, name: "White Hazelnut", oldPrice: 20, price: 12, rating: 5, stock: 65, description: "Creamy white hazelnuts, perfect for snacking and baking." },
+  { id: 11, category: "Fresh", img: img11, name: "Fresh Corn", oldPrice: 20, price: 17, rating: 5, stock: 35, description: "Sweet organic corn, harvested at peak freshness." },
+  { id: 12, category: "Fresh", img: img12, name: "Organic Almonds", oldPrice: 20, price: 15, rating: 5, stock: 75, description: "Raw organic almonds, a powerhouse of nutrition." },
+  { id: 13, category: "Vegetable", img: img13, name: "Cauliflower", oldPrice: 20, price: 11, rating: 5, stock: 42, description: "Fresh organic cauliflower, versatile and nutritious." },
+  { id: 14, category: "Vegetable", img: img14, name: "Cucumber", oldPrice: 20, price: 12, rating: 5, stock: 88, description: "Crisp organic cucumbers, freshly harvested." },
+  { id: 15, category: "Vegetable", img: img15, name: "Onion", oldPrice: 20, price: 17, rating: 5, stock: 100, description: "Organic onions, a kitchen staple full of antioxidants." },
+  { id: 16, category: "Vegetable", img: img16, name: "Cabbage", oldPrice: 20, price: 17, rating: 5, stock: 38, description: "Fresh organic cabbage, packed with vitamins C and K." },
+  { id: 17, category: "Spicy", img: img17, name: "Spicy Food Mix", oldPrice: 20, price: 15, rating: 5, stock: 25, description: "Organic spicy food mix for bold flavors." },
+  { id: 18, category: "Nuts & Seeds", img: img18, name: "Mixed Seeds", oldPrice: 20, price: 15, rating: 5, stock: 60, description: "Organic mixed seeds blend, perfect for salads and smoothies." },
+  { id: 19, category: "Fruits", img: img19, name: "Pomegranate", oldPrice: 20, price: 15, rating: 5, stock: 20, description: "Juicy organic pomegranates, rich in antioxidants." },
+  { id: 20, category: "Vegetable", img: img20, name: "Potato", oldPrice: 20, price: 15, rating: 5, stock: 110, description: "Farm-fresh organic potatoes, versatile and filling." },
 ]
 
 const defaultBlogs: BlogPost[] = [
@@ -167,6 +170,13 @@ export const Data = createSlice({
       state.blogs = state.blogs.filter(b => b.id !== action.payload)
       localStorage.setItem('organick_blogs', JSON.stringify(state.blogs))
     },
+    decreaseStock(state, action: PayloadAction<{ productId: number; quantity: number }>) {
+      const product = state.products.find(p => p.id === action.payload.productId)
+      if (product) {
+        product.stock = Math.max(0, (product.stock ?? 50) - action.payload.quantity)
+        localStorage.setItem('organick_products', JSON.stringify(state.products))
+      }
+    },
   },
 })
 
@@ -179,4 +189,5 @@ export const {
   addBlog,
   updateBlog,
   deleteBlog,
+  decreaseStock,
 } = Data.actions

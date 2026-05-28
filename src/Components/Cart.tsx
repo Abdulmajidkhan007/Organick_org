@@ -128,7 +128,11 @@ export const Cart = () => {
                   </div>
                 </div>
 
-                <button className="w-full bg-[#274C5B] dark:bg-[#7EB693] text-white py-4 rounded-xl font-bold hover:opacity-90 transition-opacity">
+                <button
+                  onClick={() => navigate('/checkout')}
+                  className="w-full bg-[#274C5B] dark:bg-[#7EB693] text-white py-4 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                >
+                  <i className="fas fa-lock text-sm"></i>
                   {t('cart.checkout')}
                 </button>
 

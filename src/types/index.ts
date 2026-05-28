@@ -59,6 +59,32 @@ export interface AuthUser {
 
 export type Language = 'uz' | 'en' | 'ru'
 
+export interface OrderItem {
+  productId: number
+  productName: string
+  productImg: string
+  price: number
+  quantity: number
+}
+
+export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+
+export interface Order {
+  id: string
+  userId: string | null
+  userEmail: string | null
+  customerName: string
+  customerPhone: string
+  customerAddress: string
+  customerTelegram?: string
+  items: OrderItem[]
+  subtotal: number
+  total: number
+  status: OrderStatus
+  createdAt: string
+  adminNote?: string
+}
+
 export interface DataState {
   products: Product[]
   teams: TeamMember[]
@@ -85,9 +111,14 @@ export interface UIState {
   isMobileMenuOpen: boolean
 }
 
+export interface OrdersState {
+  orders: Order[]
+}
+
 export interface RootState {
   data: DataState
   cart: CartState
   auth: AuthState
   ui: UIState
+  orders: OrdersState
 }
