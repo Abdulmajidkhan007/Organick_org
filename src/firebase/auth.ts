@@ -36,4 +36,4 @@ export const sendPhoneOTP = (phone: string, recaptchaVerifier: RecaptchaVerifier
 
 export const signOutUser = () => signOut(auth)
 
-export const ADMIN_EMAILS = ['admin@organick.com']
+export const ADMIN_EMAILS = ['admin@organick.com', 'santexnika.atoyo@gmail.com']

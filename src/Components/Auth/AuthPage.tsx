@@ -69,10 +69,16 @@ export const AuthPage = () => {
       }
       navigate('/')
     } catch (e: any) {
-      const msg = e.code === 'auth/user-not-found' ? 'User not found' :
-                  e.code === 'auth/wrong-password' ? 'Wrong password' :
-                  e.code === 'auth/email-already-in-use' ? 'Email already in use' :
-                  e.message || 'Authentication failed'
+      const code = e.code || ''
+      const msg =
+        code === 'auth/user-not-found'       ? "Bu email bilan hisob topilmadi. Avval ro'yxatdan o'ting." :
+        code === 'auth/wrong-password'        ? "Parol noto'g'ri. Qaytadan urinib ko'ring." :
+        code === 'auth/invalid-credential'    ? "Email yoki parol noto'g'ri. Avval «Ro'yxatdan o'tish» tab ni bosing." :
+        code === 'auth/email-already-in-use'  ? "Bu email allaqachon ro'yxatdan o'tgan. Kirish sahifasini ishlating." :
+        code === 'auth/weak-password'         ? "Parol juda zaif. Kamida 6 ta belgi kiriting." :
+        code === 'auth/invalid-email'         ? "Email manzil noto'g'ri formatda." :
+        code === 'auth/too-many-requests'     ? "Juda ko'p urinish. Bir oz kuting." :
+        e.message || 'Xatolik yuz berdi'
       setError(msg)
     } finally {
       setLoading(false)
