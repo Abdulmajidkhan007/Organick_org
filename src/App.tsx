@@ -20,8 +20,10 @@ import { Blog } from './Components/Blog'
 import { Portfoilo } from './Components/Portfoilo'
 import { PortfoiloSingle } from './Components/PortfoiloSingle'
 import { Cart } from './Components/Cart'
+import { Checkout } from './Components/Checkout'
 import { AuthPage } from './Components/Auth/AuthPage'
 import { AdminDashboard } from './Components/Admin/Dashboard'
+import { UserDashboard } from './Components/UserDashboard'
 import { CartSidebar } from './Components/CartSidebar'
 
 const AppContent = () => {
@@ -63,8 +65,10 @@ const AppContent = () => {
         <Route path="/portfoilo" element={<Portfoilo />} />
         <Route path="/portfoilosingle" element={<PortfoiloSingle />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

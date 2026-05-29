@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 import './Fonts.css'
+import '@fortawesome/fontawesome-free/css/all.min.css'
 import './i18n/index'
 import { App } from './App'
 

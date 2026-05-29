@@ -13,7 +13,9 @@
     "login": "Войти",
     "logout": "Выйти",
     "admin": "Админ",
-    "profile": "Профиль"
+    "profile": "Профиль",
+    "orders": "Мои заказы",
+    "dashboard": "Мой кабинет"
   },
   "home": {
     "hero": {
@@ -182,8 +184,40 @@
       "subjectPlaceholder": "Как мы можем помочь",
       "message": "Сообщение*",
       "messagePlaceholder": "Здравствуйте, я хотел бы поговорить о...",
-      "sendBtn": "Отправить сообщение"
+      "sendBtn": "Отправить сообщение",
+      "success": "Сообщение отправлено!",
+      "error": "Ошибка отправки"
     }
+  },
+  "checkout": {
+    "title": "Оформление заказа",
+    "deliveryInfo": "Информация о доставке",
+    "name": "Полное имя",
+    "namePlaceholder": "Ваше полное имя",
+    "phone": "Телефон",
+    "address": "Адрес",
+    "addressPlaceholder": "Город, улица, номер дома",
+    "telegram": "Telegram username",
+    "optional": "необязательно",
+    "telegramHint": "Для получения обновлений о статусе заказа",
+    "placeOrder": "Оформить заказ",
+    "placing": "Оформляется...",
+    "secure": "Безопасная оплата",
+    "success": "Заказ успешно оформлен!",
+    "successDesc": "Мы свяжемся с вами в ближайшее время",
+    "orderId": "Номер заказа",
+    "telegramNote": "Вы получите уведомления о заказе в Telegram",
+    "viewOrders": "Мои заказы"
+  },
+  "dashboard": {
+    "myOrders": "Мои заказы",
+    "totalOrders": "Всего заказов",
+    "pending": "В ожидании",
+    "delivered": "Доставлено",
+    "totalSpent": "Потрачено",
+    "noOrders": "Заказов пока нет",
+    "shopNow": "В магазин",
+    "loginRequired": "Войдите, чтобы увидеть заказы"
   },
   "blog": {
     "title": "Последние новости",
@@ -283,7 +317,14 @@
     "name": "Название",
     "category": "Категория",
     "price": "Цена",
-    "edit": "Редактировать"
+    "edit": "Редактировать",
+    "orders": "Заказы",
+    "totalOrders": "Всего заказов",
+    "pendingOrders": "В ожидании",
+    "noOrders": "Заказов пока нет",
+    "recentOrders": "Последние заказы",
+    "viewAll": "Все",
+    "productStock": "Остаток"
   },
   "footer": {
     "newsletter": "Подпишитесь на нашу рассылку",

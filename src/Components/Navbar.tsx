@@ -137,10 +137,14 @@ export const Navbar = () => {
             {user ? (
               <div className="flex flex-col gap-2">
                 <p className="text-sm text-gray-500 px-4">{user.displayName || user.email}</p>
+                <button onClick={() => { navigate('/dashboard'); dispatch(closeMobileMenu()) }}
+                  className="w-full text-left px-4 py-3 rounded-lg font-semibold text-[#274C5B] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
+                  <i className="fas fa-list-alt"></i> {t('nav.orders')}
+                </button>
                 {user.isAdmin && (
                   <button onClick={() => { navigate('/admin'); dispatch(closeMobileMenu()) }}
-                    className="w-full text-left px-4 py-3 rounded-lg font-semibold text-[#274C5B] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
-                    {t('nav.admin')}
+                    className="w-full text-left px-4 py-3 rounded-lg font-semibold text-[#274C5B] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
+                    <i className="fas fa-cog"></i> {t('nav.admin')}
                   </button>
                 )}
                 <button onClick={handleLogout}
@@ -314,6 +318,10 @@ export const Navbar = () => {
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                       <p className="font-semibold text-sm text-[#274C5B] dark:text-white truncate">{user.displayName || user.email}</p>
                     </div>
+                    <button onClick={() => { navigate('/dashboard'); setShowUserMenu(false) }}
+                      className="w-full text-left px-4 py-3 text-sm text-[#274C5B] dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2">
+                      <i className="fas fa-list-alt"></i> {t('nav.orders')}
+                    </button>
                     {user.isAdmin && (
                       <button onClick={() => { navigate('/admin'); setShowUserMenu(false) }}
                         className="w-full text-left px-4 py-3 text-sm text-[#274C5B] dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2">

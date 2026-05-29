@@ -13,7 +13,9 @@
     "login": "Kirish",
     "logout": "Chiqish",
     "admin": "Admin",
-    "profile": "Profil"
+    "profile": "Profil",
+    "orders": "Buyurtmalarim",
+    "dashboard": "Mening sahifam"
   },
   "home": {
     "hero": {
@@ -156,6 +158,36 @@
       "title": "Siz uchun nimalar taklif etamiz"
     }
   },
+  "checkout": {
+    "title": "Buyurtma berish",
+    "deliveryInfo": "Yetkazib berish ma'lumotlari",
+    "name": "Ism",
+    "namePlaceholder": "To'liq ismingiz",
+    "phone": "Telefon",
+    "address": "Manzil",
+    "addressPlaceholder": "Shahar, ko'cha, uy raqami",
+    "telegram": "Telegram username",
+    "optional": "ixtiyoriy",
+    "telegramHint": "Buyurtma holati haqida xabar olish uchun",
+    "placeOrder": "Buyurtma berish",
+    "placing": "Yuborilmoqda...",
+    "secure": "Xavfsiz to'lov",
+    "success": "Buyurtmangiz qabul qilindi!",
+    "successDesc": "Tez orada siz bilan bog'lanamiz",
+    "orderId": "Buyurtma raqami",
+    "telegramNote": "Buyurtma holati haqida Telegram orqali xabar olasiz",
+    "viewOrders": "Buyurtmalarimni ko'rish"
+  },
+  "dashboard": {
+    "myOrders": "Mening buyurtmalarim",
+    "totalOrders": "Jami buyurtmalar",
+    "pending": "Kutilmoqda",
+    "delivered": "Yetkazildi",
+    "totalSpent": "Jami xarajat",
+    "noOrders": "Hali buyurtma yo'q",
+    "shopNow": "Xarid qilish",
+    "loginRequired": "Buyurtmalarni ko'rish uchun tizimga kiring"
+  },
   "contact": {
     "title": "Bog'lanish",
     "subtitle": "Qanday hamkorlik qilishimiz mumkinligi haqida gaplashishni xohlaymiz.",
@@ -182,7 +214,9 @@
       "subjectPlaceholder": "Qanday yordam berishimiz mumkin",
       "message": "Xabar*",
       "messagePlaceholder": "Salom, men... haqida gaplashmoqchiman",
-      "sendBtn": "Xabar yuborish"
+      "sendBtn": "Xabar yuborish",
+      "success": "Xabar yuborildi!",
+      "error": "Xatolik yuz berdi"
     }
   },
   "blog": {
@@ -283,7 +317,14 @@
     "name": "Nom",
     "category": "Kategoriya",
     "price": "Narx",
-    "edit": "Tahrirlash"
+    "edit": "Tahrirlash",
+    "orders": "Buyurtmalar",
+    "totalOrders": "Jami buyurtmalar",
+    "pendingOrders": "Kutilayotgan",
+    "noOrders": "Buyurtmalar yo'q",
+    "recentOrders": "So'nggi buyurtmalar",
+    "viewAll": "Hammasini ko'rish",
+    "productStock": "Qoldiq (stock)"
   },
   "footer": {
     "newsletter": "Yangiliklar xabariga obuna bo'ling",

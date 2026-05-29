@@ -13,7 +13,9 @@
     "login": "Login",
     "logout": "Logout",
     "admin": "Admin",
-    "profile": "Profile"
+    "profile": "Profile",
+    "orders": "My Orders",
+    "dashboard": "My Dashboard"
   },
   "home": {
     "hero": {
@@ -182,8 +184,40 @@
       "subjectPlaceholder": "How can we help",
       "message": "Message*",
       "messagePlaceholder": "Hello there, I would like to talk about...",
-      "sendBtn": "Send Message"
+      "sendBtn": "Send Message",
+      "success": "Message sent!",
+      "error": "Failed to send"
     }
+  },
+  "checkout": {
+    "title": "Checkout",
+    "deliveryInfo": "Delivery Information",
+    "name": "Full Name",
+    "namePlaceholder": "Your full name",
+    "phone": "Phone",
+    "address": "Address",
+    "addressPlaceholder": "City, street, house number",
+    "telegram": "Telegram username",
+    "optional": "optional",
+    "telegramHint": "To receive order status updates",
+    "placeOrder": "Place Order",
+    "placing": "Placing...",
+    "secure": "Secure checkout",
+    "success": "Order placed successfully!",
+    "successDesc": "We will contact you shortly",
+    "orderId": "Order ID",
+    "telegramNote": "You will receive Telegram updates about your order",
+    "viewOrders": "View My Orders"
+  },
+  "dashboard": {
+    "myOrders": "My Orders",
+    "totalOrders": "Total Orders",
+    "pending": "Pending",
+    "delivered": "Delivered",
+    "totalSpent": "Total Spent",
+    "noOrders": "No orders yet",
+    "shopNow": "Shop Now",
+    "loginRequired": "Please login to view your orders"
   },
   "blog": {
     "title": "Recent News",
@@ -283,7 +317,14 @@
     "name": "Name",
     "category": "Category",
     "price": "Price",
-    "edit": "Edit"
+    "edit": "Edit",
+    "orders": "Orders",
+    "totalOrders": "Total Orders",
+    "pendingOrders": "Pending",
+    "noOrders": "No orders yet",
+    "recentOrders": "Recent Orders",
+    "viewAll": "View All",
+    "productStock": "Stock"
   },
   "footer": {
     "newsletter": "Subscribe to our Newsletter",
