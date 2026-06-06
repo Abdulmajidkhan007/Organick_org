@@ -38,13 +38,25 @@ export const Checkout = () => {
   })
   const [loading, setLoading] = useState(false)
   const [orderId, setOrderId] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   const subtotal = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
 
-  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
+  const set = (k: string, v: string) => {
+    setForm(f => ({ ...f, [k]: v }))
+    if (errors[k]) setErrors(e => ({ ...e, [k]: '' }))
+  }
+
+  const validatePhone = (phone: string) => phone.replace(/\D/g, '').length >= 9
 
   const handleOrder = async () => {
-    if (!form.name || !form.phone || !form.address) return
+    const errs: Record<string, string> = {}
+    if (!form.name.trim()) errs.name = "Ism kiritish shart"
+    if (!form.phone.trim()) errs.phone = "Telefon raqam kiritish shart"
+    else if (!validatePhone(form.phone)) errs.phone = "Telefon raqam noto'g'ri (kamida 9 ta raqam kerak, masalan: +998901234567)"
+    if (!form.address.trim()) errs.address = "Manzil kiritish shart"
+    if (Object.keys(errs).length > 0) { setErrors(errs); return }
+    setErrors({})
     setLoading(true)
 
     const id = 'ORD-' + Date.now().toString(36).toUpperCase()
@@ -167,9 +179,10 @@ export const Checkout = () => {
                     type="text"
                     value={form.name}
                     onChange={e => set('name', e.target.value)}
-                    className="inpHover w-full h-12"
+                    className={`inpHover w-full h-12 ${errors.name ? 'border-red-400 focus:border-red-400' : ''}`}
                     placeholder={t('checkout.namePlaceholder')}
                   />
+                  {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1">
@@ -179,9 +192,10 @@ export const Checkout = () => {
                     type="tel"
                     value={form.phone}
                     onChange={e => set('phone', e.target.value)}
-                    className="inpHover w-full h-12"
+                    className={`inpHover w-full h-12 ${errors.phone ? 'border-red-400 focus:border-red-400' : ''}`}
                     placeholder="+998 90 123 45 67"
                   />
+                  {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1">
@@ -191,9 +205,10 @@ export const Checkout = () => {
                     rows={3}
                     value={form.address}
                     onChange={e => set('address', e.target.value)}
-                    className="inpHover w-full"
+                    className={`inpHover w-full ${errors.address ? 'border-red-400 focus:border-red-400' : ''}`}
                     placeholder={t('checkout.addressPlaceholder')}
                   />
+                  {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1">
@@ -246,7 +261,7 @@ export const Checkout = () => {
               </div>
               <button
                 onClick={handleOrder}
-                disabled={loading || !form.name || !form.phone || !form.address}
+                disabled={loading}
                 className="w-full bg-[#274C5B] dark:bg-[#7EB693] text-white py-4 rounded-xl font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2"
               >
                 {loading ? (

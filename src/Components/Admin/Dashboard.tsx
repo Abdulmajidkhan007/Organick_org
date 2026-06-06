@@ -354,9 +354,21 @@ export const AdminDashboard = () => {
                                 <span className="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-semibold">🔴 Yangi</span>
                               )}
                             </div>
-                            <p className="text-sm text-gray-500 mt-1">
-                              {order.customerName} • {order.customerPhone}
-                              {order.customerTelegram && ` • ${order.customerTelegram}`}
+                            <p className="text-sm text-gray-500 mt-1 flex items-center gap-2 flex-wrap">
+                              <span>{order.customerName}</span>
+                              <span>•</span>
+                              <a href={`tel:${order.customerPhone}`} className="text-[#274C5B] dark:text-[#7EB693] hover:underline font-semibold">
+                                <i className="fas fa-phone text-xs mr-1"></i>{order.customerPhone}
+                              </a>
+                              {order.customerTelegram && (
+                                <>
+                                  <span>•</span>
+                                  <a href={`https://t.me/${order.customerTelegram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+                                    className="text-[#2AABEE] hover:underline font-semibold">
+                                    <i className="fab fa-telegram text-xs mr-1"></i>{order.customerTelegram}
+                                  </a>
+                                </>
+                              )}
                             </p>
                             <p className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleString('ru-RU')}</p>
                           </div>
@@ -395,18 +407,28 @@ export const AdminDashboard = () => {
                         {/* Reply Form */}
                         {selectedOrder?.id === order.id ? (
                           <div className="p-5 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                            <h4 className="font-bold text-sm text-[#274C5B] dark:text-white mb-3">Xabar yuborish</h4>
-                            <div className="flex flex-col sm:flex-row gap-3 mb-3">
-                              <select
-                                value={replyStatus}
-                                onChange={e => setReplyStatus(e.target.value as OrderStatus)}
-                                className="inpHover h-10 text-sm flex-1"
-                              >
-                                {ORDER_STATUS_OPTIONS.map(s => (
-                                  <option key={s.value} value={s.value}>{s.label}</option>
-                                ))}
-                              </select>
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-bold text-sm text-[#274C5B] dark:text-white">Xabar yuborish</h4>
+                              {order.customerTelegram && (
+                                <a
+                                  href={`https://t.me/${order.customerTelegram.replace('@', '')}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1.5 bg-[#2AABEE] text-white px-3 py-1.5 rounded-lg font-semibold text-xs hover:opacity-90"
+                                >
+                                  <i className="fab fa-telegram"></i> {order.customerTelegram}
+                                </a>
+                              )}
                             </div>
+                            <select
+                              value={replyStatus}
+                              onChange={e => setReplyStatus(e.target.value as OrderStatus)}
+                              className="inpHover h-10 text-sm w-full mb-3"
+                            >
+                              {ORDER_STATUS_OPTIONS.map(s => (
+                                <option key={s.value} value={s.value}>{s.label}</option>
+                              ))}
+                            </select>
                             <textarea
                               rows={3}
                               value={replyNote}
@@ -414,13 +436,13 @@ export const AdminDashboard = () => {
                               className="inpHover w-full mb-3"
                               placeholder="Mijozga xabar yozing..."
                             />
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-wrap">
                               <button
                                 onClick={() => handleSendReply(order)}
                                 disabled={sendingReply || !replyNote.trim()}
                                 className="flex items-center gap-2 bg-[#274C5B] text-white px-4 py-2 rounded-xl font-semibold text-sm hover:opacity-90 disabled:opacity-50"
                               >
-                                {sendingReply ? <><i className="fas fa-spinner fa-spin"></i> Yuborilmoqda...</> : <><i className="fab fa-telegram"></i> Telegram + Saqlash</>}
+                                {sendingReply ? <><i className="fas fa-spinner fa-spin"></i> Yuborilmoqda...</> : <><i className="fab fa-telegram"></i> Saqlash + Telegram</>}
                               </button>
                               <button onClick={() => setSelectedOrder(null)}
                                 className="border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -429,7 +451,7 @@ export const AdminDashboard = () => {
                             </div>
                           </div>
                         ) : (
-                          <div className="px-5 pb-4 flex gap-2">
+                          <div className="px-5 pb-4 flex gap-2 flex-wrap">
                             <button
                               onClick={() => {
                                 setSelectedOrder(order)
@@ -440,6 +462,16 @@ export const AdminDashboard = () => {
                             >
                               <i className="fas fa-reply"></i> Javob berish
                             </button>
+                            {order.customerTelegram && (
+                              <a
+                                href={`https://t.me/${order.customerTelegram.replace('@', '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 bg-[#2AABEE] text-white px-4 py-2 rounded-xl font-semibold text-sm hover:opacity-90"
+                              >
+                                <i className="fab fa-telegram"></i> Telegramda yozing
+                              </a>
+                            )}
                           </div>
                         )}
                       </div>
