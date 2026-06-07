@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { addProduct, updateProduct, deleteProduct, addBlog, updateBlog, deleteBlog } from '../../Data'
-import { updateOrderStatus } from '../../slices/ordersSlice'
 import { sendTelegram } from '../../utils/telegram'
+import { subscribeAllOrders, updateOrderInFirestore } from '../../firebase/firestore'
 import { Product, BlogPost, Order, OrderStatus } from '../../types'
 import { getStatusStyle } from '../Checkout'
 
@@ -46,7 +46,12 @@ export const AdminDashboard = () => {
   const user = useAppSelector(s => s.auth.user)
   const products = useAppSelector(s => s.data.products)
   const blogs = useAppSelector(s => s.data.blogs)
-  const orders = useAppSelector(s => s.orders.orders)
+  const [orders, setOrders] = useState<Order[]>([])
+
+  useEffect(() => {
+    const unsub = subscribeAllOrders(setOrders)
+    return unsub
+  }, [])
 
   const [tab, setTab] = useState<AdminTab>('dashboard')
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -146,7 +151,7 @@ export const AdminDashboard = () => {
   const handleSendReply = async (order: Order) => {
     if (!replyNote.trim()) return
     setSendingReply(true)
-    dispatch(updateOrderStatus({ id: order.id, status: replyStatus, adminNote: replyNote }))
+    await updateOrderInFirestore(order.id, replyStatus, replyNote)
 
     const st = ORDER_STATUS_OPTIONS.find(s => s.value === replyStatus)
     const text = [

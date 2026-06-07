@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Navbar } from './Navbar'
 import { FooterBottom } from './Footer'
 import { useAppSelector } from '../hooks'
 import { getStatusStyle } from './Checkout'
+import { subscribeUserOrders } from '../firebase/firestore'
 import { Order } from '../types'
 
 const DetailModal = ({ order, onClose }: { order: Order; onClose: () => void }) => {
@@ -77,8 +78,14 @@ export const UserDashboard = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const user = useAppSelector(s => s.auth.user)
-  const allOrders = useAppSelector(s => s.orders.orders)
+  const [userOrders, setUserOrders] = useState<Order[]>([])
   const [selected, setSelected] = useState<Order | null>(null)
+
+  useEffect(() => {
+    if (!user) return
+    const unsub = subscribeUserOrders(user.uid || '', user.email || '', setUserOrders)
+    return unsub
+  }, [user])
 
   if (!user) {
     return (
@@ -97,8 +104,6 @@ export const UserDashboard = () => {
       </>
     )
   }
-
-  const userOrders = allOrders.filter(o => o.userId === user.uid || o.userEmail === user.email)
 
   return (
     <>
