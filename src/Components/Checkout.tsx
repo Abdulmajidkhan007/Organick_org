@@ -5,9 +5,9 @@ import { Navbar } from './Navbar'
 import { FooterBottom } from './Footer'
 import { useAppDispatch, useAppSelector } from '../hooks'
 import { clearCart } from '../slices/cartSlice'
-import { addOrder } from '../slices/ordersSlice'
 import { decreaseStock } from '../Data'
 import { sendTelegram } from '../utils/telegram'
+import { addOrderToFirestore } from '../firebase/firestore'
 import { Order, OrderItem } from '../types'
 import shopback from '../assets/shop/shopback.png'
 import shopfront from '../assets/shop/shopfront.png'
@@ -83,7 +83,7 @@ export const Checkout = () => {
       createdAt: new Date().toISOString(),
     }
 
-    dispatch(addOrder(order))
+    await addOrderToFirestore(order)
     items.forEach(i => dispatch(decreaseStock({ productId: i.product.id, quantity: i.quantity })))
 
     const itemLines = orderItems
