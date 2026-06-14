@@ -62,7 +62,7 @@ export const AdminDashboard = () => {
   const [showBlogForm, setShowBlogForm] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
   const [deleteBlogConfirm, setDeleteBlogConfirm] = useState<number | null>(null)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [replyNote, setReplyNote] = useState('')
   const [replyStatus, setReplyStatus] = useState<OrderStatus>('confirmed')
@@ -183,8 +183,18 @@ export const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-[#0f172a]">
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       {/* Sidebar */}
-      <aside className={`admin-sidebar flex-shrink-0 transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'}`}>
+      <aside className={`admin-sidebar flex-shrink-0 transition-all duration-300
+        fixed inset-y-0 left-0 z-50 md:relative md:inset-auto md:z-auto
+        ${sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-16 w-64'}
+      `}>
         <div className="p-4 flex items-center justify-between border-b border-white/20">
           {sidebarOpen && <span className="font-bold text-lg">Organick Admin</span>}
           <button
@@ -198,7 +208,7 @@ export const AdminDashboard = () => {
           {navItems.map(item => (
             <button
               key={item.key}
-              onClick={() => setTab(item.key)}
+              onClick={() => { setTab(item.key); if (window.innerWidth < 768) setSidebarOpen(false) }}
               className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors font-semibold text-sm
                 ${tab === item.key ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
             >
@@ -247,7 +257,15 @@ export const AdminDashboard = () => {
       {/* Main */}
       <main className="flex-1 p-6 overflow-auto">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-2xl font-bold text-[#274C5B] dark:text-white mb-6">{t('admin.title')}</h1>
+          <div className="flex items-center gap-3 mb-6">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="md:hidden w-9 h-9 rounded-xl bg-[#274C5B] text-white flex items-center justify-center flex-shrink-0"
+            >
+              <i className="fas fa-bars text-sm"></i>
+            </button>
+            <h1 className="text-2xl font-bold text-[#274C5B] dark:text-white">{t('admin.title')}</h1>
+          </div>
 
           {/* Dashboard Tab */}
           {tab === 'dashboard' && (
