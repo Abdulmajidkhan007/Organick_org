@@ -8,6 +8,7 @@ import { clearCart } from '../slices/cartSlice'
 import { decreaseStock } from '../Data'
 import { sendTelegram } from '../utils/telegram'
 import { addOrderToFirestore } from '../firebase/firestore'
+import { addOrder } from '../slices/ordersSlice'
 import { Order, OrderItem } from '../types'
 import shopback from '../assets/shop/shopback.png'
 import shopfront from '../assets/shop/shopfront.png'
@@ -83,7 +84,16 @@ export const Checkout = () => {
       createdAt: new Date().toISOString(),
     }
 
-    await addOrderToFirestore(order)
+    // Save to localStorage immediately (fallback if Firestore fails)
+    dispatch(addOrder(order))
+
+    // Try Firestore, but don't block order if it fails
+    try {
+      await addOrderToFirestore(order)
+    } catch (e) {
+      console.warn('[Firestore] Order write failed (permission?), saved to localStorage:', e)
+    }
+
     items.forEach(i => dispatch(decreaseStock({ productId: i.product.id, quantity: i.quantity })))
 
     const itemLines = orderItems
@@ -104,7 +114,11 @@ export const Checkout = () => {
       `🕐 Vaqt: ${new Date().toLocaleString('ru-RU')}`,
     ].filter(Boolean).join('\n')
 
-    await sendTelegram(text, import.meta.env.VITE_TELEGRAM_THREAD_ID_ORDERS)
+    try {
+      await sendTelegram(text, import.meta.env.VITE_TELEGRAM_THREAD_ID_ORDERS)
+    } catch (e) {
+      console.warn('[Telegram] Notification failed:', e)
+    }
 
     dispatch(clearCart())
     setOrderId(id)
