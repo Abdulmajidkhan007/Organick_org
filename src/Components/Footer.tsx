@@ -32,20 +32,20 @@ export const FooterTop = () => {
         style={{ backgroundImage: `url(${footer})` }}
         className="formback rounded-2xl w-[95%] max-w-4xl h-auto py-12 flex items-center justify-center bg-cover bg-center"
       >
-        <div className="w-[85%] flex flex-col sm:flex-row justify-between items-center gap-6 text-white">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center sm:text-left">{t('footer.newsletter')}</h1>
-          <div className="flex gap-2 w-full sm:w-auto">
+        <div className="w-[85%] flex flex-col md:flex-row justify-between items-center gap-6 text-white">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center md:text-left">{t('footer.newsletter')}</h1>
+          <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
             <input
               type="email"
               placeholder={t('footer.emailPlaceholder')}
               value={message}
               onInput={e => setMessage((e.target as HTMLInputElement).value)}
-              className="flex-1 sm:w-56 h-14 bg-white text-gray-500 outline-0 border-0 rounded-xl pl-3 text-sm"
+              className="flex-1 min-w-0 w-full md:w-56 h-14 bg-white text-gray-500 outline-0 border-0 rounded-xl pl-3 text-sm"
             />
             <button
               type="button"
               onClick={postingMessage}
-              className="h-14 px-5 bg-[#274C5B] rounded-xl text-white font-bold whitespace-nowrap hover:bg-[#1d3a47] transition-colors text-sm"
+              className="h-14 px-5 bg-[#274C5B] rounded-xl text-white font-bold whitespace-nowrap hover:bg-[#1d3a47] transition-colors text-sm w-full md:w-auto"
             >
               {t('footer.subscribe')}
             </button>

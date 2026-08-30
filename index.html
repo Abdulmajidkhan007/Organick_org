@@ -46,6 +46,15 @@
           document.getElementById('initial-loader').classList.add('oi-dark')
         }
       } catch (e) { /* localStorage unavailable */ }
+      setTimeout(function () {
+        var loader = document.getElementById('initial-loader')
+        if (!loader) return
+        loader.innerHTML =
+          '<div style="text-align:center;padding:24px;font-family:sans-serif;">' +
+          '<p style="margin:0 0 16px;color:#274C5B;">Sahifa yuklanmadi, iltimos qayta yuklang.</p>' +
+          '<button onclick="location.reload()" style="padding:10px 20px;background:#274C5B;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;">Qayta yuklash</button>' +
+          '</div>'
+      }, 15000)
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
