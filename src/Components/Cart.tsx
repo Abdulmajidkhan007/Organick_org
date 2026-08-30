@@ -4,8 +4,8 @@ import { Navbar } from './Navbar'
 import { FooterBottom, FooterTop } from './Footer'
 import { useAppDispatch, useAppSelector } from '../hooks'
 import { removeFromCart, increaseQty, decreaseQty, clearCart } from '../slices/cartSlice'
-import shopback from '../assets/shop/shopback.png'
-import shopfront from '../assets/shop/shopfront.png'
+import shopback from '../assets/shop/shopback.webp'
+import shopfront from '../assets/shop/shopfront.webp'
 
 export const Cart = () => {
   const { t } = useTranslation()

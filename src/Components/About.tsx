@@ -2,12 +2,12 @@ import { useTranslation } from 'react-i18next'
 import { Navbar } from './Navbar'
 import { FooterBottom, FooterTop } from './Footer'
 import { useAppSelector } from '../hooks'
-import aboutUsBack from '../assets/about/aboutUsBack.png'
-import aboutUsFront from '../assets/about/aboutUsFront.png'
-import aboutUs2Left from '../assets/about/aboutUs2Left.png'
+import aboutUsBack from '../assets/about/aboutUsBack.webp'
+import aboutUsFront from '../assets/about/aboutUsFront.webp'
+import aboutUs2Left from '../assets/about/aboutUs2Left.webp'
 import traktor from '../assets/about/traktor.svg'
 import traktorRight from '../assets/about/traktorRight.svg'
-import aboutUs3Right from '../assets/about/aboutUs3Right.png'
+import aboutUs3Right from '../assets/about/aboutUs3Right.webp'
 
 export const About = () => {
   const { t } = useTranslation()

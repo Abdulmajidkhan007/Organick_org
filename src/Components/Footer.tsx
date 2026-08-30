@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import logo from '../assets/logo.png'
-import footer from '../assets/footer.png'
+import logo from '../assets/logo.webp'
+import footer from '../assets/footer.webp'
 
 export const FooterTop = () => {
   const { t } = useTranslation()

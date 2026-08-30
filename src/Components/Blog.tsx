@@ -2,8 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { FooterBottom, FooterTop } from './Footer'
 import { Navbar } from './Navbar'
 import { useAppSelector } from '../hooks'
-import BlogHeaderBack from '../assets/blog/BlogHeaderBack.png'
-import BlogHeaderFront from '../assets/blog/BlogHeaderFront.png'
+import BlogHeaderBack from '../assets/blog/BlogHeaderBack.webp'
+import BlogHeaderFront from '../assets/blog/BlogHeaderFront.webp'
 
 export const Blog = () => {
   const { t } = useTranslation()

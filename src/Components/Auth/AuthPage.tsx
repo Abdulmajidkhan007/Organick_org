@@ -10,7 +10,7 @@ import {
   sendPhoneOTP,
 } from '../../firebase/auth'
 import { ConfirmationResult } from 'firebase/auth'
-import logo from '../../assets/logo.png'
+import logo from '../../assets/logo.webp'
 
 type AuthMode = 'login' | 'register'
 type AuthMethod = 'google' | 'email' | 'phone'
