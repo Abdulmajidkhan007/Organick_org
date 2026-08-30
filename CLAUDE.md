@@ -1,0 +1,184 @@
+# CLAUDE.md — Organick loyihasi uchun ish qoidalari
+
+> Bu fayl har sessiyada o'qiladi. Faqat QOIDALAR va XARITA.
+> "Nega shunday" degan tarixiy izohlar: `docs/ARXITEKTURA-TARIXI.md`.
+
+---
+
+## 1. Loyiha nima
+
+Organick — organik oziq-ovqat do'koni uchun **frontend-only SPA**.
+Backend server YO'Q. Ma'lumot uch joyda yashaydi:
+
+- **localStorage** — mahsulotlar, bloglar, savat, til, dark mode, buyurtma nusxasi
+- **Firebase** — Auth (Google / Email / Telefon) va Firestore (`orders` kolleksiyasi)
+- **Telegram Bot API** — brauzerdan to'g'ridan-to'g'ri xabar yuborish (buyurtma, kontakt, newsletter)
+
+Stack: React 19 + TypeScript + Vite 8 + Redux Toolkit 2 + Tailwind v4 + i18next (uz/en/ru) + React Router 7. Deploy: Netlify.
+
+---
+
+## 2. Ish tartibi
+
+### Branch va commit
+- `master` — asosiy branch. To'g'ridan-to'g'ri `master` ga push QILINMAYDI.
+- Ish branchi: `claude/<qisqa-mavzu>` ko'rinishida.
+- Commit xabari imperativ va qisqa: `fix: mobil savat overlay`, `feat: buyurtma filtri`.
+
+### TEKSHIRUV BUYRUQLARI (har push oldidan hammasi bajariladi)
+
+```bash
+npm ci                # bog'liqliklarni o'rnatish (node_modules repo'da yo'q)
+npm run lint          # ESLint — DIQQAT: hozir faqat .js/.jsx ni tekshiradi (2-bo'limga qarang)
+npx tsc --noEmit      # TypeScript tekshiruvi — build buni O'ZI qilmaydi
+npm run build         # Vite production build (dist/)
+```
+
+Qo'lda tekshirish:
+```bash
+npm run dev           # http://localhost:5173
+npm run preview       # build'ni lokal ko'rish
+```
+
+**Ma'lum holat (bu yozilganda tasdiqlangan):**
+- `npm run lint` → exit 0, LEKIN `eslint.config.js` da `files: ['**/*.{js,jsx}']` yozilgan,
+  shuning uchun `src/` dagi 37 ta `.ts/.tsx` fayl **umuman tekshirilmaydi**.
+  Tasdiq: `npx eslint src/App.tsx` → `File ignored because no matching configuration was supplied`.
+- `npx tsc --noEmit` → **exit 2**, sabab: `tsconfig.json:17` `baseUrl` deprecated (TS 6).
+  Ya'ni typecheck hozir "qizil". Buni tuzatmasdan CI qo'shilmaydi.
+- `npm run build` → exit 0, ~2s, lekin bitta chunk **987 kB** (gzip 300 kB), `dist/` ≈ 30 MB.
+
+### `.env`
+```bash
+cp .env.example .env   # keyin qiymatlarni to'ldiring
+```
+`.env` `.gitignore` da. Netlify'da o'zgaruvchilar Site Settings → Environment Variables da.
+
+---
+
+## 3. BUZILMAS QOIDALAR
+
+### Maxfiylik
+- **`.env` fayli commit QILINMAYDI.** Har qanday token/kalit kodga yozib qo'yilmaydi.
+- **Yangi maxfiy kalit `VITE_` prefiksi bilan qo'shilmaydi.** `VITE_*` o'zgaruvchilar
+  build paytida JS bundle ichiga **ochiq matn** sifatida joylashadi va brauzerda ko'rinadi.
+  Hozirgi `VITE_TELEGRAM_BOT_TOKEN` (`src/utils/telegram.ts:2`) — aynan shu muammo.
+  Yangi sirlar faqat server tomonda (Netlify Function / Cloud Function) saqlanadi.
+- **Mijoz ma'lumoti (telefon, manzil) yangi ochiq joyga yozilmaydi.** `firestore.rules:8`
+  da `orders` uchun `allow read: if true` turibdi — buni kengaytirmang, toraytiring.
+
+### Ma'lumot va qaytarib bo'lmaydigan amallar
+- **Firestore'dagi `orders` hujjatlari o'chirilmaydi** va `firestore.rules` "kengroq" qilinmaydi
+  (masalan `allow write: if true`) — bu real buyurtmalarni yo'qotadi/ochib qo'yadi.
+- **`localStorage` kalitlari nomini o'zgartirmang** — foydalanuvchilarning savati va
+  admin kiritgan mahsulot/bloglari yo'qoladi. Amaldagi kalitlar:
+  `organick_cart`, `organick_products`, `organick_blogs`, `organick_orders`,
+  `organick_darkMode`, `i18nextLng`.
+  Sxema o'zgarsa — migratsiya yozing, kalitni almashtirmang.
+- **Telegram yuborish kodi test paytida real guruhga ulanmaydi** — `.env` siz
+  `sendTelegram` jimgina qaytadi (`src/utils/telegram.ts:4`), shu holat saqlansin.
+- **`ADMIN_EMAILS` (`src/firebase/auth.ts:39`) — bu xavfsizlik chegarasi EMAS.**
+  U faqat UI'ni yashiradi. Unga tayanib maxfiy amal yozilmaydi.
+
+### Kod
+- **Mahsulot kodi `any` bilan "tuzatilmaydi"** — `tsconfig.json` da `strict: false`,
+  shuning uchun tipni to'g'ri yozish sizning zimmangizda.
+- **Yangi `.jsx` fayl qo'shilmaydi** — loyiha to'liq `.tsx` ga ko'chirilgan.
+- **`@/...` importi ishlatilmaydi** — `tsconfig.json:18` da `paths` bor, lekin
+  `vite.config.js` da mos alias YO'Q, ya'ni ishlatilsa build sinadi.
+- **Route qo'shsangiz** — `src/App.tsx` dagi `<Routes>` ga qo'shing va
+  SPA fallback allaqachon bor (`netlify.toml`, `public/_redirects`), ularga tegmang.
+- **Yangi matn qo'shsangiz** — uchala tilga ham qo'shing:
+  `src/i18n/locales/uz.json`, `en.json`, `ru.json` (hozir uchalasi ham 281 kalit, teng).
+  Komponentga to'g'ridan-to'g'ri o'zbekcha matn yozib qo'yilmaydi.
+
+---
+
+## 4. Qayerda nima turadi
+
+```
+.
+├── CLAUDE.md               # shu fayl
+├── docs/ARXITEKTURA-TARIXI.md  # nega shunday qilingan, qarorlar tarixi
+├── package.json            # skriptlar: dev / build / lint / preview
+├── vite.config.js          # react + tailwind plaginlari (alias YO'Q)
+├── tsconfig.json           # strict: false, noEmit, paths (ishlatilmaydi)
+├── eslint.config.js        # faqat js/jsx ni qamraydi (kamchilik)
+├── netlify.toml            # build cmd + SPA redirect
+├── firestore.rules         # Firestore qoidalari (qo'lda deploy qilinadi)
+├── index.html              # FontAwesome 6.7.2 CDN shu yerda
+├── .env.example            # kerakli barcha env kalitlar ro'yxati
+├── public/_redirects       # Netlify SPA fallback
+└── src/
+    ├── main.tsx            # kirish nuqtasi: style, Fonts, i18n, App
+    ├── App.tsx             # BrowserRouter + Provider + barcha route'lar + onAuthStateChanged
+    ├── Store.ts            # Redux store: data / cart / auth / ui / orders
+    ├── Data.ts             # mahsulot+blog "ma'lumot bazasi" + Data slice (193 qator)
+    ├── types/index.ts      # BARCHA TypeScript interfeyslari shu yerda
+    ├── style.css           # Tailwind + global class'lar (inpHover, admin-sidebar, ...)
+    ├── Fonts.css
+    ├── hooks/index.ts      # useAppDispatch / useAppSelector
+    ├── firebase/
+    │   ├── config.ts       # Firebase init, `auth` va `db` eksporti
+    │   ├── auth.ts         # login helperlari + ADMIN_EMAILS
+    │   └── firestore.ts    # orders CRUD + onSnapshot obunalar
+    ├── utils/telegram.ts   # sendTelegram(text, threadId)
+    ├── i18n/
+    │   ├── index.ts        # i18next init (lng: 'uz')
+    │   └── locales/        # uz.json / en.json / ru.json
+    ├── slices/
+    │   ├── cartSlice.ts    # savat + localStorage sinxronizatsiyasi
+    │   ├── authSlice.ts    # foydalanuvchi holati
+    │   ├── uiSlice.ts      # qidiruv, dark mode, til, mobil menyu
+    │   └── ordersSlice.ts  # buyurtmalarning localStorage nusxasi
+    ├── Components/
+    │   ├── Navbar.tsx      # (352 q.) menyu, qidiruv, til, dark mode, savat tugmasi
+    │   ├── Footer.tsx      # FooterBottom ham shu yerda + newsletter
+    │   ├── Home.tsx        # (334 q.)
+    │   ├── About.tsx  Service.tsx  Team.tsx  Blog.tsx
+    │   ├── Portfoilo.tsx  PortfoiloSingle.tsx      # nomi shunday yozilgan (typo tarixiy)
+    │   ├── Shop.tsx  ShopSingle.tsx                # katalog va mahsulot sahifasi
+    │   ├── Cart.tsx  CartSidebar.tsx
+    │   ├── Checkout.tsx    # (298 q.) buyurtma berish + getStatusStyle eksporti
+    │   ├── Contact.tsx  ContactForm.tsx
+    │   ├── ScrollIndicator.tsx   # Navbar ichida ishlatiladi
+    │   ├── NotFound.tsx
+    │   ├── UserDashboard.tsx     # (219 q.) foydalanuvchi buyurtmalari
+    │   └── Admin/Dashboard.tsx   # (754 q.) ENG KATTA FAYL — admin panel
+    └── assets/             # ~32 MB rasm (optimallashtirilmagan)
+```
+
+**Eng katta 10 fayl** (`find src -name '*.ts*' -o -name '*.css' -o -name '*.json' | xargs wc -l`):
+`Admin/Dashboard.tsx` 754 · `style.css` 360 · `Navbar.tsx` 352 ·
+`locales/uz.json` `ru.json` `en.json` har biri 351 · `Home.tsx` 334 ·
+`Auth/AuthPage.tsx` 324 · `Checkout.tsx` 298 · `UserDashboard.tsx` 219.
+
+---
+
+## 5. Ma'lumot oqimi (qisqa)
+
+**Buyurtma:** `Checkout.tsx:53 handleOrder()`
+→ validatsiya → `dispatch(addOrder)` (localStorage) → `addOrderToFirestore()` (xato bo'lsa
+faqat `console.warn`, buyurtma baribir o'tadi) → `decreaseStock` → `sendTelegram()` → savat tozalanadi.
+
+**Buyurtmani ko'rish:** admin — `subscribeAllOrders()` (`firestore.ts:22`, hamma hujjat);
+foydalanuvchi — `subscribeUserOrders()` (`firestore.ts:29`) ham HAMMA hujjatni yuklab,
+**brauzerda filtrlaydi**. Ya'ni har bir mijoz boshqalarning buyurtmasini oladi.
+
+**Auth:** `App.tsx:34 onAuthStateChanged` → `setUser({..., isAdmin: ADMIN_EMAILS.includes(email)})`.
+
+**Mahsulot/blog CRUD:** faqat Redux + localStorage (`Data.ts`), server yo'q —
+o'zgarish faqat admin o'z brauzerida ko'rinadi.
+
+---
+
+## 6. Hujjatlar ro'yxati
+
+| Fayl | Nima uchun | Holati |
+|---|---|---|
+| `CLAUDE.md` | Qoidalar va xarita (shu fayl) | Dolzarb |
+| `docs/ARXITEKTURA-TARIXI.md` | Qarorlar, sabablar, ma'lum qarzlar | Dolzarb |
+| `README.md` | O'rnatish/deploy yo'riqnomasi (inglizcha) | **Qisman eskirgan** — 2 ta thread env kaliti yozilmagan, `src/firebase/config.ts` da `getFirestore` borligi aytilmagan |
+| `.env.example` | Kerakli env kalitlarning to'liq ro'yxati | Dolzarb (README dan to'liqroq) |
+
+README va `.env.example` ziddiyatga tushsa — **`.env.example` to'g'ri**.
