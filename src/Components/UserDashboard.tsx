@@ -44,7 +44,15 @@ const DetailModal = ({ order, onClose }: { order: Order; onClose: () => void }) 
             <div className="flex flex-col gap-2">
               {order.items.map(item => (
                 <div key={item.productId} className="flex items-center gap-3 bg-[#F9F8F8] dark:bg-gray-800 rounded-xl p-3">
-                  <img src={item.productImg} alt={item.productName} className="w-12 h-12 object-contain rounded-lg bg-white" />
+                  <img
+                    src={item.productImg}
+                    alt={item.productName}
+                    className="w-12 h-12 object-contain rounded-lg bg-white"
+                    width={48}
+                    height={48}
+                    decoding="async"
+                    loading="lazy"
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-[#274C5B] dark:text-white truncate">{item.productName}</p>
                     <p className="text-xs text-gray-400">x{item.quantity} × ${item.price}</p>
@@ -114,7 +122,7 @@ export const UserDashboard = () => {
           <div className="max-w-4xl mx-auto flex items-center gap-4">
             <div className="w-14 h-14 rounded-full bg-[#7EB693] flex items-center justify-center text-white font-bold text-xl overflow-hidden">
               {user.photoURL
-                ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
+                ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" width={56} height={56} decoding="async" />
                 : <span>{(user.displayName || user.email || 'U')[0].toUpperCase()}</span>
               }
             </div>

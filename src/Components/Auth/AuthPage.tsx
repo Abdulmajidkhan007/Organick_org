@@ -123,7 +123,7 @@ export const AuthPage = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <img src={logo} alt="Organick" className="h-12" />
+            <img src={logo} alt="Organick" className="h-12" width={155} height={223} decoding="async" fetchPriority="high" />
             <span className="text-2xl font-bold text-[#274C5B] dark:text-white">Organick</span>
           </div>
         </div>

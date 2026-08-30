@@ -60,7 +60,15 @@ export const CartSidebar = () => {
             <div className="flex flex-col gap-4">
               {items.map(({ product, quantity }) => (
                 <div key={product.id} className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 rounded-xl p-3">
-                  <img src={product.img} alt={product.name} className="w-16 h-16 object-contain rounded-lg bg-white" />
+                  <img
+                    src={product.img}
+                    alt={product.name}
+                    className="w-16 h-16 object-contain rounded-lg bg-white"
+                    width={64}
+                    height={64}
+                    decoding="async"
+                    loading="lazy"
+                  />
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-sm text-[#274C5B] dark:text-white truncate">{product.name}</h4>
                     <p className="text-[#7EB693] font-bold text-sm">${product.price}.00</p>

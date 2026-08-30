@@ -22,7 +22,15 @@ export const Contact = () => {
         {/* Section 1 */}
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-10 mb-20">
           <div className="w-full md:w-1/2">
-            <img src={Contact2} alt="Contact" className="object-cover w-full h-full rounded-2xl" />
+            <img
+              src={Contact2}
+              alt="Contact"
+              className="object-cover w-full h-full rounded-2xl"
+              width={623}
+              height={640}
+              decoding="async"
+              fetchPriority="high"
+            />
           </div>
           <div className="w-full md:w-1/2 text-[#274C5B] dark:text-white">
             <h1 className="font-bold text-2xl md:text-3xl mb-4">{t('contact.subtitle')}</h1>
@@ -30,7 +38,7 @@ export const Contact = () => {
             <div className="flex flex-col gap-3 mb-6">
               <figure className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e293b] rounded-2xl p-3 flex gap-3">
                 <div className="w-12 h-12 bg-[#F9F8F9] dark:bg-gray-800 rounded-2xl flex items-center justify-center flex-shrink-0">
-                  <img src={card1} alt="" className="w-6 h-6" />
+                  <img src={card1} alt="" className="w-6 h-6" width={24} height={24} decoding="async" loading="lazy" />
                 </div>
                 <figcaption>
                   <h2 className="font-bold text-sm">{t('contact.message')}</h2>
@@ -39,7 +47,7 @@ export const Contact = () => {
               </figure>
               <figure className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1e293b] rounded-2xl p-3 flex gap-3">
                 <div className="w-12 h-12 bg-[#F9F8F9] dark:bg-gray-800 rounded-2xl flex items-center justify-center flex-shrink-0">
-                  <img src={card2} alt="" className="w-6 h-6" />
+                  <img src={card2} alt="" className="w-6 h-6" width={24} height={24} decoding="async" loading="lazy" />
                 </div>
                 <figcaption>
                   <h2 className="font-bold text-sm">{t('contact.phone')}</h2>

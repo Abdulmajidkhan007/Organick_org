@@ -5,10 +5,48 @@
     <link rel="icon" type="image/svg+xml" href="./public/tailwindcss.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Organick</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" media="print" onload="this.media='all'" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" /></noscript>
+    <style>
+      #initial-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+      }
+      #initial-loader.oi-dark { background: #0f172a; }
+      .oi-spinner {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 5px solid rgba(126, 182, 147, 0.25);
+        border-top-color: #274C5B;
+        border-right-color: #7EB693;
+        animation: oi-spin 0.85s linear infinite;
+      }
+      #initial-loader.oi-dark .oi-spinner {
+        border-color: rgba(126, 182, 147, 0.2);
+        border-top-color: #7EB693;
+        border-right-color: #274C5B;
+      }
+      @keyframes oi-spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div id="initial-loader"><div class="oi-spinner"></div></div></div>
+    <script>
+      try {
+        if (localStorage.getItem('organick_darkMode') === 'true') {
+          document.getElementById('initial-loader').classList.add('oi-dark')
+        }
+      } catch (e) { /* localStorage unavailable */ }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

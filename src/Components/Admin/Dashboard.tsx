@@ -405,7 +405,15 @@ export const AdminDashboard = () => {
                         <div className="px-5 py-3 flex items-center gap-3 overflow-x-auto">
                           {order.items.map(item => (
                             <div key={item.productId} className="flex-shrink-0 flex items-center gap-2 bg-[#F9F8F8] dark:bg-gray-800 rounded-xl px-3 py-2">
-                              <img src={item.productImg} alt="" className="w-8 h-8 object-contain" />
+                              <img
+                                src={item.productImg}
+                                alt=""
+                                className="w-8 h-8 object-contain"
+                                width={32}
+                                height={32}
+                                decoding="async"
+                                loading="lazy"
+                              />
                               <div>
                                 <p className="text-xs font-semibold text-[#274C5B] dark:text-white whitespace-nowrap">{item.productName}</p>
                                 <p className="text-xs text-gray-400">x{item.quantity} — ${(item.price * item.quantity).toFixed(2)}</p>
@@ -606,7 +614,15 @@ export const AdminDashboard = () => {
                         <tr key={p.id} className="border-t border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                           <td className="px-4 py-3 text-sm text-gray-500">{i + 1}</td>
                           <td className="px-4 py-3">
-                            <img src={p.img} alt={p.name} className="w-10 h-10 object-contain rounded-lg bg-gray-50" />
+                            <img
+                              src={p.img}
+                              alt={p.name}
+                              className="w-10 h-10 object-contain rounded-lg bg-gray-50"
+                              width={40}
+                              height={40}
+                              decoding="async"
+                              loading="lazy"
+                            />
                           </td>
                           <td className="px-4 py-3 font-semibold text-[#274C5B] dark:text-white text-sm">{p.name}</td>
                           <td className="px-4 py-3">

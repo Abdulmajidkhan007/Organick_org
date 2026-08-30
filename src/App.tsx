@@ -7,6 +7,7 @@ import { auth } from './firebase/config'
 import { setUser } from './slices/authSlice'
 import { ADMIN_EMAILS } from './firebase/auth'
 import { setDarkMode } from './slices/uiSlice'
+import { ErrorBoundary } from './Components/ErrorBoundary'
 
 import { Home } from './Components/Home'
 import { About } from './Components/About'
@@ -44,6 +45,9 @@ const AppContent = () => {
       } else {
         store.dispatch(setUser(null))
       }
+    }, (error) => {
+      console.error('[Firebase Auth] onAuthStateChanged error:', error)
+      store.dispatch(setUser(null))
     })
     return () => unsubscribe()
   }, [])
@@ -77,10 +81,12 @@ const AppContent = () => {
 
 export const App = () => {
   return (
-    <BrowserRouter>
-      <Provider store={store}>
-        <AppContent />
-      </Provider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Provider store={store}>
+          <AppContent />
+        </Provider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }

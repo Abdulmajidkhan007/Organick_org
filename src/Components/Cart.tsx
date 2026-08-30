@@ -60,7 +60,15 @@ export const Cart = () => {
                 {items.map(({ product, quantity }) => (
                   <div key={product.id} className="bg-white dark:bg-[#1e293b] rounded-2xl p-5 shadow-sm flex items-center gap-5">
                     <div className="w-20 h-20 bg-[#F9F8F8] dark:bg-gray-800 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <img src={product.img} alt={product.name} className="w-16 h-16 object-contain" />
+                      <img
+                        src={product.img}
+                        alt={product.name}
+                        className="w-16 h-16 object-contain"
+                        width={64}
+                        height={64}
+                        decoding="async"
+                        loading="lazy"
+                      />
                     </div>
 
                     <div className="flex-1 min-w-0">
