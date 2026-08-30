@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next'
 import { FooterBottom, FooterTop } from './Footer'
 import { Navbar } from './Navbar'
-import ContactHeader from '../assets/contact/ContactHeader.png'
-import Contact2 from '../assets/contact/Contact2.png'
-import card1 from '../assets/contact/card1.png'
-import card2 from '../assets/contact/card2.png'
-import Contact3 from '../assets/contact/Contact3.png'
+import ContactHeader from '../assets/contact/ContactHeader.webp'
+import Contact2 from '../assets/contact/Contact2.webp'
+import card1 from '../assets/contact/card1.webp'
+import card2 from '../assets/contact/card2.webp'
+import Contact3 from '../assets/contact/Contact3.webp'
 import { ContactForm } from './ContactForm'
 
 export const Contact = () => {

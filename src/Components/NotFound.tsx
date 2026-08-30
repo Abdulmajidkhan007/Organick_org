@@ -2,8 +2,8 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Navbar } from './Navbar'
 import { FooterBottom } from './Footer'
-import NotFoundback from '../assets/NotFoundback.png'
-import NotFoundfront from '../assets/NotFoundfront.png'
+import NotFoundback from '../assets/NotFoundback.webp'
+import NotFoundfront from '../assets/NotFoundfront.webp'
 
 export const NotFound = () => {
   const { t } = useTranslation()

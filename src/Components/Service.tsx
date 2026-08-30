@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { Navbar } from './Navbar'
 import { FooterBottom } from './Footer'
-import ServiceHeaderBack from '../assets/Service/ServiceHeaderBack.png'
-import ServiceHeaderFront from '../assets/Service/ServiceHeaderFront.png'
-import Service3 from '../assets/Service/Service3.png'
+import ServiceHeaderBack from '../assets/Service/ServiceHeaderBack.webp'
+import ServiceHeaderFront from '../assets/Service/ServiceHeaderFront.webp'
+import Service3 from '../assets/Service/Service3.webp'
 
 export const Service = () => {
   const { t } = useTranslation()

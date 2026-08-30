@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Navbar } from './Navbar'
 import { FooterBottom, FooterTop } from './Footer'
 import { useAppSelector } from '../hooks'
-import PortfoiloHeaderBack from '../assets/portfoilo/PortfoiloHeaderBack.png'
-import PortfoiloHeaderFront from '../assets/portfoilo/PortfoiloHeaderFront.png'
+import PortfoiloHeaderBack from '../assets/portfoilo/PortfoiloHeaderBack.webp'
+import PortfoiloHeaderFront from '../assets/portfoilo/PortfoiloHeaderFront.webp'
 
 export const Portfoilo = () => {
   const { t } = useTranslation()

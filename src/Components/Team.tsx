@@ -2,8 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { FooterBottom, FooterTop } from './Footer'
 import { Navbar } from './Navbar'
 import { useAppSelector } from '../hooks'
-import TeamHeaderBack from '../assets/Team/TeamHeaderBack.png'
-import TeamHeaderFront from '../assets/Team/TeamHeaderFront.png'
+import TeamHeaderBack from '../assets/Team/TeamHeaderBack.webp'
+import TeamHeaderFront from '../assets/Team/TeamHeaderFront.webp'
 
 export const Team = () => {
   const { t } = useTranslation()

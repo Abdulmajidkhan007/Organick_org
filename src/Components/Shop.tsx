@@ -6,8 +6,8 @@ import { FooterBottom, FooterTop } from './Footer'
 import { useAppDispatch, useAppSelector } from '../hooks'
 import { addToCart, openCart } from '../slices/cartSlice'
 import { Product } from '../types'
-import shopfront from '../assets/shop/shopfront.png'
-import shopback from '../assets/shop/shopback.png'
+import shopfront from '../assets/shop/shopfront.webp'
+import shopback from '../assets/shop/shopback.webp'
 
 const CATEGORIES = ['All', 'Vegetable', 'Fresh', 'Millets', 'Health', 'Nuts', 'Spicy', 'Fruits']
 

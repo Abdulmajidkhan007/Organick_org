@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import logo from '../assets/logo.png'
+import logo from '../assets/logo.webp'
 import { ScrollIndicator } from './ScrollIndicator'
 import { useAppDispatch, useAppSelector } from '../hooks'
 import { toggleDarkMode, setLanguage, setSearchQuery, clearSearch, toggleMobileMenu, closeMobileMenu } from '../slices/uiSlice'

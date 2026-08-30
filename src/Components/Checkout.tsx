@@ -10,8 +10,8 @@ import { sendTelegram } from '../utils/telegram'
 import { addOrderToFirestore } from '../firebase/firestore'
 import { addOrder } from '../slices/ordersSlice'
 import { Order, OrderItem } from '../types'
-import shopback from '../assets/shop/shopback.png'
-import shopfront from '../assets/shop/shopfront.png'
+import shopback from '../assets/shop/shopback.webp'
+import shopfront from '../assets/shop/shopfront.webp'
 
 const ORDER_STATUSES = [
   { key: 'pending',    label: 'Kutilmoqda',   color: 'bg-yellow-100 text-yellow-700' },

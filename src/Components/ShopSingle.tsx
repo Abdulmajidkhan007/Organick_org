@@ -6,8 +6,8 @@ import { FooterBottom, FooterTop } from './Footer'
 import { useAppDispatch, useAppSelector } from '../hooks'
 import { addToCart, openCart } from '../slices/cartSlice'
 import { updateProductRating } from '../Data'
-import shopback from '../assets/shop/shopback.png'
-import shopfront from '../assets/shop/shopfront.png'
+import shopback from '../assets/shop/shopback.webp'
+import shopfront from '../assets/shop/shopfront.webp'
 
 export const ShopSingle = () => {
   const { t } = useTranslation()
