@@ -26,7 +26,16 @@ export const Team = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl w-full">
           {teams.map((team, i) => (
             <figure key={i} className="overflow-hidden bg-[#F9F9F9] dark:bg-[#1e293b] rounded-2xl hover:shadow-xl hover:scale-105 transition-all duration-300">
-              <img src={team.team} alt={team.name} className="w-full" />
+              <img
+                src={team.team}
+                alt={team.name}
+                className="w-full"
+                width={449}
+                height={485}
+                decoding="async"
+                loading={i === 0 ? undefined : 'lazy'}
+                fetchPriority={i === 0 ? 'high' : undefined}
+              />
               <figcaption className="p-4">
                 <h2 className="text-[#274C5B] dark:text-white font-bold">{team.name}</h2>
                 <div className="w-full flex justify-between items-center mt-1">

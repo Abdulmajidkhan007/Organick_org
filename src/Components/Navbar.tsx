@@ -109,7 +109,7 @@ export const Navbar = () => {
       <div className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2" onClick={() => { navigate('/'); dispatch(closeMobileMenu()) }}>
-            <img src={logo} alt="Organick" className="w-8 h-8" />
+            <img src={logo} alt="Organick" className="w-8 h-8" width={32} height={32} decoding="async" />
             <span className="font-bold text-xl text-[#274C5B] dark:text-[#7EB693]">Organick</span>
           </div>
           <button onClick={() => dispatch(closeMobileMenu())} className="text-2xl text-[#274C5B] dark:text-white p-2">
@@ -179,7 +179,7 @@ export const Navbar = () => {
 
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer flex-shrink-0" onClick={() => navigate('/')}>
-            <img src={logo} alt="Organick" className="h-10 w-auto" />
+            <img src={logo} alt="Organick" className="h-10 w-auto" width={155} height={223} decoding="async" />
             <h1 className="text-xl lg:text-2xl hidden sm:block">Organick</h1>
           </div>
 
@@ -227,7 +227,15 @@ export const Navbar = () => {
                     onClick={() => handleProductClick(product.id)}
                     className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
                   >
-                    <img src={product.img} alt={product.name} className="w-10 h-10 object-contain" />
+                    <img
+                      src={product.img}
+                      alt={product.name}
+                      className="w-10 h-10 object-contain"
+                      width={40}
+                      height={40}
+                      decoding="async"
+                      loading="lazy"
+                    />
                     <div>
                       <p className="font-semibold text-sm text-[#274C5B] dark:text-white">{product.name}</p>
                       <p className="text-xs text-gray-400">${product.price}.00</p>
@@ -309,7 +317,7 @@ export const Navbar = () => {
                   className="w-9 h-9 rounded-full overflow-hidden bg-[#7EB693] flex items-center justify-center text-white font-bold text-sm"
                 >
                   {user.photoURL
-                    ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
+                    ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" width={36} height={36} decoding="async" />
                     : <span>{(user.displayName || user.email || 'U')[0].toUpperCase()}</span>
                   }
                 </button>

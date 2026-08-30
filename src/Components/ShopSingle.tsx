@@ -84,7 +84,15 @@ export const ShopSingle = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
           {/* Image */}
           <div className="bg-[#F9F8F8] dark:bg-[#1e293b] rounded-2xl p-10 flex items-center justify-center min-h-[350px]">
-            <img src={product.img} alt={product.name} className="max-w-full max-h-[300px] object-contain" />
+            <img
+              src={product.img}
+              alt={product.name}
+              className="max-w-full max-h-[300px] object-contain"
+              width={product.imgWidth ?? 400}
+              height={product.imgHeight ?? 400}
+              decoding="async"
+              fetchPriority="high"
+            />
           </div>
 
           {/* Details */}
@@ -194,7 +202,15 @@ export const ShopSingle = () => {
                   onClick={() => { navigate(`/shop/${p.id}`); window.scrollTo(0, 0) }}
                   className="productCard bg-[#F9F8F8] dark:bg-[#1e293b] rounded-xl p-4 cursor-pointer shadow hover:shadow-lg transition-all"
                 >
-                  <img src={p.img} alt={p.name} className="w-full h-24 object-contain mb-3" />
+                  <img
+                    src={p.img}
+                    alt={p.name}
+                    className="w-full h-24 object-contain mb-3"
+                    width={p.imgWidth ?? 400}
+                    height={p.imgHeight ?? 400}
+                    decoding="async"
+                    loading="lazy"
+                  />
                   <h4 className="font-semibold text-sm text-[#274C5B] dark:text-white truncate">{p.name}</h4>
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-[#7EB693] font-bold text-sm">${p.price}.00</span>

@@ -77,7 +77,7 @@ export const FooterBottom = () => {
         {/* Logo + Social */}
         <div className="flex flex-col gap-4 justify-center items-center sm:border-r border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <img src={logo} alt="" className="w-8 h-10" />
+            <img src={logo} alt="" className="w-8 h-10" width={32} height={40} decoding="async" loading="lazy" />
             <h1 className="text-2xl font-bold text-[#274C5B] dark:text-white">Organick</h1>
           </div>
           <p className="text-center text-sm text-gray-500">{t('footer.description')}</p>

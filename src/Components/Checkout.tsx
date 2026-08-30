@@ -250,7 +250,15 @@ export const Checkout = () => {
                 {items.map(({ product, quantity }) => (
                   <div key={product.id} className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-[#F9F8F8] dark:bg-gray-800 rounded-xl flex-shrink-0 flex items-center justify-center">
-                      <img src={product.img} alt={product.name} className="w-10 h-10 object-contain" />
+                      <img
+                        src={product.img}
+                        alt={product.name}
+                        className="w-10 h-10 object-contain"
+                        width={40}
+                        height={40}
+                        decoding="async"
+                        loading="lazy"
+                      />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-[#274C5B] dark:text-white truncate">{product.name}</p>

@@ -121,7 +121,7 @@ export const Shop = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filtered.map(product => (
+            {filtered.map((product, index) => (
               <div
                 key={product.id}
                 onClick={() => navigate(`/shop/${product.id}`)}
@@ -133,7 +133,16 @@ export const Shop = () => {
                   </p>
                 </div>
                 <div className="productImage w-full flex items-center justify-center px-6 pb-2 h-36">
-                  <img src={product.img} alt={product.name} className="max-h-full object-contain" />
+                  <img
+                    src={product.img}
+                    alt={product.name}
+                    className="max-h-full object-contain"
+                    width={product.imgWidth ?? 400}
+                    height={product.imgHeight ?? 400}
+                    decoding="async"
+                    loading={index === 0 ? undefined : 'lazy'}
+                    fetchPriority={index === 0 ? 'high' : undefined}
+                  />
                 </div>
                 <div className="productFooter w-full p-4 border-t border-gray-100 dark:border-gray-700">
                   <h2 className="text-base font-semibold text-[#274C5B] dark:text-white mb-2 truncate">{product.name}</h2>

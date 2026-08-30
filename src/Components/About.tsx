@@ -35,7 +35,15 @@ export const About = () => {
       {/* About Main */}
       <main className="w-full flex flex-col md:flex-row py-16 px-4 lg:px-20 gap-10">
         <div className="w-full md:w-1/2 flex justify-center">
-          <img src={aboutUs2Left} alt="About Us" className="max-w-full" />
+          <img
+            src={aboutUs2Left}
+            alt="About Us"
+            className="max-w-full"
+            width={947}
+            height={929}
+            decoding="async"
+            fetchPriority="high"
+          />
         </div>
         <div className="w-full md:w-1/2 flex flex-col gap-5">
           <h3 className="font-[YellowTail] text-[#7EB693] text-2xl">{t('about.title')}</h3>
@@ -44,13 +52,13 @@ export const About = () => {
           <div className="flex flex-col sm:flex-row gap-6">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 flex items-center justify-center p-2">
-                <img src={traktor} alt="" className="w-full h-full" />
+                <img src={traktor} alt="" className="w-full h-full" width={64} height={64} decoding="async" loading="lazy" />
               </div>
               <h3 className="text-[#274C5B] dark:text-white font-bold">{t('about.equipment')}</h3>
             </div>
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 flex items-center justify-center p-2">
-                <img src={traktorRight} alt="" className="w-full h-full" />
+                <img src={traktorRight} alt="" className="w-full h-full" width={64} height={64} decoding="async" loading="lazy" />
               </div>
               <h3 className="text-[#274C5B] dark:text-white font-bold">{t('about.noHormones')}</h3>
             </div>
@@ -72,7 +80,15 @@ export const About = () => {
               <p className="text-[#274C5B] dark:text-gray-300">{t('about.whyUs.desc')}</p>
             </div>
             <div className="w-full md:w-1/2">
-              <img src={aboutUs3Right} alt="" className="rounded-3xl w-full" />
+              <img
+                src={aboutUs3Right}
+                alt=""
+                className="rounded-3xl w-full"
+                width={678}
+                height={580}
+                decoding="async"
+                loading="lazy"
+              />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -97,7 +113,7 @@ export const About = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl w-full">
           {teams.slice(0, 3).map((team, i) => (
             <figure key={i} className="overflow-hidden bg-[#F9F9F9] dark:bg-[#1e293b] rounded-2xl hover:shadow-xl hover:scale-105 transition-all duration-300">
-              <img src={team.team} alt={team.name} className="w-full" />
+              <img src={team.team} alt={team.name} className="w-full" width={449} height={485} decoding="async" loading="lazy" />
               <figcaption className="p-4">
                 <h2 className="text-[#274C5B] dark:text-white font-bold">{team.name}</h2>
                 <div className="flex justify-between items-center mt-1">
@@ -122,7 +138,15 @@ export const About = () => {
           {products.slice(16, 20).map((p, i) => (
             <div key={i} className="flex flex-col items-center gap-2">
               <div className="bg-white rounded-2xl p-4 w-full flex items-center justify-center h-32">
-                <img src={p.img} alt={p.name} className="max-h-full object-contain" />
+                <img
+                  src={p.img}
+                  alt={p.name}
+                  className="max-h-full object-contain"
+                  width={p.imgWidth ?? 400}
+                  height={p.imgHeight ?? 400}
+                  decoding="async"
+                  loading="lazy"
+                />
               </div>
               <span className="text-sm font-semibold">{p.category}</span>
             </div>

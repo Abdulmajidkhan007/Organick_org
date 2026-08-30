@@ -22,10 +22,19 @@ export const Portfoilo = () => {
 
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {portfoilos.map(portfoilo => (
+          {portfoilos.map((portfoilo, index) => (
             <div key={portfoilo.id} role="portfoiloCard" className="gap-2 shadow-lg p-1 rounded-2xl Ajustify-center-col overflow-hidden">
               <div className="portfoiloImage w-full h-64 relative overflow-hidden Ajustify-center">
-                <img src={portfoilo.img} alt={portfoilo.name} className="w-full h-full absolute rounded-2xl object-cover" />
+                <img
+                  src={portfoilo.img}
+                  alt={portfoilo.name}
+                  className="w-full h-full absolute rounded-2xl object-cover"
+                  width={451}
+                  height={421}
+                  decoding="async"
+                  loading={index === 0 ? undefined : 'lazy'}
+                  fetchPriority={index === 0 ? 'high' : undefined}
+                />
                 <div role="portfoiloNavigate"
                      className="w-[85%] h-[85%] rounded-2xl absolute z-10 bg-[#ffffffd8] Ajustify-center opacity-0">
                   <button

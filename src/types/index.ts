@@ -8,6 +8,8 @@ export interface Product {
   id: number
   category: string
   img: string
+  imgWidth?: number
+  imgHeight?: number
   name: string
   oldPrice: number
   price: number

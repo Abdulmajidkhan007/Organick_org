@@ -84,7 +84,15 @@ export const Home = () => {
       {/* About Us */}
       <article className="w-full py-16 bg-[#EFF6F1] dark:bg-[#1e293b] flex flex-col md:flex-row items-center px-6 lg:px-20">
         <div className="w-full md:w-1/2 flex justify-center mb-8 md:mb-0">
-          <img src={aboutUs} alt="About Us" className="max-w-full h-auto" />
+          <img
+            src={aboutUs}
+            alt="About Us"
+            className="max-w-full h-auto"
+            width={733}
+            height={697}
+            decoding="async"
+            fetchPriority="high"
+          />
         </div>
         <div className="w-full md:w-1/2 flex flex-col gap-4">
           <h3 className="text-[#7EB693] font-[YellowTail] text-2xl">{t('home.aboutUs.subtitle')}</h3>
@@ -93,7 +101,7 @@ export const Home = () => {
           <div className="flex flex-col gap-4 w-full max-w-sm">
             <div className="flex items-center gap-4 h-20">
               <div className="flex-shrink-0 w-20 h-full rounded-lg flex items-center justify-center bg-white dark:bg-[#0f172a]">
-                <img src={veganFood} alt="" className="w-10 h-10" />
+                <img src={veganFood} alt="" className="w-10 h-10" width={40} height={40} decoding="async" loading="lazy" />
               </div>
               <div>
                 <h3 className="text-[#274C5B] dark:text-white font-bold text-lg">{t('home.aboutUs.veganFood.title')}</h3>
@@ -102,7 +110,7 @@ export const Home = () => {
             </div>
             <div className="flex items-center gap-4 h-20">
               <div className="flex-shrink-0 w-20 h-full rounded-lg flex items-center justify-center bg-white dark:bg-[#0f172a]">
-                <img src={mailboxQuality} alt="" className="w-10 h-10" />
+                <img src={mailboxQuality} alt="" className="w-10 h-10" width={40} height={40} decoding="async" loading="lazy" />
               </div>
               <div>
                 <h3 className="text-[#274C5B] dark:text-white font-bold text-lg">{t('home.aboutUs.quality.title')}</h3>
@@ -139,7 +147,15 @@ export const Home = () => {
                 </p>
               </div>
               <div className="w-full flex items-center justify-center px-6 pb-2 h-32">
-                <img src={product.img} alt={product.name} className="max-h-full object-contain" />
+                <img
+                  src={product.img}
+                  alt={product.name}
+                  className="max-h-full object-contain"
+                  width={product.imgWidth ?? 400}
+                  height={product.imgHeight ?? 400}
+                  decoding="async"
+                  loading="lazy"
+                />
               </div>
               <div className="w-full p-4 border-t border-gray-100 dark:border-gray-700">
                 <h2 className="text-sm font-semibold text-[#274C5B] dark:text-white mb-1 truncate">{product.name}</h2>
@@ -175,7 +191,15 @@ export const Home = () => {
           <div className="text-[#274C5B] text-center flex flex-col items-center gap-3">
             <h3 className="text-[#7EB693] font-[YellowTail] text-2xl">{t('home.testimonials.title')}</h3>
             <h1 className="text-3xl md:text-4xl font-bold">{t('home.testimonials.subtitle')}</h1>
-            <img src={TestimonialHuman} alt="Customer" className="rounded-full w-20 h-20 object-cover mt-4" />
+            <img
+              src={TestimonialHuman}
+              alt="Customer"
+              className="rounded-full w-20 h-20 object-cover mt-4"
+              width={80}
+              height={80}
+              decoding="async"
+              loading="lazy"
+            />
             <span className="text-yellow-400 text-xl">{'★'.repeat(5)}</span>
             <p className="max-w-lg text-center text-[#274C5B]">
               Simply dummy text of the printing and typesetting industry. Lorem Ipsum simply dummy text.
@@ -228,7 +252,15 @@ export const Home = () => {
                 <p className="text-white bg-[#274C5B] inline px-3 py-1 rounded-lg text-sm">{product.category}</p>
               </div>
               <div className="w-full flex items-center justify-center px-6 pb-2 h-28">
-                <img src={product.img} alt={product.name} className="max-h-full object-contain" />
+                <img
+                  src={product.img}
+                  alt={product.name}
+                  className="max-h-full object-contain"
+                  width={product.imgWidth ?? 400}
+                  height={product.imgHeight ?? 400}
+                  decoding="async"
+                  loading="lazy"
+                />
               </div>
               <div className="w-full p-4 border-t border-gray-100">
                 <h2 className="text-sm font-semibold text-[#274C5B] mb-1 truncate">{product.name}</h2>
