@@ -16,6 +16,12 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 }
 
+if (!import.meta.env.VITE_FIREBASE_API_KEY || !import.meta.env.VITE_FIREBASE_PROJECT_ID) {
+  console.error(
+    'Firebase env kalitlari topilmadi (.env faylini tekshiring) — placeholder qiymatlar bilan ishga tushmoqda, Auth/Firestore ishlamaydi.'
+  )
+}
+
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
 export const db = getFirestore(app)
