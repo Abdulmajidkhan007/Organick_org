@@ -207,7 +207,13 @@
     "successDesc": "We will contact you shortly",
     "orderId": "Order ID",
     "telegramNote": "You will receive Telegram updates about your order",
-    "viewOrders": "View My Orders"
+    "viewOrders": "View My Orders",
+    "failed": "Order was not sent",
+    "failedDesc": "A technical error stopped your order from reaching us",
+    "saveFailed": "Order was not saved to the server",
+    "saveFailedTelegramOk": "Your order was sent to our operators via Telegram and they will contact you shortly, but it will not appear in your account. Please keep the order number.",
+    "saveFailedNoTelegram": "The order was neither saved to the server nor sent via Telegram. Please contact us with the order number or try again.",
+    "contactUs": "Contact us"
   },
   "dashboard": {
     "myOrders": "My Orders",
@@ -217,7 +223,9 @@
     "totalSpent": "Total Spent",
     "noOrders": "No orders yet",
     "shopNow": "Shop Now",
-    "loginRequired": "Please login to view your orders"
+    "loginRequired": "Please login to view your orders",
+    "loadError": "Orders could not be loaded",
+    "loadErrorDesc": "The list could not be fetched. Refresh the page or try again later."
   },
   "blog": {
     "title": "Recent News",

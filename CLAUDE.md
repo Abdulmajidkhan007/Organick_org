@@ -65,8 +65,10 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
   build paytida JS bundle ichiga **ochiq matn** sifatida joylashadi va brauzerda ko'rinadi.
   Hozirgi `VITE_TELEGRAM_BOT_TOKEN` (`src/utils/telegram.ts:2`) — aynan shu muammo.
   Yangi sirlar faqat server tomonda (Netlify Function / Cloud Function) saqlanadi.
-- **Mijoz ma'lumoti (telefon, manzil) yangi ochiq joyga yozilmaydi.** `firestore.rules:8`
-  da `orders` uchun `allow read: if true` turibdi — buni kengaytirmang, toraytiring.
+- **Mijoz ma'lumoti (telefon, manzil) yangi ochiq joyga yozilmaydi.** `orders`
+  o'qish huquqi endi toraytirilgan: `read` faqat o'z buyurtmasi
+  (`resource.data.userId == request.auth.uid`) yoki admin claim'i uchun.
+  Buni qayta kengaytirmang.
 
 ### Ma'lumot va qaytarib bo'lmaydigan amallar
 - **Firestore'dagi `orders` hujjatlari o'chirilmaydi** va `firestore.rules` "kengroq" qilinmaydi
@@ -77,9 +79,14 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
   `organick_darkMode`, `i18nextLng`.
   Sxema o'zgarsa — migratsiya yozing, kalitni almashtirmang.
 - **Telegram yuborish kodi test paytida real guruhga ulanmaydi** — `.env` siz
-  `sendTelegram` jimgina qaytadi (`src/utils/telegram.ts:4`), shu holat saqlansin.
-- **`ADMIN_EMAILS` (`src/firebase/auth.ts:39`) — bu xavfsizlik chegarasi EMAS.**
-  U faqat UI'ni yashiradi. Unga tayanib maxfiy amal yozilmaydi.
+  `sendTelegram` jimgina `false` qaytadi (`src/utils/telegram.ts`), shu holat
+  saqlansin. (Throw qilmaydi; qaytgan qiymat "yetib bordimi" degani.)
+- **Admin chegarasi — Firebase custom claim `{ admin: true }`.**
+  `ADMIN_EMAILS` ro'yxati olib tashlandi. `isAdmin` ID token'dan o'qiladi
+  (`src/firebase/auth.ts` → `hasAdminClaim`) va `firestore.rules` ham aynan
+  shu claim'ga tayanadi. Redux'dagi `user.isAdmin` baribir **faqat UI uchun** —
+  unga tayanib maxfiy amal yozilmaydi, haqiqiy chegara qoidalarda.
+  Claim'ni o'rnatish: `docs/XAVFSIZLIK-MIGRATSIYA.md`.
 
 ### Kod
 - **Mahsulot kodi `any` bilan "tuzatilmaydi"** — `tsconfig.json` da `strict: false`,
@@ -95,7 +102,7 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
   keyin `.webp` ni import qiling va originalni o'chiring.
   Sabab: bosh sahifa 9 196 KB dan 1 262 KB ga aynan shu bilan tushgan.
 - **Yangi matn qo'shsangiz** — uchala tilga ham qo'shing:
-  `src/i18n/locales/uz.json`, `en.json`, `ru.json` (hozir uchalasi ham 281 kalit, teng).
+  `src/i18n/locales/uz.json`, `en.json`, `ru.json` (hozir uchalasi ham 289 kalit, teng).
   Komponentga to'g'ridan-to'g'ri o'zbekcha matn yozib qo'yilmaydi.
 
 ---
@@ -106,12 +113,15 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
 .
 ├── CLAUDE.md               # shu fayl
 ├── docs/ARXITEKTURA-TARIXI.md  # nega shunday qilingan, qarorlar tarixi
+├── docs/XAVFSIZLIK-MIGRATSIYA.md # qoidalar/claim/index — qo'lda bajariladigan qadamlar
 ├── package.json            # skriptlar: dev / build / lint / preview
 ├── vite.config.js          # react + tailwind plaginlari (alias YO'Q)
 ├── tsconfig.json           # strict: false, noEmit, paths (ishlatilmaydi)
 ├── eslint.config.js        # faqat js/jsx ni qamraydi (kamchilik)
 ├── netlify.toml            # build cmd + SPA redirect
+├── firebase.json           # firestore rules+indexes yo'llari (deploy uchun)
 ├── firestore.rules         # Firestore qoidalari (qo'lda deploy qilinadi)
+├── firestore.indexes.json  # orders(userId, createdAt) composite index
 ├── scripts/optimize-images.mjs # PNG -> WebP (quality 80, max 1920px)
 ├── index.html              # FontAwesome 6.7.2 CDN shu yerda
 ├── .env.example            # kerakli barcha env kalitlar ro'yxati
@@ -127,7 +137,7 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
     ├── hooks/index.ts      # useAppDispatch / useAppSelector
     ├── firebase/
     │   ├── config.ts       # Firebase init, `auth` va `db` eksporti
-    │   ├── auth.ts         # login helperlari + ADMIN_EMAILS
+    │   ├── auth.ts         # login helperlari + hasAdminClaim (custom claim)
     │   └── firestore.ts    # orders CRUD + onSnapshot obunalar
     ├── utils/telegram.ts   # sendTelegram(text, threadId)
     ├── i18n/
@@ -164,15 +174,24 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
 
 ## 5. Ma'lumot oqimi (qisqa)
 
-**Buyurtma:** `Checkout.tsx:53 handleOrder()`
-→ validatsiya → `dispatch(addOrder)` (localStorage) → `addOrderToFirestore()` (xato bo'lsa
-faqat `console.warn`, buyurtma baribir o'tadi) → `decreaseStock` → `sendTelegram()` → savat tozalanadi.
+**Buyurtma:** `Checkout.tsx handleOrder()`
+→ validatsiya → `dispatch(addOrder)` (localStorage) → `addOrderToFirestore()`
+→ `decreaseStock` → `sendTelegram()` → savat tozalanadi.
+Firestore va Telegram — ikki **mustaqil** kanal; ikkalasining natijasi
+`delivery` state'ida saqlanadi va mijozga rostini ko'rsatadi:
+Firestore yiqilsa ogohlantirish chiqadi, ikkalasi ham yiqilsa "yuborilmadi"
+deyiladi (endi jimgina "muvaffaqiyatli" deyilmaydi).
 
-**Buyurtmani ko'rish:** admin — `subscribeAllOrders()` (`firestore.ts:22`, hamma hujjat);
-foydalanuvchi — `subscribeUserOrders()` (`firestore.ts:29`) ham HAMMA hujjatni yuklab,
-**brauzerda filtrlaydi**. Ya'ni har bir mijoz boshqalarning buyurtmasini oladi.
+**Buyurtmani ko'rish:** admin — `subscribeAllOrders()` (hamma hujjat, qoidalar
+buni faqat admin claim'iga ochadi); foydalanuvchi — `subscribeUserOrders()`
+serverda `where('userId','==',uid)` bilan **faqat o'z** buyurtmalarini oladi.
+Bu so'rov `orders(userId ASC, createdAt DESC)` composite index talab qiladi
+(`firestore.indexes.json`). `userId: null` mehmon buyurtmalari foydalanuvchi
+panelida ko'rinmaydi — ular hech bir hisobga biriktirilmagan.
 
-**Auth:** `App.tsx:34 onAuthStateChanged` → `setUser({..., isAdmin: ADMIN_EMAILS.includes(email)})`.
+**Auth:** `App.tsx onAuthStateChanged` → `hasAdminClaim(firebaseUser)` (ID token
+custom claim) → `setUser({..., isAdmin})`. Claim o'rnatilgandan keyin admin
+qayta kirishi kerak (token keshi 1 soatgacha yashaydi).
 
 **Mahsulot/blog CRUD:** faqat Redux + localStorage (`Data.ts`), server yo'q —
 o'zgarish faqat admin o'z brauzerida ko'rinadi.
@@ -185,6 +204,7 @@ o'zgarish faqat admin o'z brauzerida ko'rinadi.
 |---|---|---|
 | `CLAUDE.md` | Qoidalar va xarita (shu fayl) | Dolzarb |
 | `docs/ARXITEKTURA-TARIXI.md` | Qarorlar, sabablar, ma'lum qarzlar | Dolzarb |
+| `docs/XAVFSIZLIK-MIGRATSIYA.md` | Firestore qoidalari, admin claim, index — deploy tartibi va Rules Playground testlari | Dolzarb |
 | `README.md` | O'rnatish/deploy yo'riqnomasi (inglizcha) | **Qisman eskirgan** — 2 ta thread env kaliti yozilmagan, `src/firebase/config.ts` da `getFirestore` borligi aytilmagan |
 | `.env.example` | Kerakli env kalitlarning to'liq ro'yxati | Dolzarb (README dan to'liqroq) |
 
