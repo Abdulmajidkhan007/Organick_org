@@ -176,7 +176,13 @@
     "successDesc": "Tez orada siz bilan bog'lanamiz",
     "orderId": "Buyurtma raqami",
     "telegramNote": "Buyurtma holati haqida Telegram orqali xabar olasiz",
-    "viewOrders": "Buyurtmalarimni ko'rish"
+    "viewOrders": "Buyurtmalarimni ko'rish",
+    "failed": "Buyurtma yuborilmadi",
+    "failedDesc": "Texnik nosozlik sababli buyurtmangiz bizga yetib bormadi",
+    "saveFailed": "Buyurtma serverga saqlanmadi",
+    "saveFailedTelegramOk": "Buyurtmangiz operatorlarimizga Telegram orqali yuborildi va ular tez orada bog'lanadi, lekin u shaxsiy kabinetingizda ko'rinmaydi. Buyurtma raqamini saqlab qo'ying.",
+    "saveFailedNoTelegram": "Buyurtma na serverga saqlandi, na Telegram orqali yuborildi. Iltimos, buyurtma raqami bilan biz bilan bog'laning yoki qaytadan urinib ko'ring.",
+    "contactUs": "Biz bilan bog'lanish"
   },
   "dashboard": {
     "myOrders": "Mening buyurtmalarim",
@@ -186,7 +192,9 @@
     "totalSpent": "Jami xarajat",
     "noOrders": "Hali buyurtma yo'q",
     "shopNow": "Xarid qilish",
-    "loginRequired": "Buyurtmalarni ko'rish uchun tizimga kiring"
+    "loginRequired": "Buyurtmalarni ko'rish uchun tizimga kiring",
+    "loadError": "Buyurtmalar yuklanmadi",
+    "loadErrorDesc": "Ro'yxat hozir olinmadi. Sahifani yangilang yoki keyinroq urinib ko'ring."
   },
   "contact": {
     "title": "Bog'lanish",

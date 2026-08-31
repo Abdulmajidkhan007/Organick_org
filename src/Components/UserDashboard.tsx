@@ -88,10 +88,16 @@ export const UserDashboard = () => {
   const user = useAppSelector(s => s.auth.user)
   const [userOrders, setUserOrders] = useState<Order[]>([])
   const [selected, setSelected] = useState<Order | null>(null)
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
-    if (!user) return
-    const unsub = subscribeUserOrders(user.uid || '', user.email || '', setUserOrders)
+    if (!user?.uid) return
+    setLoadError(false)
+    const unsub = subscribeUserOrders(
+      user.uid,
+      orders => { setUserOrders(orders); setLoadError(false) },
+      () => setLoadError(true),
+    )
     return unsub
   }, [user])
 
@@ -169,6 +175,15 @@ export const UserDashboard = () => {
                 {t('cart.continueShopping')} →
               </button>
             </div>
+
+            {loadError && (
+              <div role="alert" className="m-4 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4">
+                <p className="text-sm font-semibold text-red-700 dark:text-red-400 mb-1">
+                  <i className="fas fa-circle-exclamation mr-1"></i>{t('dashboard.loadError')}
+                </p>
+                <p className="text-sm text-red-600 dark:text-red-300">{t('dashboard.loadErrorDesc')}</p>
+              </div>
+            )}
 
             {userOrders.length === 0 ? (
               <div className="py-16 text-center">

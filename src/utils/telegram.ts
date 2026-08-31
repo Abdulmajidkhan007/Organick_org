@@ -1,7 +1,13 @@
-export const sendTelegram = async (text: string, threadIdEnvValue?: string): Promise<void> => {
+/**
+ * Telegram guruhiga xabar yuboradi.
+ * Hech qachon throw qilmaydi. Qaytaradi: xabar haqiqatan yetib bordimi.
+ * `.env` sozlanmagan bo'lsa jimgina `false` qaytaradi (test paytida real
+ * guruhga ulanmaslik uchun).
+ */
+export const sendTelegram = async (text: string, threadIdEnvValue?: string): Promise<boolean> => {
   const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN
   const groupId = import.meta.env.VITE_TELEGRAM_GROUP_ID
-  if (!botToken || !groupId) return
+  if (!botToken || !groupId) return false
 
   const body: Record<string, unknown> = {
     chat_id: groupId,
@@ -20,8 +26,11 @@ export const sendTelegram = async (text: string, threadIdEnvValue?: string): Pro
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
       console.error('[Telegram]', err)
+      return false
     }
+    return true
   } catch (e) {
     console.error('[Telegram network error]', e)
+    return false
   }
 }

@@ -209,3 +209,63 @@ fallback kerak bo'lardi. WebP allaqachon yetarli yutuq berdi.
 
 **Qolgan qarz:** `sharp` `devDependencies` da — build vaqtida kerak emas
 (skript qo'lda ishlaydi), lekin Netlify har build'da uni o'rnatadi.
+
+---
+
+## 10. Firestore xavfsizligi va admin claim (2026-08-31)
+
+Bu sessiyagacha `orders` kolleksiyasi amalda ochiq edi. To'rt muammo birga
+hal qilindi, chunki ularni alohida tuzatish panelni sindirardi.
+
+**Nima ochiq edi:**
+
+| # | Joy | Muammo |
+|---|---|---|
+| 1 | `firestore.rules:8` `allow read: if true` | Loyiha ID'sini bilgan har kim barcha mijozlarning ismi, telefoni va manzilini o'qiy olardi. Blaze rejasida bu o'qishlar hisobga ham tushardi. |
+| 2 | `firestore.rules:9` `allow update, delete: if request.auth != null` | Google bilan kirgan **istalgan** odam har qanday buyurtmani o'chira olardi. |
+| 3 | `ADMIN_EMAILS` → `isAdmin` | Faqat UI to'sig'i. Redux devtools'da `isAdmin: true` qilib qo'ygan odam `/admin` ga kirardi. |
+| 4 | `subscribeUserOrders` | Butun kolleksiyani yuklab, **brauzerda** filtrlardi — ya'ni har bir mijoz boshqalarning buyurtmalarini oldiga yuklab olardi. |
+
+**Nega 1, 2 va 4 birga qilindi:** qoidani toraytirish (1) eski so'rovni
+(4) darhol yiqitadi — filtrsiz `list` so'rovi `permission-denied` oladi va
+foydalanuvchi paneli bo'shab qoladi. Shuning uchun so'rov ham, qoida ham bir
+vaqtda yangilandi: qoida `resource.data.userId == request.auth.uid` deydi,
+so'rov esa aynan `where('userId','==',uid)` bilan cheklanadi. Firestore
+qoidalari `list` so'rovini shu tarzda — so'rovning o'z filtriga qarab —
+tekshiradi.
+
+**Nega custom claim, `ADMIN_EMAILS` emas:** claim ID token ichida serverda
+imzolanadi, uni brauzerdan o'zgartirib bo'lmaydi, va eng muhimi —
+`firestore.rules` uni **serverda** o'qiy oladi. Email ro'yxati esa faqat
+bundle ichidagi massiv edi: qoidalar uni ko'rmasdi, shuning uchun u hech
+qachon haqiqiy chegara bo'la olmasdi.
+
+**Narxi:** `where` + `orderBy` composite index talab qiladi
+(`orders`: `userId` ASC, `createdAt` DESC) — `firestore.indexes.json` da.
+Index'siz panel bo'sh ko'rinadi, shuning uchun deploy tartibi muhim:
+index → claim → kod → qoidalar (`docs/XAVFSIZLIK-MIGRATSIYA.md`).
+
+**Ataylab qoldirilgan:**
+- `allow create: if true` — mehmon buyurtma bera olishi kerak. Ya'ni hozir
+  kirgan foydalanuvchi boshqa `userId` bilan hujjat yarata oladi (buyurtmani
+  boshqa odamning kabinetiga "tashlash"). Buni to'sish uchun tayyor qatorlar
+  migratsiya hujjatida turibdi, lekin ular kiritilmadi — ular checkout
+  oqimiga tegadi va alohida sinovni talab qiladi.
+- `userId: null` bo'lgan eski mehmon buyurtmalari hech kimga biriktirilmagan
+  va endi foydalanuvchi panelida ko'rinmaydi. Ularni egasiga qaytarish uchun
+  bir martalik `userEmail` → `uid` migratsiyasi kerak; buyurtmalarga
+  tegilmadi.
+
+**Checkout haqiqatni aytadigan bo'ldi.** Oldin (1-bo'lim, 5-band) Firestore
+yozuvi yiqilsa ham mijozga "qabul qilindi" deyilardi. Endi Firestore va
+Telegram natijalari alohida kuzatiladi: Firestore yiqilib Telegram ketgan
+bo'lsa sariq ogohlantirish ("kabinetda ko'rinmaydi, raqamni saqlang"),
+ikkalasi ham yiqilsa qizil "yuborilmadi" ekrani chiqadi. `sendTelegram`
+endi `Promise<boolean>` qaytaradi — avval u `void` edi va xatoni yutib
+yuborardi, shuning uchun Checkout Telegram ketgan-ketmaganini bila olmasdi.
+
+**Ochiq qolgan (bu sessiyada tegilmagan):** mobil ko'rinishda (375px)
+gorizontal scroll 3px — sabab `src/Components/Footer.tsx:48` dagi newsletter
+tugmasi (`whitespace-nowrap`, h-14 px-5) footer'dan 3px chiqib ketadi;
+bosh sahifada 8px. Bu bu sessiyadan oldin ham bor edi (`350b11a` bilan
+o'lchab solishtirildi) va dizayn ishi bo'lgani uchun tegilmadi.

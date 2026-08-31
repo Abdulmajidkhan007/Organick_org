@@ -2,14 +2,36 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Orders: anyone can create, read own orders; only admin can update status
-    match /orders/{orderId} {
-      allow create: if true;
-      allow read: if true;
-      allow update, delete: if request.auth != null;
+    // Admin = Firebase custom claim { admin: true }.
+    // Claim'ni faqat server (Admin SDK / Firebase CLI) o'rnata oladi,
+    // shuning uchun uni brauzerdan yoki devtools'dan soxtalashtirib
+    // bo'lmaydi. ADMIN_EMAILS ro'yxati endi ishlatilmaydi.
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
     }
 
-    // Block everything else by default
+    // Hujjat egasi: buyurtmadagi userId kirgan foydalanuvchi uid'iga teng.
+    // Mehmon buyurtmalarida userId == null bo'ladi va ular hech qachon
+    // hech kimga "o'ziniki" bo'lmaydi — faqat admin ko'ra oladi.
+    function isOwner() {
+      return request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    match /orders/{orderId} {
+      // Buyurtma berish: kirmagan mehmon ham bera olishi kerak.
+      allow create: if true;
+
+      // O'qish: faqat o'z buyurtmasi yoki admin.
+      // Bu shart ro'yxat (list) so'rovlariga ham tegishli — shuning uchun
+      // foydalanuvchi so'rovi majburan where('userId','==',uid) bilan
+      // cheklangan bo'lishi shart (src/firebase/firestore.ts).
+      allow read: if isOwner() || isAdmin();
+
+      // Holatni o'zgartirish va o'chirish: FAQAT admin.
+      allow update, delete: if isAdmin();
+    }
+
+    // Qolgan hamma narsa yopiq.
     match /{document=**} {
       allow read, write: if false;
     }

@@ -40,6 +40,9 @@ export const Checkout = () => {
   const [loading, setLoading] = useState(false)
   const [orderId, setOrderId] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
+  // Buyurtma ikki mustaqil kanal bilan ketadi: Firestore va Telegram.
+  // Biri yiqilsa ham mijozga "muvaffaqiyatli" deb ko'rsatmaymiz.
+  const [delivery, setDelivery] = useState({ firestoreOk: true, telegramOk: true })
 
   const subtotal = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
 
@@ -88,9 +91,11 @@ export const Checkout = () => {
     dispatch(addOrder(order))
 
     // Try Firestore, but don't block order if it fails
+    let firestoreOk = true
     try {
       await addOrderToFirestore(order)
     } catch (e) {
+      firestoreOk = false
       console.warn('[Firestore] Order write failed (permission?), saved to localStorage:', e)
     }
 
@@ -114,40 +119,75 @@ export const Checkout = () => {
       `🕐 Vaqt: ${new Date().toLocaleString('ru-RU')}`,
     ].filter(Boolean).join('\n')
 
-    try {
-      await sendTelegram(text, import.meta.env.VITE_TELEGRAM_THREAD_ID_ORDERS)
-    } catch (e) {
-      console.warn('[Telegram] Notification failed:', e)
-    }
+    const telegramOk = await sendTelegram(text, import.meta.env.VITE_TELEGRAM_THREAD_ID_ORDERS)
 
     dispatch(clearCart())
+    setDelivery({ firestoreOk, telegramOk })
     setOrderId(id)
     setLoading(false)
   }
 
   if (orderId) {
+    const { firestoreOk, telegramOk } = delivery
+    // Hech qayerga yetib bormagan buyurtmani "qabul qilindi" deb ko'rsatmaymiz.
+    const failed = !firestoreOk && !telegramOk
+
     return (
       <>
         <Navbar />
         <div className="min-h-screen bg-[#F9F8F8] dark:bg-[#0f172a] flex items-center justify-center px-4 py-16">
           <div className="bg-white dark:bg-[#1e293b] rounded-2xl p-10 max-w-md w-full text-center shadow-lg slide-up">
-            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-              <i className="fas fa-check text-green-600 text-3xl"></i>
+            <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${failed ? 'bg-red-100' : 'bg-green-100'}`}>
+              <i className={`fas text-3xl ${failed ? 'fa-triangle-exclamation text-red-600' : 'fa-check text-green-600'}`}></i>
             </div>
-            <h2 className="text-2xl font-bold text-[#274C5B] dark:text-white mb-2">{t('checkout.success')}</h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">{t('checkout.successDesc')}</p>
+            <h2 className="text-2xl font-bold text-[#274C5B] dark:text-white mb-2">
+              {failed ? t('checkout.failed') : t('checkout.success')}
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
+              {failed ? t('checkout.failedDesc') : t('checkout.successDesc')}
+            </p>
             <div className="bg-[#F9F8F8] dark:bg-gray-800 rounded-xl px-6 py-3 mb-6 inline-block">
               <p className="text-sm text-gray-500">{t('checkout.orderId')}</p>
               <p className="text-xl font-bold text-[#274C5B] dark:text-[#7EB693]">{orderId}</p>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t('checkout.telegramNote')}</p>
+
+            {!firestoreOk && (
+              <div
+                role="alert"
+                className={`rounded-xl border p-4 mb-6 text-left ${
+                  failed
+                    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                    : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                }`}
+              >
+                <p className={`text-sm font-semibold mb-1 ${failed ? 'text-red-700 dark:text-red-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                  <i className="fas fa-circle-exclamation mr-1"></i>{t('checkout.saveFailed')}
+                </p>
+                <p className={`text-sm ${failed ? 'text-red-600 dark:text-red-300' : 'text-amber-700 dark:text-amber-300'}`}>
+                  {failed ? t('checkout.saveFailedNoTelegram') : t('checkout.saveFailedTelegramOk')}
+                </p>
+              </div>
+            )}
+
+            {!failed && <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t('checkout.telegramNote')}</p>}
+
             <div className="flex flex-col sm:flex-row gap-3">
-              {user && (
+              {/* Firestore'ga yozilmagan buyurtma kabinetda ko'rinmaydi —
+                  o'sha yerga yo'naltirish mijozni chalg'itadi. */}
+              {user && firestoreOk && (
                 <button
                   onClick={() => navigate('/dashboard')}
                   className="flex-1 bg-[#7EB693] text-white py-3 rounded-xl font-bold hover:opacity-90"
                 >
                   <i className="fas fa-list-alt mr-2"></i>{t('checkout.viewOrders')}
+                </button>
+              )}
+              {failed && (
+                <button
+                  onClick={() => navigate('/contact')}
+                  className="flex-1 bg-[#274C5B] text-white py-3 rounded-xl font-bold hover:opacity-90"
+                >
+                  <i className="fas fa-headset mr-2"></i>{t('checkout.contactUs')}
                 </button>
               )}
               <button
