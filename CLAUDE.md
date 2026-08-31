@@ -46,7 +46,8 @@ npm run preview       # build'ni lokal ko'rish
   Tasdiq: `npx eslint src/App.tsx` → `File ignored because no matching configuration was supplied`.
 - `npx tsc --noEmit` → **exit 2**, sabab: `tsconfig.json:17` `baseUrl` deprecated (TS 6).
   Ya'ni typecheck hozir "qizil". Buni tuzatmasdan CI qo'shilmaydi.
-- `npm run build` → exit 0, ~2s, lekin bitta chunk **987 kB** (gzip 300 kB), `dist/` ≈ 30 MB.
+- `npm run build` → exit 0, ~2s, lekin hali bitta chunk **~989 kB** (gzip ~301 kB, Vite hisoboti),
+  code-splitting yo'q. `dist/` ≈ 3.8 MB.
 
 ### `.env`
 ```bash
@@ -88,6 +89,11 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
   `vite.config.js` da mos alias YO'Q, ya'ni ishlatilsa build sinadi.
 - **Route qo'shsangiz** — `src/App.tsx` dagi `<Routes>` ga qo'shing va
   SPA fallback allaqachon bor (`netlify.toml`, `public/_redirects`), ularga tegmang.
+- **Yangi rasm `.png`/`.jpg` holida qo'shilmaydi.** `src/assets/` da faqat
+  `.webp` (va ikonlar uchun `.svg`). Yangi rasm qo'shsangiz: faylni
+  `src/assets/` ga qo'ying, `node scripts/optimize-images.mjs` ni ishlating,
+  keyin `.webp` ni import qiling va originalni o'chiring.
+  Sabab: bosh sahifa 9 196 KB dan 1 262 KB ga aynan shu bilan tushgan.
 - **Yangi matn qo'shsangiz** — uchala tilga ham qo'shing:
   `src/i18n/locales/uz.json`, `en.json`, `ru.json` (hozir uchalasi ham 281 kalit, teng).
   Komponentga to'g'ridan-to'g'ri o'zbekcha matn yozib qo'yilmaydi.
@@ -106,6 +112,7 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
 ├── eslint.config.js        # faqat js/jsx ni qamraydi (kamchilik)
 ├── netlify.toml            # build cmd + SPA redirect
 ├── firestore.rules         # Firestore qoidalari (qo'lda deploy qilinadi)
+├── scripts/optimize-images.mjs # PNG -> WebP (quality 80, max 1920px)
 ├── index.html              # FontAwesome 6.7.2 CDN shu yerda
 ├── .env.example            # kerakli barcha env kalitlar ro'yxati
 ├── public/_redirects       # Netlify SPA fallback
@@ -145,7 +152,7 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
     │   ├── NotFound.tsx
     │   ├── UserDashboard.tsx     # (219 q.) foydalanuvchi buyurtmalari
     │   └── Admin/Dashboard.tsx   # (754 q.) ENG KATTA FAYL — admin panel
-    └── assets/             # ~32 MB rasm (optimallashtirilmagan)
+    └── assets/             # 3.1 MB: 77 ta .webp + 4 ta .svg (PNG QOLMAGAN)
 ```
 
 **Eng katta 10 fayl** (`find src -name '*.ts*' -o -name '*.css' -o -name '*.json' | xargs wc -l`):
