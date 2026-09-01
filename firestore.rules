@@ -2,12 +2,26 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Admin = Firebase custom claim { admin: true }.
-    // Claim'ni faqat server (Admin SDK / Firebase CLI) o'rnata oladi,
-    // shuning uchun uni brauzerdan yoki devtools'dan soxtalashtirib
-    // bo'lmaydi. ADMIN_EMAILS ro'yxati endi ishlatilmaydi.
+    // Admin huquqi IKKI manbadan kelishi mumkin:
+    //   1) Firebase custom claim `{ admin: true }` — faqat server
+    //      (Admin SDK / Cloud Shell) o'rnata oladi, brauzerdan
+    //      soxtalashtirib bo'lmaydi. TEZ yo'l: token allaqachon
+    //      so'rov bilan birga kelgan, qo'shimcha o'qish yo'q.
+    //   2) `admins/{uid}` hujjatining mavjudligi — CLI'siz, faqat
+    //      Firebase Console orqali qo'yiladigan ZAXIRA yo'l
+    //      (docs/XAVFSIZLIK-MIGRATSIYA.md, A-BO'LIM).
+    //
+    // TARTIB MUHIM: claim BIRINCHI turadi. Firestore `||` ni qisqa
+    // tutashuv (short-circuit) qiladi, ya'ni claim bor bo'lsa
+    // `exists()` UMUMAN bajarilmaydi — na qo'shimcha hujjat o'qishi,
+    // na uning Blaze tarifidagi narxi bo'ladi. Ikkalasini almashtirib
+    // qo'ymang: aks holda har bir admin so'rovi bitta ortiqcha
+    // o'qishga aylanadi.
     function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+      return request.auth != null && (
+        request.auth.token.admin == true ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
     }
 
     // Hujjat egasi: buyurtmadagi userId kirgan foydalanuvchi uid'iga teng.
@@ -15,6 +29,20 @@ service cloud.firestore {
     // hech kimga "o'ziniki" bo'lmaydi — faqat admin ko'ra oladi.
     function isOwner() {
       return request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Admin ro'yxati. Hujjat MAVJUDLIGIning o'zi admin degani —
+    // maydonlari bo'sh bo'lsa ham bo'ladi.
+    match /admins/{adminId} {
+      // Har kim faqat O'ZINING hujjatini o'qiy oladi: shu bilan
+      // adminlar ro'yxatini (uid'larni) chetdan sanab chiqib bo'lmaydi.
+      allow read: if request.auth != null && request.auth.uid == adminId;
+
+      // Yozish mumkin emas — na foydalanuvchi, na adminning o'zi.
+      // Admin qo'shish/olib tashlash FAQAT Firebase Console orqali
+      // (Console qoidalardan o'tmaydi). Bu qatorni ochib qo'ymang:
+      // aks holda kim admin bo'lishini foydalanuvchi o'zi hal qiladi.
+      allow write: if false;
     }
 
     match /orders/{orderId} {

@@ -81,12 +81,18 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
 - **Telegram yuborish kodi test paytida real guruhga ulanmaydi** — `.env` siz
   `sendTelegram` jimgina `false` qaytadi (`src/utils/telegram.ts`), shu holat
   saqlansin. (Throw qilmaydi; qaytgan qiymat "yetib bordimi" degani.)
-- **Admin chegarasi — Firebase custom claim `{ admin: true }`.**
-  `ADMIN_EMAILS` ro'yxati olib tashlandi. `isAdmin` ID token'dan o'qiladi
-  (`src/firebase/auth.ts` → `hasAdminClaim`) va `firestore.rules` ham aynan
-  shu claim'ga tayanadi. Redux'dagi `user.isAdmin` baribir **faqat UI uchun** —
-  unga tayanib maxfiy amal yozilmaydi, haqiqiy chegara qoidalarda.
-  Claim'ni o'rnatish: `docs/XAVFSIZLIK-MIGRATSIYA.md`.
+- **Admin chegarasi — custom claim `{ admin: true }` YOKI `admins/{uid}` hujjati.**
+  `ADMIN_EMAILS` ro'yxati olib tashlandi. Ikki manba, **claim birinchi**:
+  `src/firebase/auth.ts` → `checkIsAdmin()` va `firestore.rules` → `isAdmin()`
+  aynan bir xil tartibda tekshiradi. Claim bor bo'lsa `admins/{uid}` umuman
+  o'qilmaydi (`||` short-circuit) — tartibni almashtirmang, aks holda har bir
+  admin so'rovi ortiqcha Firestore o'qishiga aylanadi.
+  `hasAdminClaim()` o'chirilmaydi — u `checkIsAdmin()` ning tez yo'li.
+  `admins` kolleksiyasiga **yozish hech kimga ochilmaydi** (`allow write: if false`);
+  admin faqat Firebase Console orqali qo'shiladi.
+  Redux'dagi `user.isAdmin` baribir **faqat UI uchun** — unga tayanib maxfiy
+  amal yozilmaydi, haqiqiy chegara qoidalarda.
+  O'rnatish (telefondan, CLI'siz): `docs/XAVFSIZLIK-MIGRATSIYA.md`.
 
 ### Kod
 - **Mahsulot kodi `any` bilan "tuzatilmaydi"** — `tsconfig.json` da `strict: false`,
@@ -120,7 +126,7 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
 ├── eslint.config.js        # faqat js/jsx ni qamraydi (kamchilik)
 ├── netlify.toml            # build cmd + SPA redirect
 ├── firebase.json           # firestore rules+indexes yo'llari (deploy uchun)
-├── firestore.rules         # Firestore qoidalari (qo'lda deploy qilinadi)
+├── firestore.rules         # Firestore qoidalari (Console'dan qo'lda Publish qilinadi)
 ├── firestore.indexes.json  # orders(userId, createdAt) composite index
 ├── scripts/optimize-images.mjs # PNG -> WebP (quality 80, max 1920px)
 ├── index.html              # FontAwesome 6.7.2 CDN shu yerda
@@ -189,9 +195,13 @@ Bu so'rov `orders(userId ASC, createdAt DESC)` composite index talab qiladi
 (`firestore.indexes.json`). `userId: null` mehmon buyurtmalari foydalanuvchi
 panelida ko'rinmaydi — ular hech bir hisobga biriktirilmagan.
 
-**Auth:** `App.tsx onAuthStateChanged` → `hasAdminClaim(firebaseUser)` (ID token
-custom claim) → `setUser({..., isAdmin})`. Claim o'rnatilgandan keyin admin
-qayta kirishi kerak (token keshi 1 soatgacha yashaydi).
+**Auth:** `App.tsx onAuthStateChanged` → `checkIsAdmin(firebaseUser)` →
+`setUser({..., isAdmin})`. `checkIsAdmin` avval ID token claim'ini o'qiydi
+(tarmoq so'rovi yo'q), u `false` bo'lsagina `getDoc(admins/{uid})` yuboradi;
+har qanday xatoda `false` (fail-closed, oq ekran chiqmaydi). Auth holati
+o'zgarganda **bir marta** bajariladi, render'da emas. Claim o'rnatilgandan
+keyin admin qayta kirishi kerak (token keshi 1 soatgacha yashaydi);
+`admins/{uid}` hujjati esa keyingi kirishdayoq ishlaydi.
 
 **Mahsulot/blog CRUD:** faqat Redux + localStorage (`Data.ts`), server yo'q —
 o'zgarish faqat admin o'z brauzerida ko'rinadi.
@@ -204,7 +214,7 @@ o'zgarish faqat admin o'z brauzerida ko'rinadi.
 |---|---|---|
 | `CLAUDE.md` | Qoidalar va xarita (shu fayl) | Dolzarb |
 | `docs/ARXITEKTURA-TARIXI.md` | Qarorlar, sabablar, ma'lum qarzlar | Dolzarb |
-| `docs/XAVFSIZLIK-MIGRATSIYA.md` | Firestore qoidalari, admin claim, index — deploy tartibi va Rules Playground testlari | Dolzarb |
+| `docs/XAVFSIZLIK-MIGRATSIYA.md` | Admin huquqi (claim + `admins/{uid}`), qoidalar, index — **telefondan, CLI'siz** tartib va Rules Playground testlari | Dolzarb |
 | `README.md` | O'rnatish/deploy yo'riqnomasi (inglizcha) | **Qisman eskirgan** — 2 ta thread env kaliti yozilmagan, `src/firebase/config.ts` da `getFirestore` borligi aytilmagan |
 | `.env.example` | Kerakli env kalitlarning to'liq ro'yxati | Dolzarb (README dan to'liqroq) |
 
