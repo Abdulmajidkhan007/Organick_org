@@ -5,7 +5,7 @@ import { Provider } from 'react-redux'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from './firebase/config'
 import { setUser } from './slices/authSlice'
-import { hasAdminClaim } from './firebase/auth'
+import { checkIsAdmin } from './firebase/auth'
 import { setDarkMode } from './slices/uiSlice'
 import { ErrorBoundary } from './Components/ErrorBoundary'
 
@@ -34,10 +34,14 @@ const AppContent = () => {
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // isAdmin ID token claim'idan keladi. Redux'dagi bu qiymat faqat
-        // UI uchun — haqiqiy chegara firestore.rules ichida, shuning uchun
-        // uni devtools'da o'zgartirish hech narsa bermaydi.
-        const isAdmin = await hasAdminClaim(firebaseUser)
+        // isAdmin avval ID token claim'idan, u bo'lmasa admins/{uid}
+        // hujjatidan keladi (checkIsAdmin). Bu yagona joyda, auth holati
+        // o'zgarganda BIR MARTA bajariladi — render'da emas, ya'ni
+        // qo'shimcha Firestore o'qishi takrorlanmaydi.
+        // Redux'dagi bu qiymat faqat UI uchun — haqiqiy chegara
+        // firestore.rules ichida, shuning uchun uni devtools'da
+        // o'zgartirish hech narsa bermaydi.
+        const isAdmin = await checkIsAdmin(firebaseUser)
         store.dispatch(setUser({
           uid: firebaseUser.uid,
           email: firebaseUser.email,

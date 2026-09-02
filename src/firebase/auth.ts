@@ -11,7 +11,8 @@ import {
   getIdTokenResult,
   User,
 } from 'firebase/auth'
-import { auth } from './config'
+import { doc, getDoc } from 'firebase/firestore'
+import { auth, db } from './config'
 
 const googleProvider = new GoogleAuthProvider()
 
@@ -53,6 +54,40 @@ export const hasAdminClaim = async (user: User, forceRefresh = false): Promise<b
     return token.claims.admin === true
   } catch (e) {
     console.error('[Firebase Auth] ID token claims o\'qilmadi:', e)
+    return false
+  }
+}
+
+/**
+ * Admin huquqining YAKUNIY tekshiruvi — ikki manba, shu tartibda:
+ *
+ *   1. Custom claim `{ admin: true }` — TEZ yo'l. Token allaqachon
+ *      brauzerda, tarmoq so'rovi ham, Firestore o'qishi ham yo'q.
+ *   2. `admins/{uid}` hujjati — ZAXIRA yo'l. Faqat 1-qadam `false`
+ *      qaytarganda o'qiladi, ya'ni claim'i bor admin uchun bu
+ *      so'rov (va uning narxi) hech qachon yuborilmaydi.
+ *
+ * Aynan shu tartib `firestore.rules` dagi `isAdmin()` bilan bir xil.
+ *
+ * Xato bo'lsa (tarmoq yo'q, qoidalar rad etdi, Firestore yiqildi) —
+ * `false` qaytadi (fail-closed) va konsolga yoziladi. Bu funksiya
+ * HECH QACHON throw qilmaydi: `App.tsx` uni `onAuthStateChanged`
+ * ichida kutadi, throw esa oq ekran bilan tugardi.
+ *
+ * Eslatma: bu qiymat baribir FAQAT UI uchun. Haqiqiy chegara
+ * `firestore.rules` ichida — uni Redux devtools'da o'zgartirish
+ * ma'lumotga yo'l ochmaydi.
+ */
+export const checkIsAdmin = async (user: User): Promise<boolean> => {
+  // 1) Claim — arzon va tez.
+  if (await hasAdminClaim(user)) return true
+
+  // 2) Zaxira: admins/{uid} hujjati bormi?
+  try {
+    const snap = await getDoc(doc(db, 'admins', user.uid))
+    return snap.exists()
+  } catch (e) {
+    console.error('[Firebase] admins/{uid} hujjati o\'qilmadi:', e)
     return false
   }
 }
