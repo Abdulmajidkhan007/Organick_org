@@ -358,3 +358,46 @@ body {
 .slide-up {
   animation: slideUp 0.4s ease forwards;
 }
+
+/* ====== ROUTE LOADER ======
+   Lazy route chunk yuklanayotganda ko'rsatiladigan ekran.
+   Ranglar va aylanish tezligi index.html dagi #initial-loader bilan
+   AYNAN bir xil (#274C5B / #7EB693, 0.85s) — shuning uchun boshlang'ich
+   yuklanishdan route almashinuviga o'tishda ko'zga sakrash bilinmaydi.
+   Dark rejim `.dark` klassi orqali (uiSlice uni <html> ga qo'yadi). */
+.route-loader {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.dark .route-loader {
+  background: #0f172a;
+}
+
+.route-loader-spinner {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 5px solid rgba(126, 182, 147, 0.25);
+  border-top-color: #274C5B;
+  border-right-color: #7EB693;
+  animation: route-loader-spin 0.85s linear infinite;
+}
+
+.dark .route-loader-spinner {
+  border-color: rgba(126, 182, 147, 0.2);
+  border-top-color: #7EB693;
+  border-right-color: #274C5B;
+}
+
+@keyframes route-loader-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Harakatni kamaytirish so'ralgan bo'lsa aylanmaydi (a11y). */
+@media (prefers-reduced-motion: reduce) {
+  .route-loader-spinner { animation: none; }
+}

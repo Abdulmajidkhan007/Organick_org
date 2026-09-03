@@ -11,8 +11,7 @@ import {
   getIdTokenResult,
   User,
 } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
-import { auth, db } from './config'
+import { auth, getDb } from './config'
 
 const googleProvider = new GoogleAuthProvider()
 
@@ -83,7 +82,20 @@ export const checkIsAdmin = async (user: User): Promise<boolean> => {
   if (await hasAdminClaim(user)) return true
 
   // 2) Zaxira: admins/{uid} hujjati bormi?
+  //
+  // Firestore SDK shu yerda DINAMIK yuklanadi. Sabab: bu fayl `App.tsx`
+  // va `Navbar.tsx` orqali har sahifada ishlatiladi — statik import
+  // butun `@firebase/firestore` ni bosh sahifa bundle'iga tortardi.
+  // Bu tarmoq so'rovi allaqachon 1-qadam `false` qaytargandagina,
+  // ya'ni claim'i bor admin uchun HECH QACHON bajarilmaydi.
+  //
+  // Xatolar tarkibi o'zgarmadi: modul yuklanmasa ham, qoida rad etsa ham
+  // natija `false` (fail-closed) — bu funksiya throw qilmaydi.
   try {
+    const [db, { doc, getDoc }] = await Promise.all([
+      getDb(),
+      import('firebase/firestore'),
+    ])
     const snap = await getDoc(doc(db, 'admins', user.uid))
     return snap.exists()
   } catch (e) {
