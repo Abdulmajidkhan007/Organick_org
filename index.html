@@ -44,6 +44,14 @@
       try {
         if (localStorage.getItem('organick_darkMode') === 'true') {
           document.getElementById('initial-loader').classList.add('oi-dark')
+          // `dark` klassi SINXRON, React'dan OLDIN qo'yiladi. Ilgari uni
+          // faqat App.tsx dagi useEffect (setDarkMode) qo'shardi, ya'ni
+          // birinchi kadr har doim OQ chizilardi. Lazy route'lardan keyin
+          // bu ayniqsa bilinadi: <Suspense> fallback'i (.route-loader)
+          // effekt ishlagunicha oq fonda ko'rinib qolardi.
+          // uiSlice ham boshlang'ich holatni shu kalitdan oladi, shuning
+          // uchun ikkisi ziddiyatga tushmaydi (setDarkMode idempotent).
+          document.documentElement.classList.add('dark')
         }
       } catch (e) { /* localStorage unavailable */ }
       setTimeout(function () {
