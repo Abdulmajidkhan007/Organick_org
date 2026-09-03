@@ -46,8 +46,11 @@ npm run preview       # build'ni lokal ko'rish
   Tasdiq: `npx eslint src/App.tsx` → `File ignored because no matching configuration was supplied`.
 - `npx tsc --noEmit` → **exit 2**, sabab: `tsconfig.json:17` `baseUrl` deprecated (TS 6).
   Ya'ni typecheck hozir "qizil". Buni tuzatmasdan CI qo'shilmaydi.
-- `npm run build` → exit 0, ~2s, lekin hali bitta chunk **~989 kB** (gzip ~301 kB, Vite hisoboti),
-  code-splitting yo'q. `dist/` ≈ 3.8 MB.
+- `npm run build` → exit 0, ~1.5s. **Code-splitting BOR** (route'lar `React.lazy`).
+  Eng katta chunk'lar: `firebase-firestore` 553 kB (LAZY — bosh sahifa uni
+  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 105 kB,
+  `ui` 54 kB. `dist/` ≈ 4.0 MB.
+  Bosh sahifa yuklaydigan JS: **515 kB raw / 165 kB gzip** (ilgari 1 194 / 359).
 
 ### `.env`
 ```bash
@@ -100,8 +103,24 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
 - **Yangi `.jsx` fayl qo'shilmaydi** — loyiha to'liq `.tsx` ga ko'chirilgan.
 - **`@/...` importi ishlatilmaydi** — `tsconfig.json:18` da `paths` bor, lekin
   `vite.config.js` da mos alias YO'Q, ya'ni ishlatilsa build sinadi.
-- **Route qo'shsangiz** — `src/App.tsx` dagi `<Routes>` ga qo'shing va
+- **Route qo'shsangiz** — `src/App.tsx` dagi `<Routes>` ga qo'shing, va uni
+  **`lazy(() => import(...))`** bilan qo'shing (Home'dan tashqari hammasi shunday;
+  komponentlar named eksport, shuning uchun `.then(m => ({ default: m.X }))` kerak).
+  Statik import qo'shsangiz o'sha sahifaning kodi bosh sahifa bundle'iga qaytib tushadi.
   SPA fallback allaqachon bor (`netlify.toml`, `public/_redirects`), ularga tegmang.
+- **`firebase/firestore` ni bosh sahifadan chaqiriladigan modulga STATIK
+  import qilmang.** Firestore SDK (+`re2js`) ~553 kB — u faqat lazy
+  chunk'larda bo'lishi kerak. Qoidalar:
+  `src/firebase/config.ts` da `db` eksporti YO'Q, uning o'rniga
+  `getDb(): Promise<Firestore>` (dinamik import, keshlanadi).
+  `src/firebase/firestore.ts` statik import qilsa BO'LADI — uni faqat lazy
+  route'lar (Checkout, UserDashboard, Admin/Dashboard) ishlatadi.
+  `src/firebase/auth.ts` esa har sahifada yuklanadi, shuning uchun undagi
+  `checkIsAdmin()` firestore'ni `await import(...)` bilan oladi — buni
+  statik importga aylantirmang.
+  `vite.config.js` da `firebase-auth` va `firebase-firestore` ATAYLAB ikki
+  alohida manual chunk: bittaga qo'shsangiz bosh sahifa auth uchun
+  firestore'ni ham tortib oladi.
 - **Yangi rasm `.png`/`.jpg` holida qo'shilmaydi.** `src/assets/` da faqat
   `.webp` (va ikonlar uchun `.svg`). Yangi rasm qo'shsangiz: faylni
   `src/assets/` ga qo'ying, `node scripts/optimize-images.mjs` ni ishlating,
@@ -134,7 +153,7 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
 ├── public/_redirects       # Netlify SPA fallback
 └── src/
     ├── main.tsx            # kirish nuqtasi: style, Fonts, i18n, App
-    ├── App.tsx             # BrowserRouter + Provider + barcha route'lar + onAuthStateChanged
+    ├── App.tsx             # BrowserRouter + Provider + route'lar (React.lazy + Suspense) + onAuthStateChanged
     ├── Store.ts            # Redux store: data / cart / auth / ui / orders
     ├── Data.ts             # mahsulot+blog "ma'lumot bazasi" + Data slice (193 qator)
     ├── types/index.ts      # BARCHA TypeScript interfeyslari shu yerda
@@ -142,7 +161,7 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
     ├── Fonts.css
     ├── hooks/index.ts      # useAppDispatch / useAppSelector
     ├── firebase/
-    │   ├── config.ts       # Firebase init, `auth` va `db` eksporti
+    │   ├── config.ts       # Firebase init; `auth` (darhol) + `getDb()` (lazy Firestore)
     │   ├── auth.ts         # login helperlari + hasAdminClaim (custom claim)
     │   └── firestore.ts    # orders CRUD + onSnapshot obunalar
     ├── utils/telegram.ts   # sendTelegram(text, threadId)
@@ -164,7 +183,8 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
     │   ├── Cart.tsx  CartSidebar.tsx
     │   ├── Checkout.tsx    # (298 q.) buyurtma berish + getStatusStyle eksporti
     │   ├── Contact.tsx  ContactForm.tsx
-    │   ├── ScrollIndicator.tsx   # Navbar ichida ishlatiladi
+    │   ├── ScrollIndicator.tsx   # Navbar ichida; sof scroll listener + CSS (motion YO'Q)
+    │   ├── RouteLoader.tsx       # lazy route uchun <Suspense> fallback
     │   ├── NotFound.tsx
     │   ├── UserDashboard.tsx     # (219 q.) foydalanuvchi buyurtmalari
     │   └── Admin/Dashboard.tsx   # (754 q.) ENG KATTA FAYL — admin panel
