@@ -5,7 +5,7 @@ import { Provider } from 'react-redux'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from './firebase/config'
 import { setUser } from './slices/authSlice'
-import { checkIsAdmin } from './firebase/auth'
+import { checkIsAdmin, toAuthUser } from './firebase/auth'
 import { setDarkMode } from './slices/uiSlice'
 import { ErrorBoundary } from './Components/ErrorBoundary'
 import { RouteLoader } from './Components/RouteLoader'
@@ -56,14 +56,9 @@ const AppContent = () => {
         // firestore.rules ichida, shuning uchun uni devtools'da
         // o'zgartirish hech narsa bermaydi.
         const isAdmin = await checkIsAdmin(firebaseUser)
-        store.dispatch(setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          photoURL: firebaseUser.photoURL,
-          phoneNumber: firebaseUser.phoneNumber,
-          isAdmin,
-        }))
+        // `toAuthUser` psevdo-emailni (telefon+parol oqimi yasaydigan
+        // `998901234567@<domen>`) filtrlaydi — izoh o'sha yerda.
+        store.dispatch(setUser(toAuthUser(firebaseUser, isAdmin)))
       } else {
         store.dispatch(setUser(null))
       }

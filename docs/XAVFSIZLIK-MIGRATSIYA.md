@@ -367,6 +367,118 @@ mumkin bo'ladi. Ular hech narsaga xalaqit bermaydi.
 
 ---
 
+---
+
+# D-BO'LIM — Telefon + parol (psevdo-email) sozlash
+
+> Mijoz **bir marta** SMS bilan tasdiqdan o'tadi, keyin istalgan
+> qurilmada **telefon raqam + parol** bilan kiradi. SMS xarajati va
+> firibgarlik xavfi shu bilan keskin kamayadi.
+>
+> Qo'lda sinash rejasi: `docs/QOLDA-SINASH-TELEFON-PAROL.md`.
+
+## D1. Nima uchun psevdo-email
+
+Firebase Auth'da "telefon + parol" provayderi **yo'q**. Bor narsalar:
+`phone` (faqat SMS, parolsiz) va `password` (email + parol). Shuning
+uchun OTP dan keyin hisobga `password` provayderi biriktiriladi
+(`linkWithCredential`), u talab qiladigan email esa raqamdan yasaladi:
+
+```
++998901234567   ->   998901234567@<VITE_PHONE_AUTH_DOMAIN>
+```
+
+Bu manzilga **hech narsa yuborilmaydi**. Mijoz uni ko'rmaydi ham:
+`src/App.tsx` psevdo-emailni Redux'ga yozishdan oldin filtrlaydi
+(`isPseudoEmail`), ya'ni u Navbar'da ham, buyurtmada ham chiqmaydi.
+
+Kod: `src/utils/phoneAuth.ts` (to'liq izoh shu yerda),
+`src/firebase/auth.ts` → `signInWithPhonePassword`,
+`attachPasswordToPhoneUser`.
+
+## D2. QADAM — domenni sozlash
+
+1. Tasodifiy qiymat yasang (telefonda: istalgan 16 ta tasodifiy
+   harf-raqam; kompyuterda `printf '%s.local\n' "$(openssl rand -hex 8)"`).
+   Masalan: `4f9c2a71b03de85a.local`
+2. Netlify → Site settings → Environment variables →
+   `VITE_PHONE_AUTH_DOMAIN` = o'sha qiymat.
+3. Lokal `.env` ga ham **aynan shu** qiymatni yozing.
+4. Qayta deploy qiling (Vite env'ni build paytida bundle'ga yozadi,
+   eski build yaramaydi).
+
+> ### ⚠️ DOMEN BIR MARTA QO'YILADI VA O'ZGARTIRILMAYDI
+> Domen har bir mijozning psevdo-emailining bir qismi. Uni
+> o'zgartirsangiz hamma parol ishlamay qoladi: mijozlar SMS bilan
+> kirib, parolni qaytadan o'rnatishga majbur bo'ladi.
+>
+> Env **berilmagan** bo'lsa kod zaxira domen bilan jimgina ishlamaydi —
+> telefon+parol butunlay o'chadi va `/auth` da ogohlantirish chiqadi.
+> Bu ataylab: aks holda env keyin qo'shilganda hamma "sababsiz"
+> paroldan ayrilardi.
+
+## D3. QADAM — Firebase Console
+
+Authentication → Sign-in method: **Phone** va **Email/Password**
+ikkalasi ham **Enabled** bo'lishi shart. Ikkinchisi o'chiq bo'lsa
+`linkWithCredential` `auth/operation-not-allowed` bilan yiqiladi.
+
+## D4. Telefon+parol — QOLGAN XAVF va uni yopish
+
+**Hujum:** hujumchi `998901234567@<domen>` manzilini **oldindan** band
+qilib qo'ysa, o'sha raqamning haqiqiy egasi SMS'dan o'tsa ham parol
+qo'ya olmaydi — `linkWithCredential` `auth/email-already-in-use` beradi.
+
+Hozir qo'yilgan to'siqlar va ularning **haqiqiy kuchi**:
+
+| # | To'siq | Qayerda | Kuchi |
+|---|---|---|---|
+| 1 | Domen tasodifiy | `VITE_PHONE_AUTH_DOMAIN` | **Faqat obskurlik.** Frontend-only ilovada domen bundle ichida ko'rinadi — bu sir emas |
+| 2 | Ro'yxatdan o'tish formasida domen bloklanadi | `isReservedAuthEmail()`, `registerWithEmail()`, AuthPage | **Bizning formadan** hujumni to'liq yopadi |
+| 3 | Firebase Auth blocking function | ⛔ **hali qo'yilmagan** | Yagona to'liq yechim |
+
+Firebase'ning `signUp` REST endpoint'i ochiq, API kalit ham ochiq —
+ya'ni 1-2 to'siqni bilgan hujumchi bizning formani chetlab o'tib
+to'g'ridan-to'g'ri hisob yarata oladi. Buni faqat server to'xtatadi.
+
+**Yopish (Blaze rejasi va CLI talab qiladi):**
+
+Firebase Console → Authentication → Settings → **Blocking functions** →
+`beforeCreate` ga quyidagi funksiyani ulang:
+
+```js
+// functions/index.js — Cloud Functions for Firebase (2nd gen)
+const { beforeUserCreated, HttpsError } = require('firebase-functions/v2/identity')
+
+// AYNAN VITE_PHONE_AUTH_DOMAIN dagi qiymat:
+const PHONE_AUTH_DOMAIN = '4f9c2a71b03de85a.local'
+
+exports.blockPseudoEmailSignup = beforeUserCreated((event) => {
+  const email = (event.data?.email || '').toLowerCase()
+  if (!email.endsWith('@' + PHONE_AUTH_DOMAIN)) return
+
+  // Psevdo-domen bilan hisob FAQAT tasdiqlangan telefon raqamga
+  // biriktirilganda paydo bo'lishi mumkin. Telefon raqamsiz kelgan
+  // har qanday urinish — hujum.
+  const phone = (event.data?.phoneNumber || '').replace(/\D/g, '')
+  if (!phone || email !== phone + '@' + PHONE_AUTH_DOMAIN) {
+    throw new HttpsError('permission-denied', 'Reserved email domain')
+  }
+})
+```
+
+Bu qo'yilmaguncha xavf **ochiq turadi**, lekin uni amalga oshirish uchun
+hujumchi domenni bundle ichidan topishi kerak. Mijozga ta'siri:
+ro'yxatdan o'tishda «Bu raqamga parol biriktirib bo'lmadi — u boshqa
+hisobga bog'langan…» xabari chiqadi (jimgina yiqilmaydi).
+
+## D5. Eski, "faqat SMS" hisoblari
+
+Ular buzilmaydi. Bunday mijoz «SMS bilan kirish» yoki «Parolni
+unutdingizmi?» orqali kirsa, o'sha yerda parol qo'yish ekrani chiqadi va
+`attachPasswordToPhoneUser` unga `password` provayderini biriktiradi
+(`linkWithCredential`). Keyingi safar u ham SMS'siz kiradi.
+
 ## Rules Playground test stsenariylari
 
 Konsol → **Firestore Database → Rules → Rules Playground**

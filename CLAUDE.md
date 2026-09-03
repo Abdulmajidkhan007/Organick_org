@@ -32,6 +32,7 @@ npm ci                # bog'liqliklarni o'rnatish (node_modules repo'da yo'q)
 npm run lint          # ESLint — DIQQAT: hozir faqat .js/.jsx ni tekshiradi (2-bo'limga qarang)
 npx tsc --noEmit      # TypeScript tekshiruvi — build buni O'ZI qilmaydi
 npm run build         # Vite production build (dist/)
+npm run test:e2e      # Playwright: /auth 8 kenglikda gorizontal scroll bermasligi
 ```
 
 Qo'lda tekshirish:
@@ -46,11 +47,20 @@ npm run preview       # build'ni lokal ko'rish
   Tasdiq: `npx eslint src/App.tsx` → `File ignored because no matching configuration was supplied`.
 - `npx tsc --noEmit` → **exit 2**, sabab: `tsconfig.json:17` `baseUrl` deprecated (TS 6).
   Ya'ni typecheck hozir "qizil". Buni tuzatmasdan CI qo'shilmaydi.
+- `npm run test:e2e` → 8 test, hammasi o'tadi (~8s). Chromium konteynerda
+  oldindan bor (`/opt/pw-browsers/chromium`), `playwright install` KERAK EMAS.
+  Test faqat LAYOUT ni tekshiradi — Firebase chaqiruvlari sinalmaydi
+  (real loyiha va real SMS kerak, ular qo'lda sinaladi:
+  `docs/QOLDA-SINASH-TELEFON-PAROL.md`).
 - `npm run build` → exit 0, ~1.5s. **Code-splitting BOR** (route'lar `React.lazy`).
   Eng katta chunk'lar: `firebase-firestore` 553 kB (LAZY — bosh sahifa uni
-  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 105 kB,
-  `ui` 54 kB. `dist/` ≈ 4.0 MB.
-  Bosh sahifa yuklaydigan JS: **515 kB raw / 165 kB gzip** (ilgari 1 194 / 359).
+  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 114 kB,
+  `ui` 54 kB. `dist/` ≈ 4.1 MB.
+  Bosh sahifa yuklaydigan JS: **525 kB raw / 167 kB gzip** (ilgari 1 194 / 359).
+  `index` 105 -> 114 kB ga o'sgani telefon+parol uchun qo'shilgan 40 ta
+  i18n kalitidan (25 tasi xato xabari, uchala tilda) — tarjimalar
+  `src/i18n/index.ts` orqali STATIK import qilinadi, ya'ni ular doim
+  bosh sahifa bundle'ida. Yangi matn qo'shishning narxi shu.
 
 ### `.env`
 ```bash
@@ -68,6 +78,13 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
   build paytida JS bundle ichiga **ochiq matn** sifatida joylashadi va brauzerda ko'rinadi.
   Hozirgi `VITE_TELEGRAM_BOT_TOKEN` (`src/utils/telegram.ts:2`) — aynan shu muammo.
   Yangi sirlar faqat server tomonda (Netlify Function / Cloud Function) saqlanadi.
+  `VITE_PHONE_AUTH_DOMAIN` bu qoidaga ZID EMAS: u sir emas, konfiguratsiya.
+  Brauzer psevdo-emailni o'zi yasashi shart, demak domen baribir bundle'da
+  ko'rinadi — himoya uning maxfiyligiga TAYANMAYDI (`src/utils/phoneAuth.ts`).
+- **`VITE_PHONE_AUTH_DOMAIN` bir marta qo'yiladi va O'ZGARTIRILMAYDI.**
+  U har bir mijozning psevdo-emailining bir qismi: o'zgarsa hamma parol
+  ishlamay qoladi. Env berilmagan bo'lsa kod zaxira domenga o'tmaydi —
+  telefon+parol o'chadi (`isPhonePasswordEnabled()`), bu ataylab shunday.
 - **Mijoz ma'lumoti (telefon, manzil) yangi ochiq joyga yozilmaydi.** `orders`
   o'qish huquqi endi toraytirilgan: `read` faqat o'z buyurtmasi
   (`resource.data.userId == request.auth.uid`) yoki admin claim'i uchun.
@@ -126,6 +143,17 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
   `src/assets/` ga qo'ying, `node scripts/optimize-images.mjs` ni ishlating,
   keyin `.webp` ni import qiling va originalni o'chiring.
   Sabab: bosh sahifa 9 196 KB dan 1 262 KB ga aynan shu bilan tushgan.
+- **Telefon + parol oqimiga tegsangiz** — psevdo-email uchta joyda
+  bog'langan, uchalasi bir vaqtda o'zgaradi:
+  `src/utils/phoneAuth.ts` (raqamni bir ko'rinishga keltirish va email
+  yasash), `src/firebase/auth.ts` (`signInWithPhonePassword`,
+  `attachPasswordToPhoneUser`), `src/App.tsx` (psevdo-emailni Redux'ga
+  yozmaslik). **`normalizePhone()` ni o'zgartirmang** — ro'yxatdan o'tish
+  va kirish AYNAN bir xil email yasashi kerak, aks holda mijoz to'g'ri
+  parol bilan ham kira olmaydi.
+  Oddiy email ro'yxatdan o'tishdagi `isReservedAuthEmail()` bloki
+  OLIB TASHLANMAYDI — usiz hujumchi birovning raqamidan yasalgan
+  manzilni band qilib, egasini bloklaydi.
 - **Yangi matn qo'shsangiz** — uchala tilga ham qo'shing:
   `src/i18n/locales/uz.json`, `en.json`, `ru.json` (hozir uchalasi ham 289 kalit, teng).
   Komponentga to'g'ridan-to'g'ri o'zbekcha matn yozib qo'yilmaydi.
@@ -138,7 +166,8 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
 .
 ├── CLAUDE.md               # shu fayl
 ├── docs/ARXITEKTURA-TARIXI.md  # nega shunday qilingan, qarorlar tarixi
-├── docs/XAVFSIZLIK-MIGRATSIYA.md # qoidalar/claim/index — qo'lda bajariladigan qadamlar
+├── docs/XAVFSIZLIK-MIGRATSIYA.md # qoidalar/claim/index + telefon+parol (D-bo'lim)
+├── docs/QOLDA-SINASH-TELEFON-PAROL.md # telefon+parol uchun qo'lda sinash rejasi
 ├── package.json            # skriptlar: dev / build / lint / preview
 ├── vite.config.js          # react + tailwind plaginlari (alias YO'Q)
 ├── tsconfig.json           # strict: false, noEmit, paths (ishlatilmaydi)
@@ -148,6 +177,8 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
 ├── firestore.rules         # Firestore qoidalari (Console'dan qo'lda Publish qilinadi)
 ├── firestore.indexes.json  # orders(userId, createdAt) composite index
 ├── scripts/optimize-images.mjs # PNG -> WebP (quality 80, max 1920px)
+├── playwright.config.ts    # e2e: dev server + oldindan o'rnatilgan Chromium
+├── tests/e2e/auth-layout.spec.ts # /auth 8 kenglikda toshib ketmasligi
 ├── index.html              # FontAwesome 6.7.2 CDN shu yerda
 ├── .env.example            # kerakli barcha env kalitlar ro'yxati
 ├── public/_redirects       # Netlify SPA fallback
@@ -164,7 +195,9 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
     │   ├── config.ts       # Firebase init; `auth` (darhol) + `getDb()` (lazy Firestore)
     │   ├── auth.ts         # login helperlari + hasAdminClaim (custom claim)
     │   └── firestore.ts    # orders CRUD + onSnapshot obunalar
-    ├── utils/telegram.ts   # sendTelegram(text, threadId)
+    ├── utils/
+    │   ├── telegram.ts     # sendTelegram(text, threadId)
+    │   └── phoneAuth.ts    # normalizePhone + psevdo-email (telefon+parol)
     ├── i18n/
     │   ├── index.ts        # i18next init (lng: 'uz')
     │   └── locales/        # uz.json / en.json / ru.json
@@ -192,9 +225,10 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
 ```
 
 **Eng katta 10 fayl** (`find src -name '*.ts*' -o -name '*.css' -o -name '*.json' | xargs wc -l`):
-`Admin/Dashboard.tsx` 754 · `style.css` 360 · `Navbar.tsx` 352 ·
-`locales/uz.json` `ru.json` `en.json` har biri 351 · `Home.tsx` 334 ·
-`Auth/AuthPage.tsx` 324 · `Checkout.tsx` 298 · `UserDashboard.tsx` 219.
+`Admin/Dashboard.tsx` 770 · `Auth/AuthPage.tsx` 676 · `style.css` 403 ·
+`locales/uz.json` `ru.json` `en.json` har biri 392 · `Home.tsx` 366 ·
+`Navbar.tsx` 360 · `Checkout.tsx` 346 · `UserDashboard.tsx` 242 ·
+`ShopSingle.tsx` 230.
 
 ---
 
@@ -223,6 +257,17 @@ o'zgarganda **bir marta** bajariladi, render'da emas. Claim o'rnatilgandan
 keyin admin qayta kirishi kerak (token keshi 1 soatgacha yashaydi);
 `admins/{uid}` hujjati esa keyingi kirishdayoq ishlaydi.
 
+**Telefon + parol:** Firebase'da bunday provayder yo'q, shuning uchun OTP
+dan keyin hisobga `password` provayderi biriktiriladi
+(`attachPasswordToPhoneUser` -> `linkWithCredential`), uning emaili
+raqamdan yasaladi: `+998901234567` -> `998901234567@$VITE_PHONE_AUTH_DOMAIN`.
+Keyingi kirishlar `signInWithEmailAndPassword` — **SMS ketmaydi**.
+SMS uchta joyda qoladi: ro'yxatdan o'tish, parolni tiklash
+(`updatePassword`) va parolsiz zaxira kirish. Psevdo-email mijozga
+ko'rsatilmaydi — `App.tsx` uni Redux'ga `null` qilib yozadi.
+To'liq izoh: `src/utils/phoneAuth.ts`. Sozlash va qolgan xavf:
+`docs/XAVFSIZLIK-MIGRATSIYA.md` D-bo'lim.
+
 **Mahsulot/blog CRUD:** faqat Redux + localStorage (`Data.ts`), server yo'q —
 o'zgarish faqat admin o'z brauzerida ko'rinadi.
 
@@ -234,7 +279,8 @@ o'zgarish faqat admin o'z brauzerida ko'rinadi.
 |---|---|---|
 | `CLAUDE.md` | Qoidalar va xarita (shu fayl) | Dolzarb |
 | `docs/ARXITEKTURA-TARIXI.md` | Qarorlar, sabablar, ma'lum qarzlar | Dolzarb |
-| `docs/XAVFSIZLIK-MIGRATSIYA.md` | Admin huquqi (claim + `admins/{uid}`), qoidalar, index — **telefondan, CLI'siz** tartib va Rules Playground testlari | Dolzarb |
+| `docs/XAVFSIZLIK-MIGRATSIYA.md` | Admin huquqi (claim + `admins/{uid}`), qoidalar, index — **telefondan, CLI'siz** tartib va Rules Playground testlari; D-bo'lim: telefon+parol sozlash va qolgan xavf | Dolzarb |
+| `docs/QOLDA-SINASH-TELEFON-PAROL.md` | Telefon+parol oqimini qo'lda sinash rejasi (telefonda bajariladi) | Dolzarb |
 | `README.md` | O'rnatish/deploy yo'riqnomasi (inglizcha) | **Qisman eskirgan** — 2 ta thread env kaliti yozilmagan, `src/firebase/config.ts` da `getFirestore` borligi aytilmagan |
 | `.env.example` | Kerakli env kalitlarning to'liq ro'yxati | Dolzarb (README dan to'liqroq) |
 

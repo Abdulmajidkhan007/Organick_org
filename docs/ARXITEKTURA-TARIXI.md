@@ -269,3 +269,95 @@ gorizontal scroll 3px — sabab `src/Components/Footer.tsx:48` dagi newsletter
 tugmasi (`whitespace-nowrap`, h-14 px-5) footer'dan 3px chiqib ketadi;
 bosh sahifada 8px. Bu bu sessiyadan oldin ham bor edi (`350b11a` bilan
 o'lchab solishtirildi) va dizayn ishi bo'lgani uchun tegilmadi.
+
+---
+
+## 11. Telefon raqam + parol bilan kirish (2026-09-03)
+
+### Muammo
+
+Telefon bilan kirishning yagona yo'li SMS OTP edi: mijoz **har safar**
+kod kutardi. Bu ikki narsani anglatardi — har kirish uchun SMS pul
+to'lanadi, va OTP yuborish endpoint'i firibgarlik uchun ochiq nishon
+(begona raqamlarga ko'p SMS yuborib hisobni "quritish").
+
+### Nega psevdo-email
+
+Firebase Auth'da **telefon + parol** provayderi yo'q. Faqat `phone`
+(parolsiz SMS) va `password` (email + parol) bor. Uch variant ko'rildi:
+
+| Variant | Nega tanlanmadi / tanlandi |
+|---|---|
+| Har kirishda SMS (hozirgi holat) | Muammoning o'zi |
+| O'z backend'i + custom token | Serverni talab qiladi. Loyiha ataylab frontend-only |
+| **OTP dan keyin `password` provayderini biriktirish** | ✅ Server kerak emas, SMS bir marta ketadi |
+
+Tanlangan yo'lda OTP tasdiqlangandan keyin hisobga
+`linkWithCredential(EmailAuthProvider.credential(...))` bilan parol
+biriktiriladi. `password` provayderi email talab qilgani uchun email
+raqamdan yasaladi: `+998901234567` -> `998901234567@<domen>`.
+Bu manzil **hech qachon ishlatilmaydi** — na xat yuboriladi, na mijozga
+ko'rsatiladi. U shunchaki Firebase ichidagi kalit.
+
+### Ko'rilgan xavf va u qanchalik yopilgan
+
+Psevdo-email sxemasining o'z hujumi bor: agar domen taxmin qilinadigan
+bo'lsa, hujumchi `998901234567@<domen>` ni **oldindan** band qilib,
+o'sha raqamning egasiga parol qo'yish imkonini bermay qo'yadi
+(`linkWithCredential` `email-already-in-use` beradi).
+
+Uch to'siq qo'yildi, lekin ularning kuchi **bir xil emas** va buni
+yashirmaslik kerak:
+
+1. **Domen `VITE_PHONE_AUTH_DOMAIN` env'idan, tasodifiy.** Bu faqat
+   obskurlik. Frontend-only ilovada brauzer psevdo-emailni o'zi yasashi
+   shart, demak domen bundle ichida ochiq turadi — **sir emas**. Shu
+   sabab u CLAUDE.md dagi "VITE_ bilan yangi sir qo'shilmaydi"
+   qoidasiga zid emas: qo'shilgani sir emas, konfiguratsiya.
+2. **Ro'yxatdan o'tish formasida bloklash** (`isReservedAuthEmail`,
+   AuthPage va `registerWithEmail` — ikki qatlamda). **Bizning formadan**
+   kelgan hujumni to'liq yopadi. Haqiqiy himoya shu.
+3. **Qolgan xavf ochiq:** Firebase'ning `signUp` REST endpoint'i va API
+   kalit ochiq, ya'ni domenni bundle'dan topgan hujumchi formani chetlab
+   o'ta oladi. Buni faqat server to'xtatadi — Firebase Auth blocking
+   function (`beforeUserCreated`). Namuna kodi va o'rnatish tartibi:
+   `docs/XAVFSIZLIK-MIGRATSIYA.md` D4. **Hozircha qo'yilmagan.**
+
+Ya'ni bu o'zgarish SMS xarajati va OTP firibgarligini kamaytirdi, lekin
+o'rniga kichikroq, aniq nomlangan yangi xavfni oldi.
+
+### Env berilmasa nima bo'ladi
+
+Zaxira domen **ataylab yo'q**. Sababi: domen har bir mijozning
+psevdo-emailining bir qismi, ya'ni uni keyin o'zgartirish hamma parolni
+buzadi. Agar kod zaxira domen bilan jimgina ishga tushsa, admin env'ni
+keyinroq qo'shgan kunda barcha mijozlar "sababsiz" paroldan ayrilardi.
+Shuning uchun env bo'lmasa `isPhonePasswordEnabled()` `false` qaytaradi:
+telefon+parol o'chadi, `/auth` ogohlantirish ko'rsatadi, SMS oqimi
+ilgarigidek ishlaydi.
+
+### Yo'l-yo'lakay tuzatilgan narsalar
+
+- **Xato xabarlari uchala tilga chiqdi.** Ilgari `AuthPage` ichida
+  o'zbekcha matnlar hardcode qilingan edi (`auth/user-not-found` va h.k.),
+  ya'ni en/ru mijoz o'zbekcha xato ko'rardi. Endi Firebase kodi ->
+  i18n kaliti xaritasi (`ERROR_KEY_BY_CODE`), 25 ta xato uchala tilda.
+- **reCAPTCHA verifier qayta ishlatilmaydi.** Ilgari har yuborishda yangi
+  `RecaptchaVerifier` yaratilar, eskisi tozalanmasdi — "kodni qayta
+  yuborish" tugmasi qo'shilgandan keyin bu "already rendered in this
+  element" xatosiga olib kelardi. Endi verifier ref'da saqlanadi,
+  yangisidan oldin va komponent yopilganda `clear()` qilinadi.
+- **Psevdo-email UI'dan filtrlanadi.** `App.tsx` uni Redux'ga `null`
+  qilib yozadi, aks holda u Navbar, UserDashboard, admin panel va
+  buyurtmaning `userEmail` maydonida ko'rinardi. O'rniga ismi ham,
+  emaili ham yo'q mijozga telefon raqami ko'rsatiladi.
+- **Parol uzunligi 6 -> 8**, lekin **faqat ro'yxatdan o'tishda**:
+  eski mijozlarning 6 belgili paroli kirishda ishlayveradi.
+
+### Nima sinaladi va nima sinalmaydi
+
+`npm run test:e2e` (Playwright) faqat **layout**ni tekshiradi: `/auth`
+8 ta kenglikda (320…1024) gorizontal scroll bermasligi. Firebase
+oqimlarining o'zi avtomatik sinalmaydi — ular real loyiha, real raqam va
+real SMS talab qiladi. Ular uchun qo'lda sinash rejasi yozilgan:
+`docs/QOLDA-SINASH-TELEFON-PAROL.md`.
