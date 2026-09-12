@@ -2,7 +2,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import { defineSecret } from 'firebase-functions/params'
 import { logger } from 'firebase-functions'
 import { initializeApp } from 'firebase-admin/app'
-import { getFirestore, FieldValue } from 'firebase-admin/firestore'
+import { getFirestore, FieldValue, Transaction } from 'firebase-admin/firestore'
 
 initializeApp()
 
@@ -56,7 +56,7 @@ const checkRateLimit = async (ip: string): Promise<void> => {
   const ref = db.collection('_telegramRateLimits').doc(docId)
   const now = Date.now()
 
-  await db.runTransaction(async tx => {
+  await db.runTransaction(async (tx: Transaction) => {
     const snap = await tx.get(ref)
     const data = snap.exists ? (snap.data() as { count: number; windowStart: number }) : null
 
