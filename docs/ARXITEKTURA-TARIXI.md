@@ -269,3 +269,50 @@ gorizontal scroll 3px — sabab `src/Components/Footer.tsx:48` dagi newsletter
 tugmasi (`whitespace-nowrap`, h-14 px-5) footer'dan 3px chiqib ketadi;
 bosh sahifada 8px. Bu bu sessiyadan oldin ham bor edi (`350b11a` bilan
 o'lchab solishtirildi) va dizayn ishi bo'lgani uchun tegilmadi.
+
+---
+
+## 11. Netlify'dan Firebase Hosting'ga o'tish (2026-09-12)
+
+**Nega:** Netlify loyihani bekor qildi — sayt ochiq emas edi. Qayta boshqa
+Netlify hisobiga ulash o'rniga Firebase Hosting tanlandi, chunki loyiha
+Auth va Firestore uchun allaqachon Firebase'ga bog'liq (bir xil
+`organick-e1c5a` project ID, bitta Console, bitta billing — Blaze rejasi
+allaqachon yoqilgan). Ikkinchi hosting provayder qo'shish o'rniga bitta
+platformaga tushirish tanlandi.
+
+**Nega GitHub Actions, qo'lda `firebase deploy` emas:** loyiha egasida
+kompyuter yo'q, faqat telefon. `npm run build && firebase deploy` buyrug'ini
+terminal'siz bajarish imkonsiz. Shuning uchun deploy butunlay CI'ga
+o'tkazildi: `master`ga push (yoki PR merge) — va sayt o'zi yangilanadi.
+Bir martalik qo'lda ish faqat GitHub Secrets va Firebase Console
+sozlashlariga qoldi (`docs/DEPLOY.md`) — ular ham CLI talab qilmaydi.
+
+**Nega Firestore qoidalari CI'ga qo'shilmadi:** `firebase deploy` parametrsiz
+chaqirilsa `firestore.rules` ham deploy bo'lardi. Bu ataylab bloklandi —
+workflow faqat `firebase deploy --only hosting` chaqiradi. Sabab: qoidalar
+o'zgarishi buyurtma ma'lumotlarining kimga ochiq bo'lishini belgilaydi
+(10-bo'lim); bunday o'zgarish avtomatik, review'siz push bilan ketishi
+xavfli. Qoidalar hamon qo'lda, Firebase Console → Rules orqali, ataylab
+sekin va ko'rinadigan tarzda qo'llanadi (`docs/XAVFSIZLIK-MIGRATSIYA.md`).
+
+**Nega ikki alohida workflow (`deploy.yml`, `pr-check.yml`):** PR'larda
+deploy huquqi (`FIREBASE_SERVICE_ACCOUNT`) kerak emas — faqat kod
+buziladimi-yo'qmi (lint + build) tekshiriladi. Deploy'ni faqat `master`ga
+push'ga bog'lash xato PR'ning production'ga chiqib ketishini oldini oladi.
+Preview channel (`firebase hosting:channel:deploy`) ham ataylab qo'shilmadi
+— talab qilinmagan, va u ham service account kalitini PR workflow'iga
+oshirib qo'yardi.
+
+**Nega `vite.config.js`ga tegilmadi:** `manualChunks` (firebase-auth /
+firebase-firestore ajratilgani) hosting provayderiga bog'liq emas — bu
+bundle strategiyasi, deploy joyidan mustaqil. Hosting o'zgarishi build
+chiqishini o'zgartirmasligi kerak edi va o'zgartirmadi.
+
+**Narxi:** `netlify.toml` va `public/_redirects` o'chirildi (endi
+`firebase.json`'dagi `hosting.rewrites` bir xil ishni qiladi — barcha
+yo'l `/index.html`ga). Kesh sarlavhalari (`Cache-Control`) qiymati
+Netlify'dagi bilan **aynan bir xil** qoldirildi
+(`/assets/**` → `max-age=31536000, immutable`, `/index.html` →
+`max-age=0, must-revalidate`) — faqat sintaksis Firebase glob formatiga
+o'tkazildi, xatti-harakat o'zgarmadi.
