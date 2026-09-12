@@ -20,7 +20,7 @@ A full-featured organic food store built with React 19, TypeScript, Redux Toolki
 - **Blog & Portfolio** pages
 - **Contact Form**: Sends messages to a Telegram group via Bot API
 - **Newsletter**: Telegram Bot subscription
-- **Netlify-ready**: `netlify.toml` + `public/_redirects` for SPA routing
+- **Firebase Hosting-ready**: `firebase.json` SPA rewrite + GitHub Actions auto-deploy on push to `master`
 
 ---
 
@@ -36,7 +36,7 @@ A full-featured organic food store built with React 19, TypeScript, Redux Toolki
 | Auth | Firebase 12 (Google, Email, Phone) |
 | i18n | i18next 26 + react-i18next 17 |
 | Build | Vite 8 |
-| Deploy | Netlify |
+| Deploy | Firebase Hosting (GitHub Actions) |
 
 ---
 
@@ -164,15 +164,18 @@ src/
 
 ---
 
-## Deployment on Netlify
+## Deployment on Firebase Hosting
 
-1. Push the branch to GitHub
-2. Connect the repository to Netlify
-3. Set **Build command**: `npm run build` and **Publish directory**: `dist`
-4. Add all `.env` variables in **Netlify → Site Settings → Environment Variables**
-5. Deploy
+Deploy is automatic: pushing to `master` runs `.github/workflows/deploy.yml`
+(lint → build → `firebase deploy --only hosting`) via a GitHub Actions
+service account. Pull requests only run lint + build (`.github/workflows/pr-check.yml`),
+no deploy.
 
-The `netlify.toml` and `public/_redirects` files already handle SPA client-side routing.
+Full setup steps (GitHub Secrets, service account, authorized domains) —
+including a path that needs no local CLI — are in
+[`docs/DEPLOY.md`](docs/DEPLOY.md).
+
+`firebase.json`'s `hosting.rewrites` already handles SPA client-side routing.
 
 ---
 

@@ -14,7 +14,7 @@ Backend server YO'Q. Ma'lumot uch joyda yashaydi:
 - **Firebase** — Auth (Google / Email / Telefon) va Firestore (`orders` kolleksiyasi)
 - **Telegram Bot API** — brauzerdan to'g'ridan-to'g'ri xabar yuborish (buyurtma, kontakt, newsletter)
 
-Stack: React 19 + TypeScript + Vite 8 + Redux Toolkit 2 + Tailwind v4 + i18next (uz/en/ru) + React Router 7. Deploy: Netlify.
+Stack: React 19 + TypeScript + Vite 8 + Redux Toolkit 2 + Tailwind v4 + i18next (uz/en/ru) + React Router 7. Deploy: Firebase Hosting, GitHub Actions orqali `master`ga push bo'lganda avtomatik (`docs/DEPLOY.md`).
 
 ---
 
@@ -66,7 +66,8 @@ npm run preview       # build'ni lokal ko'rish
 ```bash
 cp .env.example .env   # keyin qiymatlarni to'ldiring
 ```
-`.env` `.gitignore` da. Netlify'da o'zgaruvchilar Site Settings → Environment Variables da.
+`.env` `.gitignore` da. CI'da (GitHub Actions) build env'lari repo Secrets'dan keladi —
+qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 
 ---
 
@@ -77,7 +78,7 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
 - **Yangi maxfiy kalit `VITE_` prefiksi bilan qo'shilmaydi.** `VITE_*` o'zgaruvchilar
   build paytida JS bundle ichiga **ochiq matn** sifatida joylashadi va brauzerda ko'rinadi.
   Hozirgi `VITE_TELEGRAM_BOT_TOKEN` (`src/utils/telegram.ts:2`) — aynan shu muammo.
-  Yangi sirlar faqat server tomonda (Netlify Function / Cloud Function) saqlanadi.
+  Yangi sirlar faqat server tomonda (Cloud Function) saqlanadi.
   `VITE_PHONE_AUTH_DOMAIN` bu qoidaga ZID EMAS: u sir emas, konfiguratsiya.
   Brauzer psevdo-emailni o'zi yasashi shart, demak domen baribir bundle'da
   ko'rinadi — himoya uning maxfiyligiga TAYANMAYDI (`src/utils/phoneAuth.ts`).
@@ -124,7 +125,7 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
   **`lazy(() => import(...))`** bilan qo'shing (Home'dan tashqari hammasi shunday;
   komponentlar named eksport, shuning uchun `.then(m => ({ default: m.X }))` kerak).
   Statik import qo'shsangiz o'sha sahifaning kodi bosh sahifa bundle'iga qaytib tushadi.
-  SPA fallback allaqachon bor (`netlify.toml`, `public/_redirects`), ularga tegmang.
+  SPA fallback allaqachon bor (`firebase.json` → `hosting.rewrites`), unga tegmang.
 - **`firebase/firestore` ni bosh sahifadan chaqiriladigan modulga STATIK
   import qilmang.** Firestore SDK (+`re2js`) ~553 kB — u faqat lazy
   chunk'larda bo'lishi kerak. Qoidalar:
@@ -172,8 +173,10 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
 ├── vite.config.js          # react + tailwind plaginlari (alias YO'Q)
 ├── tsconfig.json           # strict: false, noEmit, paths (ishlatilmaydi)
 ├── eslint.config.js        # faqat js/jsx ni qamraydi (kamchilik)
-├── netlify.toml            # build cmd + SPA redirect
-├── firebase.json           # firestore rules+indexes yo'llari (deploy uchun)
+├── firebase.json           # hosting (public "dist", SPA rewrite, kesh sarlavhalari) + firestore rules+indexes yo'llari
+├── .firebaserc             # default Firebase project ID (loyiha ID shu yerda, boshqa joyda YO'Q)
+├── .github/workflows/deploy.yml    # master push -> lint+build -> firebase deploy --only hosting
+├── .github/workflows/pr-check.yml  # PR -> lint+build (deploy YO'Q)
 ├── firestore.rules         # Firestore qoidalari (Console'dan qo'lda Publish qilinadi)
 ├── firestore.indexes.json  # orders(userId, createdAt) composite index
 ├── scripts/optimize-images.mjs # PNG -> WebP (quality 80, max 1920px)
@@ -181,7 +184,7 @@ cp .env.example .env   # keyin qiymatlarni to'ldiring
 ├── tests/e2e/auth-layout.spec.ts # /auth 8 kenglikda toshib ketmasligi
 ├── index.html              # FontAwesome 6.7.2 CDN shu yerda
 ├── .env.example            # kerakli barcha env kalitlar ro'yxati
-├── public/_redirects       # Netlify SPA fallback
+├── docs/DEPLOY.md          # Firebase Hosting deploy — telefondan, CLI'siz qadamlar
 └── src/
     ├── main.tsx            # kirish nuqtasi: style, Fonts, i18n, App
     ├── App.tsx             # BrowserRouter + Provider + route'lar (React.lazy + Suspense) + onAuthStateChanged
@@ -281,6 +284,7 @@ o'zgarish faqat admin o'z brauzerida ko'rinadi.
 | `docs/ARXITEKTURA-TARIXI.md` | Qarorlar, sabablar, ma'lum qarzlar | Dolzarb |
 | `docs/XAVFSIZLIK-MIGRATSIYA.md` | Admin huquqi (claim + `admins/{uid}`), qoidalar, index — **telefondan, CLI'siz** tartib va Rules Playground testlari; D-bo'lim: telefon+parol sozlash va qolgan xavf | Dolzarb |
 | `docs/QOLDA-SINASH-TELEFON-PAROL.md` | Telefon+parol oqimini qo'lda sinash rejasi (telefonda bajariladi) | Dolzarb |
+| `docs/DEPLOY.md` | Firebase Hosting deploy: GitHub Secrets, service account, Authorized domains — **telefondan, CLI'siz** tartib | Dolzarb |
 | `README.md` | O'rnatish/deploy yo'riqnomasi (inglizcha) | **Qisman eskirgan** — 2 ta thread env kaliti yozilmagan, `src/firebase/config.ts` da `getFirestore` borligi aytilmagan |
 | `.env.example` | Kerakli env kalitlarning to'liq ro'yxati | Dolzarb (README dan to'liqroq) |
 

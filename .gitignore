@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Firebase CLI
+.firebase
+firebase-debug.log
+firestore-debug.log
+
 # Environment variables
 .env
 .env.local
