@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    // TS6+ "node10" (= "node" bilan bir xil) deprecated deb ogohlantiradi,
+    // lekin CommonJS + Cloud Functions Node20 runtime uchun eng mos yechim
+    // shu — "node16"/"nodenext"ga o'tish import yozilishini (.js kengaytma
+    // talabi) o'zgartirib yuboradi. Ogohlantirishni shunchaki bostiramiz.
+    "ignoreDeprecations": "6.0",
+    "rootDir": "src",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "outDir": "lib",
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2020",
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "compileOnSave": true,
+  "include": ["src"]
+}

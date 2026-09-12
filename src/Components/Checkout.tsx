@@ -119,7 +119,7 @@ export const Checkout = () => {
       `🕐 Vaqt: ${new Date().toLocaleString('ru-RU')}`,
     ].filter(Boolean).join('\n')
 
-    const telegramOk = await sendTelegram(text, import.meta.env.VITE_TELEGRAM_THREAD_ID_ORDERS)
+    const telegramOk = await sendTelegram(text, 'order')
 
     dispatch(clearCart())
     setDelivery({ firestoreOk, telegramOk })

@@ -40,8 +40,9 @@ qiymati esa sizning `.env` faylingizdagi bilan bir xil bo'lsin):
 | `VITE_PHONE_AUTH_DOMAIN` | Hozircha kod bu o'zgaruvchini o'qimaydi — kelajakda kerak bo'lsa tayyor turishi uchun qo'shilgan. Bo'sh qoldirmang: `VITE_FIREBASE_AUTH_DOMAIN` bilan bir xil qiymatni yozing. |
 | `FIREBASE_SERVICE_ACCOUNT` | 2-qadamga qarang — bu bitta secret ichiga **butun JSON fayl matni** yoziladi |
 
-Eslatma: Telegram bilan bog'liq `VITE_TELEGRAM_*` kalitlar bu ro'yxatda
-YO'Q — ular alohida ish (7b), bu workflow'ga tegishli emas.
+Eslatma: Telegram bilan bog'liq kalitlar bu ro'yxatda **YO'Q** — ular endi
+`VITE_*` emas (bundle'da ko'rinmasligi kerak) va GitHub Secret ham emas,
+balki Google Secret Manager'da. Sozlash alohida, pastdagi **5-qadam**da.
 
 ---
 
@@ -105,6 +106,118 @@ ruxsat etilgan bo'lishi kerak:
 Agar workflow qizil ❌ bilan tugasa — **Actions** tab'ida shu run'ni ochib,
 qaysi qadamda (lint / build / deploy) xato chiqganini o'qing. Ko'p uchraydigan
 sabab: 1-qadamdagi secret nomi noto'g'ri yozilgan yoki bo'sh qolgan.
+
+---
+
+## 5-qadam: Cloud Function — Telegram sirlari (Secret Manager)
+
+Telegram bot tokeni endi brauzer bundle'ida YO'Q — `functions/` papkasidagi
+bitta Cloud Function (`sendTelegramMessage`) orqali yuboriladi, tokenning
+o'zi esa Google Secret Manager'da saqlanadi. Bu qadam ham **CLI'siz, faqat
+brauzerdan** (Google Cloud Shell — brauzer ichidagi terminal, kompyuter
+kerak emas) bajariladi.
+
+### ⚠️ MUHIM TARTIB — eski token allaqachon oshkor bo'lgan
+
+`docs/ARXITEKTURA-TARIXI.md` 2.2-bo'limida yozilganidek, eski bot tokeni
+git tarixida (3 ta eski commit) va Firebase'ga o'tishdan oldingi Netlify
+deploy'ida ochiq matn sifatida bo'lgan — uni ko'rgan har kim hali ham
+undan foydalana oladi. Shuning uchun tartib **aynan shunday** bo'lishi kerak:
+
+1. Telegram'da @BotFather bilan suhbatga kiring → `/revoke` → botingizni
+   tanlang → eski token **bekor qilinadi** (u bilan hech kim yaza olmaydi).
+2. @BotFather sizga **yangi token** beradi — uni nusxalab, keyingi qadamda
+   ishlatasiz.
+3. Yangi tokenni pastdagi Secret Manager qadamlari bilan qo'yasiz.
+4. Shundan keyingina deploy qiling.
+
+Funksiya **hech qachon** sizib chiqqan eski token bilan ishlamasin — 1
+va 2-qadamlarni o'tkazib yubormang.
+
+### Google Cloud Shell'ni ochish
+
+1. https://console.cloud.google.com ga kiring (bir xil Google hisobi —
+   Firebase Console bilan bitta loyiha, `organick-e1c5a`).
+2. Yuqori o'ng burchakdagi **>_** (Cloud Shell) belgisini bosing — brauzer
+   ichida terminal ochiladi, hech narsa o'rnatish shart emas.
+3. Loyihani belgilab qo'ying (bir marta):
+   ```bash
+   gcloud config set project organick-e1c5a
+   ```
+
+### 5a. Kerakli Google Cloud API'larni yoqish (bir martalik)
+
+Cloud Functions (2-avlod) Cloud Run, Cloud Build, Artifact Registry va
+Eventarc'ga tayanadi. GitHub Actions **`--non-interactive`** rejimda
+deploy qilgani uchun bu API'lar oldindan yoqilgan bo'lishi shart — aks
+holda birinchi deploy interaktiv tasdiqsiz muvaffaqiyatsiz tugaydi:
+
+```bash
+gcloud services enable \
+  cloudfunctions.googleapis.com \
+  cloudbuild.googleapis.com \
+  artifactregistry.googleapis.com \
+  eventarc.googleapis.com \
+  run.googleapis.com \
+  secretmanager.googleapis.com \
+  --project=organick-e1c5a
+```
+
+Bir necha daqiqa kutadi, tugagach terminalga qaytaradi.
+
+### 5b. Secret Manager'ga 5 ta qiymatni qo'yish
+
+Har birini alohida bajaring — `PASTE_...` o'rniga haqiqiy qiymatni yozib,
+keyin buyruqni ishga tushiring (qiymat terminalda ko'rinmaydi, xavfsiz):
+
+```bash
+# 1) Bot tokeni (2-3 qadamdagi YANGI token, eskisi emas!)
+printf '%s' 'PASTE_YANGI_BOT_TOKEN' | gcloud secrets create TELEGRAM_BOT_TOKEN --data-file=- --project=organick-e1c5a
+
+# 2) Guruh ID (masalan -1001234567890)
+printf '%s' 'PASTE_GROUP_ID' | gcloud secrets create TELEGRAM_GROUP_ID --data-file=- --project=organick-e1c5a
+
+# 3-5) Uchta mavzu (topic) ID — guruhda "Topics" yoqilgan bo'lsa har birining
+# raqami bor; kerak bo'lmasa 0 qoldiring (xabar guruhning umumiy oqimiga ketadi)
+printf '%s' 'PASTE_NEWSLETTER_THREAD_ID_OR_0' | gcloud secrets create TELEGRAM_THREAD_ID_NEWSLETTER --data-file=- --project=organick-e1c5a
+printf '%s' 'PASTE_CONTACT_THREAD_ID_OR_0' | gcloud secrets create TELEGRAM_THREAD_ID_CONTACT --data-file=- --project=organick-e1c5a
+printf '%s' 'PASTE_ORDERS_THREAD_ID_OR_0' | gcloud secrets create TELEGRAM_THREAD_ID_ORDERS --data-file=- --project=organick-e1c5a
+```
+
+**Qiymatni keyinroq almashtirish kerak bo'lsa** (masalan token yana
+`/revoke` qilinsa) — `create` emas, `versions add` ishlatiladi:
+
+```bash
+printf '%s' 'YANGI_QIYMAT' | gcloud secrets versions add TELEGRAM_BOT_TOKEN --data-file=- --project=organick-e1c5a
+```
+
+Qo'shimcha sozlash shart emas — `firebase deploy --only functions`
+(GitHub Actions ichida, keyingi qadamda) sirlarga o'qish huquqini
+funksiyaning xizmat hisobiga **o'zi avtomatik** beradi.
+
+### 5c. Birinchi deploy
+
+1-qadamdagi `FIREBASE_SERVICE_ACCOUNT` GitHub Secret'i allaqachon bor
+bo'lsa, boshqa hech narsa sozlash shart emas — `master`ga keyingi push
+(yoki shu PR'ni merge qilish) `.github/workflows/deploy.yml`'ni ishga
+tushiradi, u endi **hosting bilan bir qatorda funksiyani ham** deploy
+qiladi (`firebase deploy --only hosting,functions`). Actions tab'ida
+yashil ✅ bo'lishini kuting.
+
+Agar `FIREBASE_SERVICE_ACCOUNT` kaliti eski (faqat Hosting davridan
+qolgan) bo'lsa ham — Firebase Console'dan "Generate new private key"
+bilan olingan kalitga odatda loyihaning **Editor** roli biriktirilgan
+bo'ladi, bu Cloud Functions deploy qilish uchun ham yetarli. Deploy
+"permission denied" bilan tugasa: Google Cloud Console → IAM → shu xizmat
+hisobini toping → **Editor** (yoki alohida **Cloud Functions Admin** +
+**Service Account User** + **Cloud Build Editor**) rolini qo'shing.
+
+### Sinash
+
+Deploy tugagach saytda `/contact` yoki bosh sahifadagi newsletter formasini
+to'ldirib yuboring — Telegram guruhingizda xabar ko'rinishi kerak.
+Ko'rinmasa: Firebase Console → loyiha → **Functions** → `sendTelegramMessage`
+→ **Logs** — xato shu yerda ko'rinadi (masalan noto'g'ri token yoki guruh ID).
 
 ---
 

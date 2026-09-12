@@ -7,12 +7,14 @@
 
 ## 1. Loyiha nima
 
-Organick — organik oziq-ovqat do'koni uchun **frontend-only SPA**.
-Backend server YO'Q. Ma'lumot uch joyda yashaydi:
+Organick — organik oziq-ovqat do'koni uchun **frontend-only SPA**, bitta
+tor maqsadli istisno bilan: Telegram bot tokenini sir saqlash uchun bitta
+Cloud Function (`functions/`). An'anaviy backend (API server, ma'lumotlar
+bazasi serveri) YO'Q. Ma'lumot uch joyda yashaydi:
 
 - **localStorage** — mahsulotlar, bloglar, savat, til, dark mode, buyurtma nusxasi
-- **Firebase** — Auth (Google / Email / Telefon) va Firestore (`orders` kolleksiyasi)
-- **Telegram Bot API** — brauzerdan to'g'ridan-to'g'ri xabar yuborish (buyurtma, kontakt, newsletter)
+- **Firebase** — Auth (Google / Email / Telefon), Firestore (`orders` kolleksiyasi) va bitta Cloud Function (`sendTelegramMessage`)
+- **Telegram Bot API** — xabar (buyurtma, kontakt, newsletter) shu Cloud Function orqali yuboriladi; brauzer Telegram'ga to'g'ridan-to'g'ri murojaat qilmaydi
 
 Stack: React 19 + TypeScript + Vite 8 + Redux Toolkit 2 + Tailwind v4 + i18next (uz/en/ru) + React Router 7. Deploy: Firebase Hosting, GitHub Actions orqali `master`ga push bo'lganda avtomatik (`docs/DEPLOY.md`).
 
@@ -35,6 +37,13 @@ npm run build         # Vite production build (dist/)
 npm run test:e2e      # Playwright: /auth 8 kenglikda gorizontal scroll bermasligi
 ```
 
+`functions/` — ALOHIDA npm loyihasi (o'z `package.json`/`tsconfig.json`),
+yuqoridagi buyruqlar unga tegmaydi. O'zining tekshiruvi:
+```bash
+npm ci --prefix functions
+npm run build --prefix functions   # tsc — Cloud Function'ning o'z typecheck'i
+```
+
 Qo'lda tekshirish:
 ```bash
 npm run dev           # http://localhost:5173
@@ -45,6 +54,7 @@ npm run preview       # build'ni lokal ko'rish
 - `npm run lint` → exit 0, LEKIN `eslint.config.js` da `files: ['**/*.{js,jsx}']` yozilgan,
   shuning uchun `src/` dagi 37 ta `.ts/.tsx` fayl **umuman tekshirilmaydi**.
   Tasdiq: `npx eslint src/App.tsx` → `File ignored because no matching configuration was supplied`.
+  `functions/` ham `ignores`ga qo'shilgan — u alohida TS loyihasi, o'z `tsc`i bilan tekshiriladi.
 - `npx tsc --noEmit` → **exit 2**, sabab: `tsconfig.json:17` `baseUrl` deprecated (TS 6).
   Ya'ni typecheck hozir "qizil". Buni tuzatmasdan CI qo'shilmaydi.
 - `npm run test:e2e` → 8 test, hammasi o'tadi (~8s). Chromium konteynerda
@@ -77,8 +87,11 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 - **`.env` fayli commit QILINMAYDI.** Har qanday token/kalit kodga yozib qo'yilmaydi.
 - **Yangi maxfiy kalit `VITE_` prefiksi bilan qo'shilmaydi.** `VITE_*` o'zgaruvchilar
   build paytida JS bundle ichiga **ochiq matn** sifatida joylashadi va brauzerda ko'rinadi.
-  Hozirgi `VITE_TELEGRAM_BOT_TOKEN` (`src/utils/telegram.ts:2`) — aynan shu muammo.
-  Yangi sirlar faqat server tomonda (Cloud Function) saqlanadi.
+  Eski `VITE_TELEGRAM_BOT_TOKEN` aynan shu muammo edi — 2026-09-12'da tuzatildi:
+  token endi brauzerda YO'Q, `functions/src/index.ts` dagi Cloud Function
+  (`sendTelegramMessage`) orqali, Secret Manager'dan o'qiladi
+  (`docs/ARXITEKTURA-TARIXI.md` 13-bo'lim). Yangi sirlar ham shu naqsh bilan —
+  faqat server (Cloud Function) tomonda, `defineSecret()` orqali saqlanadi.
   `VITE_PHONE_AUTH_DOMAIN` bu qoidaga ZID EMAS: u sir emas, konfiguratsiya.
   Brauzer psevdo-emailni o'zi yasashi shart, demak domen baribir bundle'da
   ko'rinadi — himoya uning maxfiyligiga TAYANMAYDI (`src/utils/phoneAuth.ts`).
@@ -99,9 +112,12 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
   `organick_cart`, `organick_products`, `organick_blogs`, `organick_orders`,
   `organick_darkMode`, `i18nextLng`.
   Sxema o'zgarsa — migratsiya yozing, kalitni almashtirmang.
-- **Telegram yuborish kodi test paytida real guruhga ulanmaydi** — `.env` siz
-  `sendTelegram` jimgina `false` qaytadi (`src/utils/telegram.ts`), shu holat
-  saqlansin. (Throw qilmaydi; qaytgan qiymat "yetib bordimi" degani.)
+- **`sendTelegram` hech qachon throw qilmaydi**, qaytgan qiymat "yetib
+  bordimi" degani (`Promise<boolean>`). Lokal `npm run dev`da (Cloud
+  Function ishga tushirilmagan, faqat `vite`) `httpsCallable` chaqiruvi
+  tarmoq xatosiga uchraydi va `catch` uni tutib `false` qaytaradi — ya'ni
+  test paytida hech qachon real guruhga xabar ketmaydi, ilgarigidek. Shu
+  holat saqlansin.
 - **Admin chegarasi — custom claim `{ admin: true }` YOKI `admins/{uid}` hujjati.**
   `ADMIN_EMAILS` ro'yxati olib tashlandi. Ikki manba, **claim birinchi**:
   `src/firebase/auth.ts` → `checkIsAdmin()` va `firestore.rules` → `isAdmin()`
@@ -175,8 +191,8 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 ├── eslint.config.js        # faqat js/jsx ni qamraydi (kamchilik)
 ├── firebase.json           # hosting (public "dist", SPA rewrite, kesh sarlavhalari) + firestore rules+indexes yo'llari
 ├── .firebaserc             # default Firebase project ID (loyiha ID shu yerda, boshqa joyda YO'Q)
-├── .github/workflows/deploy.yml    # master push -> lint+build -> firebase deploy --only hosting
-├── .github/workflows/pr-check.yml  # PR -> lint+build (deploy YO'Q)
+├── .github/workflows/deploy.yml    # master push -> lint+build -> firebase deploy --only hosting,functions
+├── .github/workflows/pr-check.yml  # PR -> lint+build+functions build (deploy YO'Q)
 ├── firestore.rules         # Firestore qoidalari (Console'dan qo'lda Publish qilinadi)
 ├── firestore.indexes.json  # orders(userId, createdAt) composite index
 ├── scripts/optimize-images.mjs # PNG -> WebP (quality 80, max 1920px)
@@ -184,7 +200,9 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 ├── tests/e2e/auth-layout.spec.ts # /auth 8 kenglikda toshib ketmasligi
 ├── index.html              # FontAwesome 6.7.2 CDN shu yerda
 ├── .env.example            # kerakli barcha env kalitlar ro'yxati
-├── docs/DEPLOY.md          # Firebase Hosting deploy — telefondan, CLI'siz qadamlar
+├── docs/DEPLOY.md          # Firebase Hosting + Cloud Function deploy — telefondan, CLI'siz qadamlar
+├── functions/               # Cloud Function — o'z package.json/tsconfig.json bilan ALOHIDA loyiha
+│   └── src/index.ts         # sendTelegramMessage (onCall): Telegram sirlari + IP-limit shu yerda
 └── src/
     ├── main.tsx            # kirish nuqtasi: style, Fonts, i18n, App
     ├── App.tsx             # BrowserRouter + Provider + route'lar (React.lazy + Suspense) + onAuthStateChanged
@@ -199,7 +217,7 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
     │   ├── auth.ts         # login helperlari + hasAdminClaim (custom claim)
     │   └── firestore.ts    # orders CRUD + onSnapshot obunalar
     ├── utils/
-    │   ├── telegram.ts     # sendTelegram(text, threadId)
+    │   ├── telegram.ts     # sendTelegram(text, kind) — Cloud Function'ni chaqiradi
     │   └── phoneAuth.ts    # normalizePhone + psevdo-email (telefon+parol)
     ├── i18n/
     │   ├── index.ts        # i18next init (lng: 'uz')
@@ -239,7 +257,8 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 
 **Buyurtma:** `Checkout.tsx handleOrder()`
 → validatsiya → `dispatch(addOrder)` (localStorage) → `addOrderToFirestore()`
-→ `decreaseStock` → `sendTelegram()` → savat tozalanadi.
+→ `decreaseStock` → `sendTelegram(text, 'order')` (Cloud Function chaqiradi,
+token brauzerda yo'q) → savat tozalanadi.
 Firestore va Telegram — ikki **mustaqil** kanal; ikkalasining natijasi
 `delivery` state'ida saqlanadi va mijozga rostini ko'rsatadi:
 Firestore yiqilsa ogohlantirish chiqadi, ikkalasi ham yiqilsa "yuborilmadi"

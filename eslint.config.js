@@ -4,7 +4,10 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-  { ignores: ['dist'] },
+  // `functions/` alohida Node/TS loyihasi (o'z tsconfig'i bilan tekshiriladi,
+  // `npm run build --prefix functions`) — bu yerdagi browser-globals konfiguratsiyasi
+  // unga mos emas, kompilyatsiya chiqishi (`lib/`) esa umuman tekshirilmasin.
+  { ignores: ['dist', 'functions'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {

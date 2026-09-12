@@ -1,29 +1,24 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { sendTelegram } from '../utils/telegram'
 import logo from '../assets/logo.webp'
 import footer from '../assets/footer.webp'
 
 export const FooterTop = () => {
   const { t } = useTranslation()
   const [message, setMessage] = useState('')
+  const [sending, setSending] = useState(false)
 
-  const postingMessage = () => {
-    const botToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN || ''
-    const groupToken = import.meta.env.VITE_TELEGRAM_GROUP_ID || ''
-    const threadId = import.meta.env.VITE_TELEGRAM_THREAD_ID || ''
-    if (!botToken || !groupToken || !message.trim()) return
-    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      headers: { 'Content-Type': 'application/json' },
-      method: 'POST',
-      body: JSON.stringify({
-        chat_id: groupToken,
-        message_thread_id: threadId ? Number(threadId) : undefined,
-        text: `📧 Newsletter subscription:\n${message}`,
-      }),
-    })
-    setMessage('')
-    alert(t('footer.subscribe') + '!')
+  const postingMessage = async () => {
+    if (!message.trim() || sending) return
+    setSending(true)
+    const ok = await sendTelegram(`📧 Newsletter subscription:\n${message}`, 'newsletter')
+    setSending(false)
+    if (ok) {
+      setMessage('')
+      alert(t('footer.subscribe') + '!')
+    }
   }
 
   return (
@@ -45,7 +40,8 @@ export const FooterTop = () => {
             <button
               type="button"
               onClick={postingMessage}
-              className="h-14 px-5 bg-[#274C5B] rounded-xl text-white font-bold whitespace-nowrap hover:bg-[#1d3a47] transition-colors text-sm w-full md:w-auto"
+              disabled={sending}
+              className="h-14 px-5 bg-[#274C5B] rounded-xl text-white font-bold whitespace-nowrap hover:bg-[#1d3a47] transition-colors text-sm w-full md:w-auto disabled:opacity-60"
             >
               {t('footer.subscribe')}
             </button>

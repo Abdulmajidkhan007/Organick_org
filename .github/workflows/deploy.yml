@@ -34,14 +34,20 @@ jobs:
           VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
           VITE_PHONE_AUTH_DOMAIN: ${{ secrets.VITE_PHONE_AUTH_DOMAIN }}
 
+      - name: Install functions dependencies
+        run: npm ci --prefix functions
+
       # Firestore qoidalari/indexlari bu workflow orqali DEPLOY QILINMAYDI —
       # ular Firebase Console'dan qo'lda boshqariladi (docs/DEPLOY.md).
+      # Telegram sirlari (bot tokeni, guruh va mavzu ID'lari) ham bu yerda
+      # YO'Q — ular Secret Manager'da, Cloud Shell orqali bir marta
+      # qo'yiladi (docs/DEPLOY.md) va funksiyaga deploy vaqtida o'zi bog'lanadi.
       - name: Write Firebase service account key
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: echo "$FIREBASE_SERVICE_ACCOUNT" > "${{ runner.temp }}/firebase-sa.json"
 
-      - name: Deploy to Firebase Hosting
-        run: npx firebase-tools@13 deploy --only hosting --non-interactive
+      - name: Deploy to Firebase Hosting and Functions
+        run: npx firebase-tools@15 deploy --only hosting,functions --non-interactive
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json

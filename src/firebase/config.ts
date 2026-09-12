@@ -4,6 +4,9 @@ import { getAuth } from 'firebase/auth'
 // (`import type` — kompilyatsiyada butunlay o'chib ketadi). Haqiqiy modul
 // `getDb()` ichida dinamik yuklanadi, pastdagi izohga qarang.
 import type { Firestore } from 'firebase/firestore'
+// `firebase/functions` xuddi firestore kabi FAQAT tip sifatida import qilinadi —
+// haqiqiy modul `getFunctionsInstance()` ichida dinamik yuklanadi.
+import type { Functions } from 'firebase/functions'
 
 // getAuth() throws synchronously (crashing the whole module import chain, which
 // leaves #root empty before React ever mounts) when apiKey is missing/empty —
@@ -59,6 +62,26 @@ export const getDb = (): Promise<Firestore> => {
       })
   }
   return dbPromise
+}
+
+/**
+ * Cloud Functions SDK'ni KECHIKTIRIB yuklaydi (Firestore bilan bir xil sabab:
+ * `sendTelegram` — Footer orqali — bosh sahifada ham chaqiriladi, shuning
+ * uchun `firebase/functions` statik import qilinsa bosh sahifa bundle'iga
+ * qo'shimcha SDK tushib qolardi).
+ */
+let functionsPromise: Promise<Functions> | null = null
+
+export const getFunctionsInstance = (): Promise<Functions> => {
+  if (!functionsPromise) {
+    functionsPromise = import('firebase/functions')
+      .then(m => m.getFunctions(app))
+      .catch(e => {
+        functionsPromise = null
+        throw e
+      })
+  }
+  return functionsPromise
 }
 
 export default app

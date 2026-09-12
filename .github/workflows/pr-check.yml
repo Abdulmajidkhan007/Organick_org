@@ -33,3 +33,9 @@ jobs:
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
           VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
           VITE_PHONE_AUTH_DOMAIN: ${{ secrets.VITE_PHONE_AUTH_DOMAIN }}
+
+      - name: Install functions dependencies
+        run: npm ci --prefix functions
+
+      - name: Build functions (typecheck)
+        run: npm run build --prefix functions
