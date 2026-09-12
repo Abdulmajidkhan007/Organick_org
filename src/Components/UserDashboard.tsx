@@ -129,12 +129,12 @@ export const UserDashboard = () => {
             <div className="w-14 h-14 rounded-full bg-[#7EB693] flex items-center justify-center text-white font-bold text-xl overflow-hidden">
               {user.photoURL
                 ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" width={56} height={56} decoding="async" />
-                : <span>{(user.displayName || user.email || 'U')[0].toUpperCase()}</span>
+                : <span>{(user.displayName || user.email || user.phoneNumber || 'U')[0].toUpperCase()}</span>
               }
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[#274C5B] dark:text-white">{user.displayName || user.email}</h1>
-              <p className="text-sm text-gray-500">{user.email}</p>
+              <h1 className="text-xl font-bold text-[#274C5B] dark:text-white">{user.displayName || user.email || user.phoneNumber}</h1>
+              <p className="text-sm text-gray-500">{user.email || user.phoneNumber}</p>
             </div>
             {user.isAdmin && (
               <button

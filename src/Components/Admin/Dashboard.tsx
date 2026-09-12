@@ -91,7 +91,7 @@ export const AdminDashboard = () => {
           <i className="fas fa-user-slash text-5xl text-red-300 mb-4 block"></i>
           <h2 className="text-2xl font-bold text-[#274C5B] dark:text-white mb-2">{t('admin.accessDenied')}</h2>
           <p className="text-gray-500 mb-2">{t('admin.notAdmin')}</p>
-          <p className="text-gray-400 text-sm mb-6">Logged in as: {user.email}</p>
+          <p className="text-gray-400 text-sm mb-6">Logged in as: {user.email || user.phoneNumber}</p>
           <button onClick={() => navigate('/')} className="bg-[#274C5B] text-white px-6 py-3 rounded-xl font-semibold">
             {t('nav.home')}
           </button>
@@ -243,10 +243,10 @@ export const AdminDashboard = () => {
           <div className="absolute bottom-0 left-0 w-64 p-4 border-t border-white/20">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold">
-                {(user.displayName || user.email || 'A')[0].toUpperCase()}
+                {(user.displayName || user.email || user.phoneNumber || 'A')[0].toUpperCase()}
               </div>
               <div className="min-w-0">
-                <p className="font-semibold text-sm truncate">{user.displayName || user.email}</p>
+                <p className="font-semibold text-sm truncate">{user.displayName || user.email || user.phoneNumber}</p>
                 <p className="text-xs text-white/60">Admin</p>
               </div>
             </div>

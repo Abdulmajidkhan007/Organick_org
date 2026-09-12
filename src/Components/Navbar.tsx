@@ -136,7 +136,7 @@ export const Navbar = () => {
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             {user ? (
               <div className="flex flex-col gap-2">
-                <p className="text-sm text-gray-500 px-4">{user.displayName || user.email}</p>
+                <p className="text-sm text-gray-500 px-4">{user.displayName || user.email || user.phoneNumber}</p>
                 <button onClick={() => { navigate('/dashboard'); dispatch(closeMobileMenu()) }}
                   className="w-full text-left px-4 py-3 rounded-lg font-semibold text-[#274C5B] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
                   <i className="fas fa-list-alt"></i> {t('nav.orders')}
@@ -318,13 +318,13 @@ export const Navbar = () => {
                 >
                   {user.photoURL
                     ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" width={36} height={36} decoding="async" />
-                    : <span>{(user.displayName || user.email || 'U')[0].toUpperCase()}</span>
+                    : <span>{(user.displayName || user.email || user.phoneNumber || 'U')[0].toUpperCase()}</span>
                   }
                 </button>
                 {showUserMenu && (
                   <div className="absolute right-0 top-full mt-2 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg z-50 min-w-[180px] overflow-hidden fade-in">
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                      <p className="font-semibold text-sm text-[#274C5B] dark:text-white truncate">{user.displayName || user.email}</p>
+                      <p className="font-semibold text-sm text-[#274C5B] dark:text-white truncate">{user.displayName || user.email || user.phoneNumber}</p>
                     </div>
                     <button onClick={() => { navigate('/dashboard'); setShowUserMenu(false) }}
                       className="w-full text-left px-4 py-3 text-sm text-[#274C5B] dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2">
