@@ -23,7 +23,7 @@ export const ContactForm = () => {
       `💬 Xabar:\n${form.message}`,
     ].filter(Boolean).join('\n')
     try {
-      await sendTelegram(text, import.meta.env.VITE_TELEGRAM_THREAD_ID_CONTACT)
+      await sendTelegram(text, 'contact')
       setStatus('ok')
       setForm({ fullName: '', email: '', company: '', subject: '', message: '' })
       setTimeout(() => setStatus('idle'), 4000)

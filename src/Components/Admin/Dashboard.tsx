@@ -164,7 +164,7 @@ export const AdminDashboard = () => {
       order.customerTelegram ? `💬 Telegram: ${order.customerTelegram}` : '',
     ].filter(Boolean).join('\n')
 
-    await sendTelegram(text, import.meta.env.VITE_TELEGRAM_THREAD_ID_ORDERS)
+    await sendTelegram(text, 'order')
     setSendingReply(false)
     setReplyNote('')
     setSelectedOrder(null)

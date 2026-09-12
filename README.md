@@ -81,11 +81,6 @@ npm run build
 Create a `.env` file in the project root with the following keys:
 
 ```env
-# ===== TELEGRAM BOT =====
-VITE_TELEGRAM_BOT_TOKEN=your_bot_token_here
-VITE_TELEGRAM_GROUP_ID=your_group_id_here
-VITE_TELEGRAM_THREAD_ID=your_thread_id_here
-
 # ===== FIREBASE =====
 VITE_FIREBASE_API_KEY=your_api_key
 VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
@@ -127,11 +122,12 @@ Users whose Firebase email matches an entry in this list will have `isAdmin: tru
 
 ## Telegram Bot Setup
 
-1. Create a bot via [@BotFather](https://t.me/BotFather) and copy the token
-2. Add the bot to your group/supergroup
-3. Get the group's chat ID (negative number for groups)
-4. Optionally set a topic thread ID if using forum-style groups
-5. Fill in `VITE_TELEGRAM_BOT_TOKEN`, `VITE_TELEGRAM_GROUP_ID`, `VITE_TELEGRAM_THREAD_ID` in `.env`
+The bot token is **not** a `VITE_*` variable and is never in the browser
+bundle — it's read server-side by the `sendTelegramMessage` Cloud Function
+(`functions/`) from Google Secret Manager. Setup (bot token, group ID, and
+the three topic thread IDs) is documented step by step, including the exact
+`gcloud` commands, in `docs/DEPLOY.md` ("5-qadam: Cloud Function — Telegram
+sirlari").
 
 ---
 

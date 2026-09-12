@@ -408,3 +408,104 @@ Netlify'dagi bilan **aynan bir xil** qoldirildi
 (`/assets/**` → `max-age=31536000, immutable`, `/index.html` →
 `max-age=0, must-revalidate`) — faqat sintaksis Firebase glob formatiga
 o'tkazildi, xatti-harakat o'zgarmadi.
+
+---
+
+## 13. Telegram bot tokenini brauzerdan chiqarish — Cloud Function (2026-09-12)
+
+### Muammo
+
+2.1-bo'limda yozilgan muammo hal qilindi: `VITE_TELEGRAM_BOT_TOKEN` Vite
+tomonidan build vaqtida bundle ichiga **ochiq matn** sifatida yozilardi —
+deploy qilingan saytning JS faylini ochgan har kim bot nomidan guruhga
+yozishi mumkin edi. 2.2-bo'limdagi eski (git tarixida qolgan) token bilan
+birga — ikkita mustaqil sizib chiqish yo'li bor edi.
+
+### Yechim
+
+`functions/` papkasida bitta Cloud Function — `sendTelegramMessage`
+(`onCall`, Node 20, firebase-functions v2). Frontend endi Telegram Bot
+API'ga to'g'ridan-to'g'ri murojaat qilmaydi, `httpsCallable` bilan shu
+funksiyani chaqiradi, funksiya esa tokenni Secret Manager'dan o'qib
+Telegram'ga yuboradi. Uch yo'nalish bitta funksiyada `kind` parametri
+bilan ajratiladi: `'newsletter' | 'contact' | 'order'` — har biri o'z
+Telegram mavzu (thread) ID'siga boradi.
+
+`src/utils/telegram.ts`dagi `sendTelegram()` funksiyasining **imzosi**
+o'zgardi (`threadIdEnvValue: string` -> `kind: TelegramMessageKind`), lekin
+**qaytadigan qiymati saqlandi** — hamon `Promise<boolean>`, hech qachon
+throw qilmaydi. `Checkout.tsx`dagi `telegramOk` mantiqi tegilmagan holda
+ishlayveradi.
+
+### Nega matnni klient tuzadi, funksiya emas
+
+Cloud Function tayyor `text` (HTML formatlangan) va `kind`ni qabul qiladi —
+xabar matnini o'zi qayta qurmaydi. Sabab: matn uch joyda (`Checkout.tsx`,
+`ContactForm.tsx`, `Admin/Dashboard.tsx`) turlicha, i18n orqali tarjima
+qilingan holatlarga (masalan admin javobidagi status nomi) bog'liq —
+buni serverga ko'chirish i18n lug'atlarini funksiyaga ham olib borishni
+talab qilardi, bu ish hajmini keragidan oshirardi. Xavf kichik: guruh ID
+endi sir (oldin ham shunday edi), token endi sir — mehmon faqat **qaysi**
+matnni yuborishini tanlaydi, **qayerga** yuborilishini (qaysi guruh/token)
+emas. Buni cheklash uchun uzunlik chegarasi (4000 belgi) va IP-limit bor.
+
+### Suiiste'mol himoyasi: App Check emas, IP-limit
+
+Newsletter va kontakt formalarini **mehmonlar** (auth'siz) to'ldiradi,
+buyurtma ham mehmon sifatida beriladi — ya'ni `request.auth` bo'yicha
+cheklab bo'lmaydi. Ikki variant ko'rildi:
+
+| Variant | Nega tanlanmadi / tanlandi |
+|---|---|
+| Firebase App Check (reCAPTCHA) | Firebase Console'da App Check'ni yoqish, reCAPTCHA v3/Enterprise sayt kaliti olish, uni yangi `VITE_` o'zgaruvchisi sifatida qo'shish va "Enforce" rejimiga o'tkazish kerak — yana bir ko'p qadamli, CLI'siz-lekin-og'ir Console sozlashi (11-bo'limdagi telefon+parol domenidan farqli, bu YANGI kalit talab qiladi). Lokal test ham App Check debug token talab qilib murakkablashadi. |
+| **IP bo'yicha limit (Firestore, Admin SDK)** | ✅ Tanlandi. Qo'shimcha Console qadami yo'q — allaqachon shart bo'lgan Secret Manager qadamidan tashqari hech narsa kerak emas. Kamchiligi: umumiy IP (NAT, VPN) orqasidagi bir nechta odam bitta limitni baham ko'radi va IP soxtalashtirilishi mumkin — App Check'dan zaifroq, lekin kichik do'kon oqimi uchun yetarli. |
+
+Amalga oshirilishi: `functions/src/index.ts` ichida bitta IP'dan 10
+daqiqada eng ko'pi 5 ta xabar. Hisoblagich `_telegramRateLimits`
+kolleksiyasida, **Admin SDK** orqali yoziladi — bu `firestore.rules`ga
+umuman tegmaydi, chunki Admin SDK qoidalardan chetlab o'tadi (10-bo'limdagi
+`orders`/`admins` qoidalari o'zgarishsiz qoladi). Noto'g'ri so'rovlar
+(bo'sh matn, noma'lum `kind`, juda uzun matn) limitga qo'shilmasdan turib
+rad etiladi — validatsiya IP-tekshiruvdan oldin ishlaydi.
+
+**Ataylab qoldirilgan:** `_telegramRateLimits` hujjatlari hech qachon
+o'chirilmaydi (TTL yo'q) — Firestore TTL siyosati alohida Console qadami
+talab qilardi, bu esa IP-limitni App Check kabi og'ir qilib qo'yardi.
+Har bir hujjat bir nechta bayt, noyob IP'lar soni esa kichik do'kon uchun
+past — narxi e'tiborga olinmaydi.
+
+### Nega thread ID'lar ham `defineSecret()` orqali
+
+Uchta mavzu (topic) ID'sining o'zi sir emas — tokensiz ulardan foyda yo'q.
+Lekin ular ham Secret Manager'ga qo'yildi (oddiy `functions/.env` o'rniga):
+shunday qilinsa **bitta** Cloud Shell skripti (`docs/DEPLOY.md`, 5-qadam)
+hammasini sozlaydi, GitHub Actions'ga qo'shimcha secret yoki `functions/.env`
+generatsiya qilish qadami kerak bo'lmaydi, va mavzu raqami o'zgarsa kod
+qayta deploy qilinmasdan, faqat Secret Manager qiymati yangilanadi.
+
+### Bundle va lazy-loading
+
+`firebase/functions` SDK'i `firebase/firestore` bilan bir xil naqshda
+kechiktirib yuklanadi: `src/firebase/config.ts` da `getFunctionsInstance()`
+(dinamik `import()`, keshlanadi), `db` eksporti yo'qligi kabi `functions`
+eksporti ham yo'q. Sabab bir xil: `sendTelegram()` ni `Footer.tsx`
+(bosh sahifada ham bor) chaqiradi, shuning uchun statik import qilinsa
+Functions SDK bosh sahifa bundle'iga tushib qolardi. `vite.config.js`dagi
+`manualChunks`ga tegilmadi — dinamik import Rollup'ni funksiyalar
+SDK'sini o'zi alohida chunk'ga ajratishga majbur qiladi, qo'lda guruhlashsiz
+ham. Tekshirildi: build'dan keyin bosh sahifa (`index.html`) faqat
+`index`, `react-vendor`, `ui`, `firebase-auth` chunk'larini oldindan
+yuklaydi — `firebase-firestore` va Functions SDK chunk'i ilgarigidek lazy.
+
+### Sinov
+
+Firebase Emulator Suite (`functions` + `firestore`) lokal ishga tushirilib
+sinaldi: validatsiya xatolari (bo'sh matn, noma'lum `kind`, 4000 belgidan
+uzun matn), muvaffaqiyatli yo'l (soxta token bilan — Telegram API 401
+qaytaradi, funksiya buni tutib `{ok:false}` qaytaradi, throw qilmaydi) va
+IP-limit (5-chaqiruvdan keyin `resource-exhausted`) qo'lda tekshirildi.
+Birinchi (sovuq) chaqiruv lokal emulyatorda **~1.9s**, keyingi (issiq)
+chaqiruvlar **~50-70ms** ni oldi — bu Cloud Run konteyner sovuq boshlanishini
+o'z ichiga olmagan lokal o'lchov, haqiqiy production'da birinchi so'rov
+buni hisobga olib ehtimol biroz sekinroq (odatda kichik Node.js
+funksiyalari uchun 1-3s atrofida) bo'ladi.
