@@ -57,18 +57,22 @@ npm run preview       # build'ni lokal ko'rish
   `functions/` ham `ignores`ga qo'shilgan — u alohida TS loyihasi, o'z `tsc`i bilan tekshiriladi.
 - `npx tsc --noEmit` → **exit 2**, sabab: `tsconfig.json:17` `baseUrl` deprecated (TS 6).
   Ya'ni typecheck hozir "qizil". Buni tuzatmasdan CI qo'shilmaydi.
-- `npm run test:e2e` → 8 test, hammasi o'tadi (~8s). Chromium konteynerda
-  oldindan bor (`/opt/pw-browsers/chromium`), `playwright install` KERAK EMAS.
-  Test faqat LAYOUT ni tekshiradi — Firebase chaqiruvlari sinalmaydi
-  (real loyiha va real SMS kerak, ular qo'lda sinaladi:
+- `npm run test:e2e` → 9 test, hammasi o'tadi (~8s): 8 tasi `/auth` layout
+  (eski), 1 tasi yangi `tests/e2e/contact-form-validation.spec.ts`
+  (`/contact` noto'g'ri email bilan sendTelegram chaqirilmasligini
+  tekshiradi). Chromium konteynerda oldindan bor
+  (`/opt/pw-browsers/chromium`), `playwright install` KERAK EMAS.
+  Layout testlari faqat LAYOUT ni tekshiradi — Firebase chaqiruvlari
+  sinalmaydi (real loyiha va real SMS kerak, ular qo'lda sinaladi:
   `docs/QOLDA-SINASH-TELEFON-PAROL.md`).
-- `npm run build` → exit 0, ~1.5s. **Code-splitting BOR** (route'lar `React.lazy`).
+- `npm run build` → exit 0, ~0.8s. **Code-splitting BOR** (route'lar `React.lazy`).
   Eng katta chunk'lar: `firebase-firestore` 553 kB (LAZY — bosh sahifa uni
-  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 114 kB,
+  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 117 kB,
   `ui` 54 kB. `dist/` ≈ 4.1 MB.
-  Bosh sahifa yuklaydigan JS: **525 kB raw / 167 kB gzip** (ilgari 1 194 / 359).
-  `index` 105 -> 114 kB ga o'sgani telefon+parol uchun qo'shilgan 40 ta
-  i18n kalitidan (25 tasi xato xabari, uchala tilda) — tarjimalar
+  Bosh sahifa yuklaydigan JS: **539 kB raw / 173 kB gzip** (ilgari 525/167).
+  `index` 114 -> 117 kB ga o'sgani uchala ommaviy forma (kontakt, newsletter,
+  checkout) uchun qo'shilgan 14 ta yangi i18n kalitidan (`checkout.errors.*`,
+  `contact.form.errors.*`, `footer.errors.*`, uchala tilda) — tarjimalar
   `src/i18n/index.ts` orqali STATIK import qilinadi, ya'ni ular doim
   bosh sahifa bundle'ida. Yangi matn qo'shishning narxi shu.
 
@@ -221,7 +225,8 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
     │   └── firestore.ts    # orders CRUD + onSnapshot obunalar
     ├── utils/
     │   ├── telegram.ts     # sendTelegram(text, kind) — Cloud Function'ni chaqiradi
-    │   └── phoneAuth.ts    # normalizePhone + psevdo-email (telefon+parol)
+    │   ├── phoneAuth.ts    # normalizePhone + psevdo-email (telefon+parol)
+    │   └── validate.ts     # isValidEmail + isValidPhone — kontakt/newsletter/checkout formalari
     ├── i18n/
     │   ├── index.ts        # i18next init (lng: 'uz')
     │   └── locales/        # uz.json / en.json / ru.json

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { sendTelegram } from '../utils/telegram'
+import { isValidEmail } from '../utils/validate'
 import logo from '../assets/logo.webp'
 import footer from '../assets/footer.webp'
 
@@ -9,15 +10,21 @@ export const FooterTop = () => {
   const { t } = useTranslation()
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
 
   const postingMessage = async () => {
-    if (!message.trim() || sending) return
+    if (sending) return
+    if (!message.trim()) { setError(t('footer.errors.emailRequired')); return }
+    if (!isValidEmail(message)) { setError(t('footer.errors.emailInvalid')); return }
+    setError('')
     setSending(true)
     const ok = await sendTelegram(`📧 Newsletter subscription:\n${message}`, 'newsletter')
     setSending(false)
     if (ok) {
       setMessage('')
       alert(t('footer.subscribe') + '!')
+    } else {
+      setError(t('footer.errors.sendFailed'))
     }
   }
 
@@ -29,22 +36,25 @@ export const FooterTop = () => {
       >
         <div className="w-[85%] flex flex-col md:flex-row justify-between items-center gap-6 text-white">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center md:text-left">{t('footer.newsletter')}</h1>
-          <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-            <input
-              type="email"
-              placeholder={t('footer.emailPlaceholder')}
-              value={message}
-              onInput={e => setMessage((e.target as HTMLInputElement).value)}
-              className="flex-1 min-w-0 w-full md:w-56 h-14 bg-white text-gray-500 outline-0 border-0 rounded-xl pl-3 text-sm"
-            />
-            <button
-              type="button"
-              onClick={postingMessage}
-              disabled={sending}
-              className="h-14 px-5 bg-[#274C5B] rounded-xl text-white font-bold whitespace-nowrap hover:bg-[#1d3a47] transition-colors text-sm w-full md:w-auto disabled:opacity-60"
-            >
-              {t('footer.subscribe')}
-            </button>
+          <div className="flex flex-col gap-1 w-full md:w-auto">
+            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+              <input
+                type="email"
+                placeholder={t('footer.emailPlaceholder')}
+                value={message}
+                onInput={e => { setMessage((e.target as HTMLInputElement).value); if (error) setError('') }}
+                className="flex-1 min-w-0 w-full md:w-56 h-14 bg-white text-gray-500 outline-0 border-0 rounded-xl pl-3 text-sm"
+              />
+              <button
+                type="button"
+                onClick={postingMessage}
+                disabled={sending}
+                className="h-14 px-5 bg-[#274C5B] rounded-xl text-white font-bold whitespace-nowrap hover:bg-[#1d3a47] transition-colors text-sm w-full md:w-auto disabled:opacity-60"
+              >
+                {t('footer.subscribe')}
+              </button>
+            </div>
+            {error && <p className="text-red-300 text-xs font-semibold">{error}</p>}
           </div>
         </div>
       </div>
