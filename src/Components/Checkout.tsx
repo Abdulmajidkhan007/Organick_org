@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from '../hooks'
 import { clearCart } from '../slices/cartSlice'
 import { decreaseStock } from '../Data'
 import { sendTelegram } from '../utils/telegram'
+import { isValidPhone } from '../utils/validate'
 import { addOrderToFirestore } from '../firebase/firestore'
 import { addOrder } from '../slices/ordersSlice'
 import { Order, OrderItem } from '../types'
@@ -51,14 +52,12 @@ export const Checkout = () => {
     if (errors[k]) setErrors(e => ({ ...e, [k]: '' }))
   }
 
-  const validatePhone = (phone: string) => phone.replace(/\D/g, '').length >= 9
-
   const handleOrder = async () => {
     const errs: Record<string, string> = {}
-    if (!form.name.trim()) errs.name = "Ism kiritish shart"
-    if (!form.phone.trim()) errs.phone = "Telefon raqam kiritish shart"
-    else if (!validatePhone(form.phone)) errs.phone = "Telefon raqam noto'g'ri (kamida 9 ta raqam kerak, masalan: +998901234567)"
-    if (!form.address.trim()) errs.address = "Manzil kiritish shart"
+    if (!form.name.trim()) errs.name = t('checkout.errors.nameRequired')
+    if (!form.phone.trim()) errs.phone = t('checkout.errors.phoneRequired')
+    else if (!isValidPhone(form.phone)) errs.phone = t('checkout.errors.phoneInvalid')
+    if (!form.address.trim()) errs.address = t('checkout.errors.addressRequired')
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setErrors({})
     setLoading(true)

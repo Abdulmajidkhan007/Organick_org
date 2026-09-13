@@ -186,7 +186,13 @@
       "messagePlaceholder": "Hello there, I would like to talk about...",
       "sendBtn": "Send Message",
       "success": "Message sent!",
-      "error": "Failed to send"
+      "error": "Failed to send",
+      "errors": {
+        "nameRequired": "Name is required",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Email address is not valid",
+        "messageRequired": "Message is required"
+      }
     }
   },
   "checkout": {
@@ -213,7 +219,13 @@
     "saveFailed": "Order was not saved to the server",
     "saveFailedTelegramOk": "Your order was sent to our operators via Telegram and they will contact you shortly, but it will not appear in your account. Please keep the order number.",
     "saveFailedNoTelegram": "The order was neither saved to the server nor sent via Telegram. Please contact us with the order number or try again.",
-    "contactUs": "Contact us"
+    "contactUs": "Contact us",
+    "errors": {
+      "nameRequired": "Name is required",
+      "phoneRequired": "Phone number is required",
+      "phoneInvalid": "Invalid phone number (must be 9-15 digits, e.g. +998901234567)",
+      "addressRequired": "Address is required"
+    }
   },
   "dashboard": {
     "myOrders": "My Orders",
@@ -382,7 +394,12 @@
     "licences": "Licences",
     "changelog": "Changelog",
     "copyright": "Copyright © Organick | Designed by VictorFlow Templates",
-    "description": "Simply dummy text of the printing and typesetting industry. Lorem Ipsum simply dummy text of the printing."
+    "description": "Simply dummy text of the printing and typesetting industry. Lorem Ipsum simply dummy text of the printing.",
+    "errors": {
+      "emailRequired": "Email address is required",
+      "emailInvalid": "Email address is not valid",
+      "sendFailed": "Failed to send. Please try again later."
+    }
   },
   "notFound": {
     "subtitle": "Page Not Found",

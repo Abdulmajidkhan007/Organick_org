@@ -182,7 +182,13 @@
     "saveFailed": "Buyurtma serverga saqlanmadi",
     "saveFailedTelegramOk": "Buyurtmangiz operatorlarimizga Telegram orqali yuborildi va ular tez orada bog'lanadi, lekin u shaxsiy kabinetingizda ko'rinmaydi. Buyurtma raqamini saqlab qo'ying.",
     "saveFailedNoTelegram": "Buyurtma na serverga saqlandi, na Telegram orqali yuborildi. Iltimos, buyurtma raqami bilan biz bilan bog'laning yoki qaytadan urinib ko'ring.",
-    "contactUs": "Biz bilan bog'lanish"
+    "contactUs": "Biz bilan bog'lanish",
+    "errors": {
+      "nameRequired": "Ism kiritish shart",
+      "phoneRequired": "Telefon raqam kiritish shart",
+      "phoneInvalid": "Telefon raqam noto'g'ri (9-15 ta raqam bo'lishi kerak, masalan: +998901234567)",
+      "addressRequired": "Manzil kiritish shart"
+    }
   },
   "dashboard": {
     "myOrders": "Mening buyurtmalarim",
@@ -224,7 +230,13 @@
       "messagePlaceholder": "Salom, men... haqida gaplashmoqchiman",
       "sendBtn": "Xabar yuborish",
       "success": "Xabar yuborildi!",
-      "error": "Xatolik yuz berdi"
+      "error": "Xatolik yuz berdi",
+      "errors": {
+        "nameRequired": "Ism kiritish shart",
+        "emailRequired": "Email kiritish shart",
+        "emailInvalid": "Email manzil noto'g'ri formatda",
+        "messageRequired": "Xabar kiritish shart"
+      }
     }
   },
   "blog": {
@@ -382,7 +394,12 @@
     "licences": "Litsenziyalar",
     "changelog": "O'zgarishlar jurnali",
     "copyright": "Mualliflik huquqi © Organick | VictorFlow Templates tomonidan yaratilgan",
-    "description": "Bosma va nashr sanoatining shunchaki qo'shimcha matn. Lorem Ipsum bosma."
+    "description": "Bosma va nashr sanoatining shunchaki qo'shimcha matn. Lorem Ipsum bosma.",
+    "errors": {
+      "emailRequired": "Email manzil kiritish shart",
+      "emailInvalid": "Email manzil noto'g'ri formatda",
+      "sendFailed": "Yuborilmadi. Birozdan keyin qaytadan urinib ko'ring."
+    }
   },
   "notFound": {
     "subtitle": "Sahifa topilmadi",

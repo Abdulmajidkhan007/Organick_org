@@ -553,3 +553,63 @@ dan funksiya olib tashlansa, `--force` bilan deploy uni production'dan
 so'ramasdan o'chirib tashlaydi (oddiy holatda firebase-tools buni
 tasdiqlashni so'raydi). Shuning uchun `functions/`dan funksiya o'chirish
 CLAUDE.md'da BUZILMAS QOIDA qilib belgilandi.
+
+---
+
+## 14. Ommaviy formalarga haqiqiy validatsiya (2026-09-13)
+
+### Muammo
+
+Uchala ommaviy forma (kontakt, newsletter, checkout) faqat "bo'sh emasmi"
+tekshirardi, regex yo'q edi. `ContactForm.tsx` va `Footer.tsx`da `<form>`
+elementi umuman yo'q, tugmalar `type="button"` — shuning uchun
+`<input type="email">`ning brauzer o'zi qiladigan tekshiruvi ham ishlamas
+edi (forma submit bo'lmagani uchun brauzer uni tekshirmaydi). Natijada
+"ali2." va "hbbbb" kabi qiymatlar Telegram'ga borardi.
+
+Ikkinchi, alohida muammo — `ContactForm.tsx`da `await sendTelegram(...)`
+hech qachon throw qilmasdi (`sendTelegram` imzosi bo'yicha
+`Promise<boolean>`, xato holida `false` qaytaradi, 13-bo'limga qarang),
+shuning uchun undan keyingi `try/catch`dagi `catch` bloki **hech qachon
+bajarilmaydigan o'lik kod** edi: `setStatus('ok')` shartsiz chaqirilardi —
+Telegram chaqiruvi muvaffaqiyatsiz bo'lsa ham foydalanuvchiga "yuborildi"
+deb ko'rsatilardi. `Footer.tsx`da esa `if (ok)` bor edi, lekin `else` yo'q —
+xato holida tugma shunchaki yana bosiladigan holga qaytardi, hech narsa
+deyilmasdi.
+
+`Checkout.tsx`da telefon tekshiruvi bor edi (`errors` naqshi bilan), lekin
+faqat pastki chegara: `phone.replace(/\D/g, '').length >= 9` — yuqori
+chegara yo'qligi uchun 17 xonali raqam ham o'tib ketardi.
+
+### Yechim
+
+`src/utils/validate.ts` — ikkita funksiya, uchala formada ishlatiladi:
+
+- `isValidEmail(v)` — oddiy `x@y.z` shakl tekshiruvi (regex).
+- `isValidPhone(v)` — `phoneAuth.ts`dagi ikkita mavjud funksiyani
+  **qayta ishlatadi**, yangi regex yozmaydi: avval `normalizePhone(v)`
+  bilan E.164'ga keltiradi, so'ng shu modulning o'z `isValidPhone`
+  (E.164 shaklini 9–15 raqam chegarasida tekshiruvchi) bilan tasdiqlaydi.
+  Chegara BIR JOYDA (`phoneAuth.ts`) yozilgan holicha qoladi — bu yerda
+  takrorlanmaydi. `normalizePhone`ning o'zi o'zgartirilmadi (auth oqimi
+  buzilmasin uchun CLAUDE.md qoidasi).
+
+`ContactForm.tsx` va `Checkout.tsx`dagi `errors: Record<string, string>` +
+maydon ostida qizil matn naqshi endi barcha uchta formada bir xil.
+`ContactForm`dagi o'lik `try/catch` olib tashlandi:
+`const ok = await sendTelegram(...); setStatus(ok ? 'ok' : 'err')` —
+`sendTelegram` hech qachon throw qilmagani uchun `try/catch`ning hojati
+yo'q edi, shart operatori yetarli. `Footer.tsx`ga `else` qo'shildi va
+xato uchun forma ichida (alert emas) matn chiqadigan bo'ldi.
+
+Checkout'dagi uchta qattiq yozilgan o'zbekcha xato matni (`"Ism kiritish
+shart"` va h.k.) `checkout.errors.*` i18n kalitlariga ko'chirildi — ilgari
+ular til almashtirilsa ham doim o'zbekcha chiqardi.
+
+### Nega alohida `validate.ts`, nega `zod`/`yup` emas
+
+Loyihada backend yo'q, tekshiruv shakli oddiy (ikki qoida: email formati,
+telefon uzunlik chegarasi). Yangi kutubxona qo'shish CLAUDE.md qoidasiga
+zid (bosh sahifa bundle hajmi — 6-bo'lim) va bu masshtabda ortiqcha.
+Alohida fayl (komponent ichiga emas) tanlangani sababi — uchala forma bir
+xil ikkita qoidani ishlatadi, uchta nusxa yozish o'rniga bitta manba.
