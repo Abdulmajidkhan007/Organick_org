@@ -48,6 +48,6 @@ jobs:
         run: echo "$FIREBASE_SERVICE_ACCOUNT" > "${{ runner.temp }}/firebase-sa.json"
 
       - name: Deploy to Firebase Hosting and Functions
-        run: npx firebase-tools@15 deploy --only hosting,functions --non-interactive
+        run: npx firebase-tools@15 deploy --only hosting,functions --non-interactive --force
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json

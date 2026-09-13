@@ -534,3 +534,22 @@ bu paket ikki marta ko'rinadi — `firebase-admin`ning
 true` belgisi YO'Q, ya'ni `npm ci --omit=optional` uni baribir o'rnatadi.
 Tekshirish: `rm -rf functions/node_modules && npm ci --prefix functions
 --omit=optional && ls functions/node_modules/@google-cloud/firestore`.
+
+### Deploy buyrug'ida `--force` (Artifact Registry cleanup policy)
+
+`master`ga push bo'lganda hosting va `sendTelegramMessage` funksiyasi
+muvaffaqiyatli deploy bo'laverdi, lekin `firebase-tools` oxirida baribir
+`exit 1` bilan tugardi: `us-central1` uchun Artifact Registry'da avtomatik
+tozalash siyosati (eski konteyner image'larini o'chirish qoidasi)
+o'rnatilmagani haqida ogohlantirib, buni o'rnatish uchun `--force`
+kerakligini aytadi. Deploy'ning o'zi (hosting + funksiya + 5 sekret)
+muvaffaqiyatli bo'lgani uchun bu xato workflow'ni yashil emas, qizil qilib
+ko'rsatardi — ish natijasi to'g'ri bo'lsa ham.
+
+Yechim: `.github/workflows/deploy.yml`dagi deploy qadamiga `--force`
+qo'shildi. Narxi: `--force` cleanup policy so'rovini ham, boshqa har
+qanday tasdiqni ham o'tkazib yuboradi — jumladan, `functions/src/index.ts`
+dan funksiya olib tashlansa, `--force` bilan deploy uni production'dan
+so'ramasdan o'chirib tashlaydi (oddiy holatda firebase-tools buni
+tasdiqlashni so'raydi). Shuning uchun `functions/`dan funksiya o'chirish
+CLAUDE.md'da BUZILMAS QOIDA qilib belgilandi.
