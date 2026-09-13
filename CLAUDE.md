@@ -105,6 +105,9 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
   Buni qayta kengaytirmang.
 
 ### Ma'lumot va qaytarib bo'lmaydigan amallar
+- **`functions/src/index.ts` dan funksiya OLIB TASHLANMAYDI** — deploy
+  `--force` bilan ishlaydi, ya'ni kodda yo'q funksiya production'dan
+  so'ramasdan o'chiriladi.
 - **Firestore'dagi `orders` hujjatlari o'chirilmaydi** va `firestore.rules` "kengroq" qilinmaydi
   (masalan `allow write: if true`) — bu real buyurtmalarni yo'qotadi/ochib qo'yadi.
 - **`localStorage` kalitlari nomini o'zgartirmang** — foydalanuvchilarning savati va
