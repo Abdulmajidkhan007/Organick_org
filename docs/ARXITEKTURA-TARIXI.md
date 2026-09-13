@@ -509,3 +509,28 @@ chaqiruvlar **~50-70ms** ni oldi — bu Cloud Run konteyner sovuq boshlanishini
 o'z ichiga olmagan lokal o'lchov, haqiqiy production'da birinchi so'rov
 buni hisobga olib ehtimol biroz sekinroq (odatda kichik Node.js
 funksiyalari uchun 1-3s atrofida) bo'ladi.
+
+### `@google-cloud/firestore` nega `functions/package.json`da aniq dependency
+
+`firebase-admin`ning `firestore/index.js` moduli `@google-cloud/firestore`ni
+to'g'ridan-to'g'ri talab qiladi, lekin `firebase-admin` uni o'zining
+`package.json`ida **optionalDependencies** sifatida belgilagan (shu paket
+`^9.1.0`, lockfile'da tasdiqlangan). `npm ci` optional paketni o'rnata
+olmasa ham xato QAYTARMAYDI — jimgina o'tkazib yuboradi. Ba'zi CI
+muhitlarida (registry ustida turli platforma/arch filtri yoki vaqtinchalik
+tarmoq xatosi) aynan shu optional paket o'rnatilmay qoldi, natijada deploy
+paytida `Error: Cannot find module '@google-cloud/firestore'` chiqdi —
+`firebase-admin` firestore moduli import qilingan zahoti. Oldingi TS7006
+xatosi ham xuddi shu sababdan edi: paket yo'q bo'lgani uchun uning tip
+fayllari ham yo'q edi.
+
+Yechim: `@google-cloud/firestore@^9.1.0` `functions/package.json`ning
+`dependencies`iga aniq yozib qo'yildi (lockfile'dagi versiya bilan bir
+xil), so'ng `package-lock.json` qayta generatsiya qilindi
+(`npm install --prefix functions --package-lock-only`). Endi lockfile'da
+bu paket ikki marta ko'rinadi — `firebase-admin`ning
+`optionalDependencies`ida (o'zgarmadi) va ildiz `functions` loyihasining
+`dependencies`ida — va paketning o'z `node_modules` yozuvida `optional:
+true` belgisi YO'Q, ya'ni `npm ci --omit=optional` uni baribir o'rnatadi.
+Tekshirish: `rm -rf functions/node_modules && npm ci --prefix functions
+--omit=optional && ls functions/node_modules/@google-cloud/firestore`.
