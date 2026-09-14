@@ -377,7 +377,27 @@
     "noOrders": "Заказов пока нет",
     "recentOrders": "Последние заказы",
     "viewAll": "Все",
-    "productStock": "Остаток"
+    "productStock": "Остаток",
+    "orderStatus": {
+      "pending": "🕐 Ожидает",
+      "confirmed": "✅ Подтверждён",
+      "processing": "⚙️ Готовится",
+      "shipped": "🚚 Отправлен",
+      "delivered": "📦 Доставлен",
+      "cancelled": "❌ Отменён"
+    },
+    "allStatuses": "Все",
+    "newBadge": "🔴 Новый",
+    "items": "товаров",
+    "adminNoteLabel": "Сообщение админа:",
+    "sendMessage": "Отправить сообщение",
+    "messagePlaceholder": "Напишите сообщение клиенту...",
+    "sending": "Отправка...",
+    "saveAndTelegram": "Сохранить + Telegram",
+    "cancelReply": "Отмена",
+    "reply": "Ответить",
+    "writeOnTelegram": "Написать в Telegram",
+    "image": "Изображение"
   },
   "footer": {
     "newsletter": "Подпишитесь на нашу рассылку",

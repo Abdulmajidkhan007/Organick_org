@@ -5,6 +5,7 @@ import { Navbar } from './Navbar'
 import { FooterBottom } from './Footer'
 import { useAppSelector } from '../hooks'
 import { getStatusStyle } from './Checkout'
+import { OrderItemThumb } from './OrderItemThumb'
 import { subscribeUserOrders } from '../firebase/firestore'
 import { Order } from '../types'
 
@@ -44,14 +45,11 @@ const DetailModal = ({ order, onClose }: { order: Order; onClose: () => void }) 
             <div className="flex flex-col gap-2">
               {order.items.map(item => (
                 <div key={item.productId} className="flex items-center gap-3 bg-[#F9F8F8] dark:bg-gray-800 rounded-xl p-3">
-                  <img
-                    src={item.productImg}
-                    alt={item.productName}
+                  <OrderItemThumb
+                    item={item}
                     className="w-12 h-12 object-contain rounded-lg bg-white"
                     width={48}
                     height={48}
-                    decoding="async"
-                    loading="lazy"
                   />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-[#274C5B] dark:text-white truncate">{item.productName}</p>

@@ -377,7 +377,27 @@
     "noOrders": "Buyurtmalar yo'q",
     "recentOrders": "So'nggi buyurtmalar",
     "viewAll": "Hammasini ko'rish",
-    "productStock": "Qoldiq (stock)"
+    "productStock": "Qoldiq (stock)",
+    "orderStatus": {
+      "pending": "🕐 Kutilmoqda",
+      "confirmed": "✅ Tasdiqlandi",
+      "processing": "⚙️ Tayyorlanmoqda",
+      "shipped": "🚚 Yuborildi",
+      "delivered": "📦 Yetkazildi",
+      "cancelled": "❌ Bekor qilindi"
+    },
+    "allStatuses": "Barchasi",
+    "newBadge": "🔴 Yangi",
+    "items": "mahsulot",
+    "adminNoteLabel": "Admin xabari:",
+    "sendMessage": "Xabar yuborish",
+    "messagePlaceholder": "Mijozga xabar yozing...",
+    "sending": "Yuborilmoqda...",
+    "saveAndTelegram": "Saqlash + Telegram",
+    "cancelReply": "Bekor",
+    "reply": "Javob berish",
+    "writeOnTelegram": "Telegramda yozing",
+    "image": "Rasm"
   },
   "footer": {
     "newsletter": "Yangiliklar xabariga obuna bo'ling",
