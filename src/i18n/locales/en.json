@@ -370,6 +370,7 @@
     "name": "Name",
     "category": "Category",
     "price": "Price",
+    "stock": "Stock",
     "edit": "Edit",
     "orders": "Orders",
     "totalOrders": "Total Orders",

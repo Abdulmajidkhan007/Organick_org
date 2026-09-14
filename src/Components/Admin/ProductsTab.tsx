@@ -136,7 +136,65 @@ export const ProductsTab = ({ showProductForm, setShowProductForm }: ProductsTab
         </div>
       )}
 
-      <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm overflow-hidden">
+      {/* Mobile: card list (md dan kichik ekranlar) */}
+      <div className="md:hidden flex flex-col gap-3">
+        {products.map((p, i) => (
+          <div key={p.id} className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm p-4">
+            <div className="flex items-start gap-3">
+              <img
+                src={p.img}
+                alt={p.name}
+                className="w-14 h-14 object-contain rounded-lg bg-gray-50 shrink-0"
+                width={56}
+                height={56}
+                decoding="async"
+                loading="lazy"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-[#274C5B] dark:text-white text-sm truncate">{p.name}</span>
+                  <span className="text-xs text-gray-400 shrink-0">#{i + 1}</span>
+                </div>
+                <span className="inline-block mt-1 bg-[#274C5B]/10 text-[#274C5B] dark:text-[#7EB693] text-xs px-2 py-1 rounded-lg">{p.category}</span>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="font-bold text-[#7EB693]">${p.price}</span>
+                  {p.oldPrice > p.price && <span className="line-through text-gray-400 text-xs">${p.oldPrice}</span>}
+                </div>
+                <div className="mt-1">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{t('admin.stock')}: </span>
+                  <span className={`text-sm font-semibold ${(p.stock ?? 0) > 10 ? 'text-green-600' : (p.stock ?? 0) > 0 ? 'text-yellow-600' : 'text-red-600'}`}>
+                    {p.stock ?? 0}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mt-3">
+              <button onClick={() => handleEditProduct(p)}
+                aria-label={t('admin.edit')}
+                className="flex items-center justify-center w-11 h-11 text-blue-500 hover:text-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                <i className="fas fa-edit"></i>
+              </button>
+              {deleteConfirm === p.id ? (
+                <div className="flex items-center gap-2">
+                  <button onClick={() => handleDeleteProduct(p.id)}
+                    className="text-white bg-red-500 text-sm px-4 min-h-[44px] rounded-lg">{t('admin.yes')}</button>
+                  <button onClick={() => setDeleteConfirm(null)}
+                    className="text-gray-500 border text-sm px-4 min-h-[44px] rounded-lg">{t('admin.no')}</button>
+                </div>
+              ) : (
+                <button onClick={() => setDeleteConfirm(p.id)}
+                  aria-label={t('admin.deleteProduct')}
+                  className="flex items-center justify-center w-11 h-11 text-red-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                  <i className="fas fa-trash"></i>
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop/tablet: jadval (md va undan katta) */}
+      <div className="hidden md:block bg-white dark:bg-[#1e293b] rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -146,7 +204,7 @@ export const ProductsTab = ({ showProductForm, setShowProductForm }: ProductsTab
                 <th className="px-4 py-3 text-sm font-semibold text-gray-500">{t('admin.name')}</th>
                 <th className="px-4 py-3 text-sm font-semibold text-gray-500">{t('admin.category')}</th>
                 <th className="px-4 py-3 text-sm font-semibold text-gray-500">{t('admin.price')}</th>
-                <th className="px-4 py-3 text-sm font-semibold text-gray-500">Stock</th>
+                <th className="px-4 py-3 text-sm font-semibold text-gray-500">{t('admin.stock')}</th>
                 <th className="px-4 py-3 text-sm font-semibold text-gray-500">{t('admin.actions')}</th>
               </tr>
             </thead>
@@ -183,7 +241,8 @@ export const ProductsTab = ({ showProductForm, setShowProductForm }: ProductsTab
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <button onClick={() => handleEditProduct(p)}
-                        className="text-blue-500 hover:text-blue-700 text-sm px-3 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                        aria-label={t('admin.edit')}
+                        className="flex items-center justify-center w-11 h-11 text-blue-500 hover:text-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20">
                         <i className="fas fa-edit"></i>
                       </button>
                       {deleteConfirm === p.id ? (
@@ -195,7 +254,8 @@ export const ProductsTab = ({ showProductForm, setShowProductForm }: ProductsTab
                         </div>
                       ) : (
                         <button onClick={() => setDeleteConfirm(p.id)}
-                          className="text-red-400 hover:text-red-600 text-sm px-3 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                          aria-label={t('admin.deleteProduct')}
+                          className="flex items-center justify-center w-11 h-11 text-red-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
                           <i className="fas fa-trash"></i>
                         </button>
                       )}

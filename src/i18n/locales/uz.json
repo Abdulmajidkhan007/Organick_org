@@ -370,6 +370,7 @@
     "name": "Nom",
     "category": "Kategoriya",
     "price": "Narx",
+    "stock": "Qoldiq",
     "edit": "Tahrirlash",
     "orders": "Buyurtmalar",
     "totalOrders": "Jami buyurtmalar",

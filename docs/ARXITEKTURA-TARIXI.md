@@ -689,3 +689,49 @@ Kelajakda mahsulot rasmini buyurtmaga yozish kerak bo'lsa — Vite import
 URL'i emas, **barqaror identifikator** (`productId`, yoki agar tashqi
 CDN/Storage'ga o'tilsa — o'sha joydagi doimiy URL) saqlanishi kerak;
 hash'li build artefaktlariga to'g'ridan-to'g'ri havola qaytarilmasin.
+
+## 16. Mahsulotlar jadvali telefonda karta ro'yxatiga almashtirildi (2026-09-14)
+
+Admin panelning boshqa tab'lari (`OrdersTab`, `BlogsTab`) allaqachon
+telefon uchun karta ko'rinishida edi, faqat `ProductsTab.tsx` hamon
+7 ustunli `<table>` chizardi (`overflow-x-auto` ichida). O'lchash
+(headless Chromium, haqiqiy `dist/assets/index-*.css` bilan, real
+komponent razmetkasi asosida qurilgan fixture'da) shuni ko'rsatdi —
+jadvalning eng kam kengligi **558px**, ammo mobil ekranlar undan tor:
+
+| Ekran kengligi | Yashirin (scrollWidth − clientWidth) |
+|---|---|
+| 360px | 198px |
+| 390px | 168px |
+| 414px | 144px |
+| 768px | 0px (bu yerda jadval to'g'ri sig'adi) |
+
+Yashirin qismga aynan oxirgi ustun — "Amallar" (tahrirlash/o'chirish)
+tushardi, ya'ni telefonda har bir qator uchun gorizontal scroll qilib
+o'ngga surish kerak edi. Ustiga, tahrirlash/o'chirish tugmalari 33×28px
+edi — barmoq uchun tavsiya etilgan eng kichik o'lcham (44×44px) dan
+kichik.
+
+**Yechim:** `md` (768px) dan kichik ekranlarda jadval o'rniga karta
+ro'yxati (`md:hidden` — rasm, nomi, kategoriya, narx, stock va amal
+tugmalari, gorizontal scroll'siz), `md` va undan katta ekranlarda esa
+jadval o'zgarishsiz qoladi (`hidden md:block`). Ikkala ko'rinishdagi
+tahrirlash/o'chirish tugmalari `w-11 h-11` (44×44px) ga kengaytirildi —
+faqat kartada emas, jadvalda ham, chunki eski 33×28 o'lcham teginish
+uchun umuman mos emas edi (planshetlar ham teginish orqali boshqariladi).
+
+Qayta o'lchash (bir xil usul, yangi razmetka bilan, `/admin` auth ortida
+bo'lgani uchun Playwright uni to'g'ridan-to'g'ri ocholmaydi — shuning
+uchun alohida HTML fixture'da, real build CSS bilan):
+
+| Ekran kengligi | Layout | Yashirin | Tugma o'lchami |
+|---|---|---|---|
+| 360px | karta | 0px | 44×44px |
+| 390px | karta | 0px | 44×44px |
+| 414px | karta | 0px | 44×44px |
+| 768px | jadval | 0px | 44×44px |
+
+Light va dark rejimda ham natija bir xil. Ma'lumot oqimi, Redux,
+localStorage kalitlari o'zgarmadi — bu sof ko'rinish (CSS/markup) ishi;
+`OrdersTab`, `BlogsTab`, `StatsTab`, `Dashboard.tsx` (sidebar)ga
+tegilmadi.

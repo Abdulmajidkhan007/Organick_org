@@ -260,10 +260,12 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 ```
 
 **Eng katta 10 fayl** (`find src -name '*.ts*' -o -name '*.css' -o -name '*.json' | xargs wc -l`):
-`Auth/AuthPage.tsx` 686 · `locales/uz.json` `ru.json` `en.json` har biri 429 ·
+`Auth/AuthPage.tsx` 686 · `locales/uz.json` `ru.json` `en.json` har biri 430 ·
 `style.css` 403 · `Home.tsx` 366 · `Navbar.tsx` 360 · `Checkout.tsx` 345 ·
-`UserDashboard.tsx` 240 · `ShopSingle.tsx` 230 · `Admin/OrdersTab.tsx` 222 ·
-`Admin/ProductsTab.tsx` 212.
+`Admin/ProductsTab.tsx` 272 · `UserDashboard.tsx` 240 · `ShopSingle.tsx` 230 ·
+`Admin/OrdersTab.tsx` 222.
+(`ProductsTab.tsx` 212 -> 272 ga o'sdi — mobil karta ro'yxati qo'shildi,
+2026-09-14, quyidagi bo'limga qarang.)
 
 ---
 
