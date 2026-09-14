@@ -142,7 +142,7 @@ export const ProductsTab = ({ showProductForm, setShowProductForm }: ProductsTab
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-800 text-left">
                 <th className="px-4 py-3 text-sm font-semibold text-gray-500">#</th>
-                <th className="px-4 py-3 text-sm font-semibold text-gray-500">Rasm</th>
+                <th className="px-4 py-3 text-sm font-semibold text-gray-500">{t('admin.image')}</th>
                 <th className="px-4 py-3 text-sm font-semibold text-gray-500">{t('admin.name')}</th>
                 <th className="px-4 py-3 text-sm font-semibold text-gray-500">{t('admin.category')}</th>
                 <th className="px-4 py-3 text-sm font-semibold text-gray-500">{t('admin.price')}</th>

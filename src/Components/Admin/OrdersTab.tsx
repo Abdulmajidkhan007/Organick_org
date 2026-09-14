@@ -10,13 +10,13 @@ interface OrdersTabProps {
   orders: Order[]
 }
 
-export const ORDER_STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
-  { value: 'pending',    label: '🕐 Kutilmoqda' },
-  { value: 'confirmed',  label: '✅ Tasdiqlandi' },
-  { value: 'processing', label: '⚙️ Tayyorlanmoqda' },
-  { value: 'shipped',    label: '🚚 Yuborildi' },
-  { value: 'delivered',  label: '📦 Yetkazildi' },
-  { value: 'cancelled',  label: '❌ Bekor qilindi' },
+export const ORDER_STATUS_OPTIONS: { value: OrderStatus; labelKey: string }[] = [
+  { value: 'pending',    labelKey: 'admin.orderStatus.pending' },
+  { value: 'confirmed',  labelKey: 'admin.orderStatus.confirmed' },
+  { value: 'processing', labelKey: 'admin.orderStatus.processing' },
+  { value: 'shipped',    labelKey: 'admin.orderStatus.shipped' },
+  { value: 'delivered',  labelKey: 'admin.orderStatus.delivered' },
+  { value: 'cancelled',  labelKey: 'admin.orderStatus.cancelled' },
 ]
 
 export const OrdersTab = ({ orders }: OrdersTabProps) => {
@@ -38,7 +38,7 @@ export const OrdersTab = ({ orders }: OrdersTabProps) => {
     const text = [
       `↩️ <b>BUYURTMA #${order.id} YANGILANISHI</b>`,
       '',
-      `${st?.label || replyStatus}`,
+      `${st ? t(st.labelKey) : replyStatus}`,
       `📝 Admin xabari: ${replyNote}`,
       '',
       `👤 Mijoz: ${order.customerName}`,
@@ -61,10 +61,10 @@ export const OrdersTab = ({ orders }: OrdersTabProps) => {
             onChange={e => setOrderFilter(e.target.value as OrderStatus | 'all')}
             className="inpHover h-10 text-sm pr-8"
           >
-            <option value="all">Barchasi ({orders.length})</option>
+            <option value="all">{t('admin.allStatuses')} ({orders.length})</option>
             {ORDER_STATUS_OPTIONS.map(s => (
               <option key={s.value} value={s.value}>
-                {s.label} ({orders.filter(o => o.status === s.value).length})
+                {t(s.labelKey)} ({orders.filter(o => o.status === s.value).length})
               </option>
             ))}
           </select>
@@ -89,7 +89,7 @@ export const OrdersTab = ({ orders }: OrdersTabProps) => {
                       <h3 className="font-bold text-[#274C5B] dark:text-white">{order.id}</h3>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${st.color}`}>{st.label}</span>
                       {order.status === 'pending' && (
-                        <span className="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-semibold">🔴 Yangi</span>
+                        <span className="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-semibold">{t('admin.newBadge')}</span>
                       )}
                     </div>
                     <p className="text-sm text-gray-500 mt-1 flex items-center gap-2 flex-wrap">
@@ -112,7 +112,7 @@ export const OrdersTab = ({ orders }: OrdersTabProps) => {
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="font-bold text-xl text-[#7EB693]">${order.total.toFixed(2)}</p>
-                    <p className="text-xs text-gray-400">{order.items.length} mahsulot</p>
+                    <p className="text-xs text-gray-400">{order.items.length} {t('admin.items')}</p>
                   </div>
                 </div>
 
@@ -137,7 +137,7 @@ export const OrdersTab = ({ orders }: OrdersTabProps) => {
                 {/* Admin Note */}
                 {order.adminNote && (
                   <div className="mx-5 mb-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3">
-                    <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1"><i className="fas fa-comment-alt mr-1"></i>Admin xabari:</p>
+                    <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1"><i className="fas fa-comment-alt mr-1"></i>{t('admin.adminNoteLabel')}</p>
                     <p className="text-sm text-blue-600 dark:text-blue-300">{order.adminNote}</p>
                   </div>
                 )}
@@ -146,7 +146,7 @@ export const OrdersTab = ({ orders }: OrdersTabProps) => {
                 {selectedOrder?.id === order.id ? (
                   <div className="p-5 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-bold text-sm text-[#274C5B] dark:text-white">Xabar yuborish</h4>
+                      <h4 className="font-bold text-sm text-[#274C5B] dark:text-white">{t('admin.sendMessage')}</h4>
                       {order.customerTelegram && (
                         <a
                           href={`https://t.me/${order.customerTelegram.replace('@', '')}`}
@@ -164,7 +164,7 @@ export const OrdersTab = ({ orders }: OrdersTabProps) => {
                       className="inpHover h-10 text-sm w-full mb-3"
                     >
                       {ORDER_STATUS_OPTIONS.map(s => (
-                        <option key={s.value} value={s.value}>{s.label}</option>
+                        <option key={s.value} value={s.value}>{t(s.labelKey)}</option>
                       ))}
                     </select>
                     <textarea
@@ -172,7 +172,7 @@ export const OrdersTab = ({ orders }: OrdersTabProps) => {
                       value={replyNote}
                       onChange={e => setReplyNote(e.target.value)}
                       className="inpHover w-full mb-3"
-                      placeholder="Mijozga xabar yozing..."
+                      placeholder={t('admin.messagePlaceholder')}
                     />
                     <div className="flex gap-2 flex-wrap">
                       <button
@@ -180,11 +180,11 @@ export const OrdersTab = ({ orders }: OrdersTabProps) => {
                         disabled={sendingReply || !replyNote.trim()}
                         className="flex items-center gap-2 bg-[#274C5B] text-white px-4 py-2 rounded-xl font-semibold text-sm hover:opacity-90 disabled:opacity-50"
                       >
-                        {sendingReply ? <><i className="fas fa-spinner fa-spin"></i> Yuborilmoqda...</> : <><i className="fab fa-telegram"></i> Saqlash + Telegram</>}
+                        {sendingReply ? <><i className="fas fa-spinner fa-spin"></i> {t('admin.sending')}</> : <><i className="fab fa-telegram"></i> {t('admin.saveAndTelegram')}</>}
                       </button>
                       <button onClick={() => setSelectedOrder(null)}
                         className="border border-gray-300 dark:border-gray-600 px-4 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        Bekor
+                        {t('admin.cancelReply')}
                       </button>
                     </div>
                   </div>
@@ -198,7 +198,7 @@ export const OrdersTab = ({ orders }: OrdersTabProps) => {
                       }}
                       className="flex items-center gap-2 bg-[#274C5B] text-white px-4 py-2 rounded-xl font-semibold text-sm hover:opacity-90"
                     >
-                      <i className="fas fa-reply"></i> Javob berish
+                      <i className="fas fa-reply"></i> {t('admin.reply')}
                     </button>
                     {order.customerTelegram && (
                       <a
@@ -207,7 +207,7 @@ export const OrdersTab = ({ orders }: OrdersTabProps) => {
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 bg-[#2AABEE] text-white px-4 py-2 rounded-xl font-semibold text-sm hover:opacity-90"
                       >
-                        <i className="fab fa-telegram"></i> Telegramda yozing
+                        <i className="fab fa-telegram"></i> {t('admin.writeOnTelegram')}
                       </a>
                     )}
                   </div>

@@ -377,7 +377,27 @@
     "noOrders": "No orders yet",
     "recentOrders": "Recent Orders",
     "viewAll": "View All",
-    "productStock": "Stock"
+    "productStock": "Stock",
+    "orderStatus": {
+      "pending": "🕐 Pending",
+      "confirmed": "✅ Confirmed",
+      "processing": "⚙️ Processing",
+      "shipped": "🚚 Shipped",
+      "delivered": "📦 Delivered",
+      "cancelled": "❌ Cancelled"
+    },
+    "allStatuses": "All",
+    "newBadge": "🔴 New",
+    "items": "items",
+    "adminNoteLabel": "Admin note:",
+    "sendMessage": "Send message",
+    "messagePlaceholder": "Write a message to the customer...",
+    "sending": "Sending...",
+    "saveAndTelegram": "Save + Telegram",
+    "cancelReply": "Cancel",
+    "reply": "Reply",
+    "writeOnTelegram": "Message on Telegram",
+    "image": "Image"
   },
   "footer": {
     "newsletter": "Subscribe to our Newsletter",
