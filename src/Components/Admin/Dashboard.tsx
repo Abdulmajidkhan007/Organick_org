@@ -100,7 +100,10 @@ export const AdminDashboard = () => {
             >
               <span className="relative flex-shrink-0 w-5 flex items-center justify-center">
                 <i className={`fas ${item.icon} text-base`}></i>
-                {item.badge && item.badge > 0 && (
+                {/* `item.badge` 0 bo'lganda `0 && (...)` ifodasi `0` ni
+                    qaytaradi, React esa uni matn qilib chizadi ("0" yolg'iz
+                    turib qolardi). `!!` bilan boolean'ga aylantiramiz. */}
+                {!!item.badge && item.badge > 0 && (
                   <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">
                     {item.badge}
                   </span>

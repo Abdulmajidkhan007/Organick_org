@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sendTelegram } from '../../utils/telegram'
 import { updateOrderInFirestore } from '../../firebase/firestore'
+import { OrderItemThumb } from '../OrderItemThumb'
 import { getStatusStyle } from '../Checkout'
 import { Order, OrderStatus } from '../../types'
 
@@ -119,15 +120,7 @@ export const OrdersTab = ({ orders }: OrdersTabProps) => {
                 <div className="px-5 py-3 flex items-center gap-3 overflow-x-auto">
                   {order.items.map(item => (
                     <div key={item.productId} className="flex-shrink-0 flex items-center gap-2 bg-[#F9F8F8] dark:bg-gray-800 rounded-xl px-3 py-2">
-                      <img
-                        src={item.productImg}
-                        alt=""
-                        className="w-8 h-8 object-contain"
-                        width={32}
-                        height={32}
-                        decoding="async"
-                        loading="lazy"
-                      />
+                      <OrderItemThumb item={item} className="w-8 h-8 object-contain" width={32} height={32} />
                       <div>
                         <p className="text-xs font-semibold text-[#274C5B] dark:text-white whitespace-nowrap">{item.productName}</p>
                         <p className="text-xs text-gray-400">x{item.quantity} — ${(item.price * item.quantity).toFixed(2)}</p>

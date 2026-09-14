@@ -633,3 +633,59 @@ To'rtta yangi fayl **statik** import qilingan (`lazy()` emas):
 lazy qilish foyda bermaydi — admin sahifasiga kirilganda baribir hammasi
 darhol kerak bo'ladi, faqat ortiqcha Suspense sakrashi qo'shiladi.
 
+### Muammo 1 — yon menyuda yolg'iz "0"
+
+`Admin/Dashboard.tsx`da yon menyu badge'i shunday chizilardi:
+`{item.badge && item.badge > 0 && (...)}`. `item.badge` — kutilayotgan
+buyurtmalar soni (`pendingCount`). Bu son `0` bo'lganda `0 && (0 > 0)`
+ifodasi JavaScript'da qisqa tutashadi va **`0`ning o'zini** qaytaradi
+(`false`ni emas). React esa `0`ni bo'sh deb hisoblamaydi — uni matn tugun
+sifatida chizadi. Natija: buyurtma bo'lmaganda "Buyurtmalar" ikonkasi
+yonida hech narsaga bog'lanmagan yolg'iz "0" turib qolardi. Tuzatish —
+`!!item.badge && item.badge > 0` (yoki teng ravishda `item.badge ? (...)
+: null`): `!!0` `false`ga aylanadi, React hech narsa chizmaydi.
+
+Bu — React'dagi keng tarqalgan naqsh xatosi (`count && <Badge/>` shakli
+son `0` bo'lganda har doim shunday sinadi), shuning uchun tekshiruv
+sifatida `tests/e2e/admin-orders-badge.spec.ts` qo'shildi: buyurtma yo'q
+holatda sidebar matnida yolg'iz `"0"` so'zi yo'qligini tasdiqlaydi.
+
+### Muammo 2 — buyurtmadagi mahsulot rasmi o'lik havolaga aylanadi
+
+`Checkout.tsx`da buyurtma yaratilganda `OrderItem.productImg` maydoniga
+`product.img` yoziladi. `product.img` — `Data.ts`da Vite orqali import
+qilingan qiymat, ya'ni build vaqtida haqiqiy fayl yo'liga emas, **hash'li
+chunk URL'iga** aylanadi: masalan `/assets/CalabreseBroccoli-Ch-JHt5w.webp`.
+Bu hash mazmun bo'yicha hisoblanadi (content hash) va **har yangi build'da
+o'zgaradi** — hatto rasm faylining o'zi o'zgarmasa ham, boshqa fayllar
+o'zgarsa yoki Vite versiyasi yangilansa hash boshqacha chiqishi mumkin.
+
+Firestore'dagi `orders` hujjatlari esa **yaratilgan paytdagi** hash bilan
+abadiy saqlanadi (buyurtma hujjatlari o'chirilmaydi/o'zgartirilmaydi —
+CLAUDE.md, 3-bo'lim). Keyingi deploy'dan so'ng eski buyurtmaning
+`productImg`si endi mavjud bo'lmagan faylga ishora qiladi — admin panelda
+ham (`Admin/OrdersTab.tsx`), ham foydalanuvchi kabinetida
+(`UserDashboard.tsx`) rasm o'rniga brauzerning "buzilgan rasm" belgisi
+chiqadi.
+
+To'g'ri manba — **joriy** build'dagi mahsulot ma'lumoti, ya'ni Redux
+`data.products` (u ham `Data.ts`dan, ham joriy hash bilan keladi).
+`OrderItemThumb.tsx` (yangi, `src/Components/`) buni markazlashtiradi:
+
+1. `item.productId` bo'yicha `data.products`dan mahsulotni qidiradi —
+   topilsa uning `img`i (joriy build'ning haqiqiy URL'i) ishlatiladi.
+2. Topilmasa (mahsulot keyinchalik o'chirilgan) — `item.productImg`
+   **zaxira** sifatida ishlatiladi (eski buyurtmalar uchun, ular hali
+   yangi build'da yaratilganda to'g'ri edi).
+3. Ikkalasi ham yo'q, yoki zaxira havola ham `onError`ga tushsa (aynan
+   shu hash-eskirish holati) — `<img>` o'rniga `fa-box` ikonkasi
+   chiziladi, sahifa "buzilgan rasm" belgisi bilan emas.
+
+`types/index.ts`dagi `productImg` maydoni **o'chirilmadi** — eski
+buyurtmalarda hamon bor va zaxira sifatida kerak; faqat uning ustuvorligi
+pasaytirildi (birinchi emas, oxirgi variant).
+
+Kelajakda mahsulot rasmini buyurtmaga yozish kerak bo'lsa — Vite import
+URL'i emas, **barqaror identifikator** (`productId`, yoki agar tashqi
+CDN/Storage'ga o'tilsa — o'sha joydagi doimiy URL) saqlanishi kerak;
+hash'li build artefaktlariga to'g'ridan-to'g'ri havola qaytarilmasin.
