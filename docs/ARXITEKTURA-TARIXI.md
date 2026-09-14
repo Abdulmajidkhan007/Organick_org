@@ -613,3 +613,23 @@ telefon uzunlik chegarasi). Yangi kutubxona qo'shish CLAUDE.md qoidasiga
 zid (bosh sahifa bundle hajmi — 6-bo'lim) va bu masshtabda ortiqcha.
 Alohida fayl (komponent ichiga emas) tanlangani sababi — uchala forma bir
 xil ikkita qoidani ishlatadi, uchta nusxa yozish o'rniga bitta manba.
+
+## 15. Admin panelni tab'larga bo'lish + ikkita bug (2026-09-14)
+
+### Admin panelning bo'linishi
+
+`Admin/Dashboard.tsx` 770 qatorga yetgan edi (4 ta tab bitta faylda).
+Endi u faqat sidebar, tab tanlash va tab'lar orasida **umumiy** bo'lgan
+state'ni ushlab turadi: `orders` obunasi (badge va "Boshqaruv paneli"
+tab'i ikkalasiga ham kerak) va `showProductForm`/`showBlogForm` (ular
+"Boshqaruv paneli" tab'idagi tezkor tugmalar orqali ham ochiladi). Har bir
+tab'ga XOS holat (masalan tahrirlanayotgan mahsulot, buyurtma filtri,
+javob matni) endi o'sha tab'ning o'z faylida — bu ataylab shunday: shu
+holat boshqa hech qaerga kerak emas, Dashboard'ni ortiqcha prop-drilling
+bilan og'irlashtirish shart emas.
+
+To'rtta yangi fayl **statik** import qilingan (`lazy()` emas):
+`Admin/Dashboard` allaqachon `App.tsx`da lazy route, uning ICHIDA yana
+lazy qilish foyda bermaydi — admin sahifasiga kirilganda baribir hammasi
+darhol kerak bo'ladi, faqat ortiqcha Suspense sakrashi qo'shiladi.
+

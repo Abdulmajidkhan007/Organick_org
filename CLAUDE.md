@@ -248,16 +248,22 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
     │   ├── ScrollIndicator.tsx   # Navbar ichida; sof scroll listener + CSS (motion YO'Q)
     │   ├── RouteLoader.tsx       # lazy route uchun <Suspense> fallback
     │   ├── NotFound.tsx
-    │   ├── UserDashboard.tsx     # (219 q.) foydalanuvchi buyurtmalari
-    │   └── Admin/Dashboard.tsx   # (754 q.) ENG KATTA FAYL — admin panel
+    │   ├── UserDashboard.tsx     # (240 q.) foydalanuvchi buyurtmalari
+    │   ├── OrderItemThumb.tsx    # buyurtma qatoridagi mahsulot rasmi (productId orqali qayta topiladi, zaxira — ikonka)
+    │   └── Admin/                # admin panel — tab'larga bo'lingan, hammasi STATIK import (lazy route ichida yana lazy shart emas)
+    │       ├── Dashboard.tsx     # (182 q.) sidebar + tab tanlash + umumiy state (orders, showProductForm/showBlogForm)
+    │       ├── StatsTab.tsx      # (88 q.) "Boshqaruv paneli" tab'i
+    │       ├── OrdersTab.tsx     # (222 q.) buyurtmalar ro'yxati + javob berish
+    │       ├── ProductsTab.tsx   # (212 q.) mahsulotlar CRUD
+    │       └── BlogsTab.tsx      # (147 q.) bloglar CRUD
     └── assets/             # 3.1 MB: 77 ta .webp + 4 ta .svg (PNG QOLMAGAN)
 ```
 
 **Eng katta 10 fayl** (`find src -name '*.ts*' -o -name '*.css' -o -name '*.json' | xargs wc -l`):
-`Admin/Dashboard.tsx` 770 · `Auth/AuthPage.tsx` 676 · `style.css` 403 ·
-`locales/uz.json` `ru.json` `en.json` har biri 392 · `Home.tsx` 366 ·
-`Navbar.tsx` 360 · `Checkout.tsx` 346 · `UserDashboard.tsx` 242 ·
-`ShopSingle.tsx` 230.
+`Auth/AuthPage.tsx` 686 · `locales/uz.json` `ru.json` `en.json` har biri 429 ·
+`style.css` 403 · `Home.tsx` 366 · `Navbar.tsx` 360 · `Checkout.tsx` 345 ·
+`UserDashboard.tsx` 240 · `ShopSingle.tsx` 230 · `Admin/OrdersTab.tsx` 222 ·
+`Admin/ProductsTab.tsx` 212.
 
 ---
 
