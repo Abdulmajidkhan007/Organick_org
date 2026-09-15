@@ -708,3 +708,100 @@ Konsol → **Firestore Database → Rules → Rules Playground**. Testdan oldin
 > b-test admin uchun ham amal qiladi: `isAdmin()` bu qoidada ishlatilmagan,
 > ya'ni admin ham boshqaning (yoki hatto o'zining, agar admin claim/hujjat
 > UID'i boshqa bo'lsa) `users` hujjatini faqat o'z UID'i orqali o'qiy oladi.
+
+---
+
+# F-BO'LIM — Katalog (`products` / `blogs`), telefondan, CLI'siz
+
+> 12-sessiyadan boshlab mahsulot va bloglar Firestore'da yashaydi: admin
+> qo'shgani **hamma mijozga** ko'rinadi (ilgari faqat adminning o'z
+> brauzerida edi). Bu bo'lim shu ikki kolleksiyaning qoidasini Publish
+> qilish va tekshirish tartibi. `orders`, `admins`, `users` qoidalariga bu
+> **tegmaydi** — ular o'zgarishsiz qoladi.
+
+## F1-QADAM. Qoidani Publish qilish
+
+1. Console → **Build → Firestore Database** → **Rules** tabi.
+2. Hozirgi matnni telefoningizga nusxa oling (A4-QADAM'dagi kabi — orqaga
+   qaytish nusxasi). Bu qadamni O'TKAZIB YUBORMANG.
+3. Tahrirlagichdagi hamma matnni o'chirib, repodagi **`firestore.rules`**
+   faylining to'liq matnini qo'ying. Uning ichida quyidagi yangi blok bor:
+
+   ```
+   match /products/{id} {
+     allow read: if true;
+     allow write: if isAdmin();
+   }
+
+   match /blogs/{id} {
+     allow read: if true;
+     allow write: if isAdmin();
+   }
+   ```
+
+4. **Publish** → tasdiqlash oynasi chiqsa **Publish**.
+
+**Nega `read: if true`** — katalog ommaviy: kirmagan mehmon ham do'konni
+ko'rishi kerak. Bu yerda maxfiy ma'lumot yo'q (mijoz telefoni yoki manzili
+emas — faqat mahsulot nomi, narxi va rasm URL'i). Mijoz uni Firestore
+SDK'siz, oddiy REST GET bilan o'qiydi (`src/firebase/catalogRest.ts`),
+ya'ni auth'siz o'qish **ishlashi shart**.
+
+**Nega `write: if isAdmin()`** — yozish faqat admin claim'i yoki
+`admins/{uid}` hujjati bo'lganda. Buni kengaytirmang: `decreaseStock` va
+reyting hozircha aynan shuning uchun localStorage'da qolgan (ular har bir
+mijozdan yozishni talab qilardi, ya'ni katalogni hammaga ochib qo'yardi).
+
+## F2-QADAM. Boshlang'ich katalogni ko'chirish (BIR MARTA)
+
+Qoida Publish qilingandan keyin:
+
+1. Admin hisobi bilan kiring → **/admin → Mahsulotlar** tabi.
+2. Eng yuqorida **"Boshlang'ich katalogni Firestore'ga yozish"** tugmasi
+   turadi (u faqat adminga ko'rinadi).
+3. Bosing.
+
+| Natija | Ma'nosi |
+|---|---|
+| ✅ "Yozildi: 20 mahsulot, 6 blog." | Ko'chirish bajarildi |
+| ⚠️ "Firestore'da katalog allaqachon bor — hech narsa yozilmadi." | Kolleksiya bo'sh emas edi; **hech narsa ustiga yozilmadi** |
+| ❌ "Firestore'ga yozib bo'lmadi..." | Qoida hali Publish qilinmagan yoki admin huquqi yo'q |
+
+Tugma **faqat ikkala kolleksiya ham bo'sh bo'lganda** yozadi — mavjud
+ma'lumot ustiga hech qachon yozilmaydi (CLAUDE.md, qaytarib bo'lmaydigan
+amallar). Yozish `writeBatch` bilan, ya'ni atomik: yarim to'lgan katalog
+qolmaydi.
+
+## F3-QADAM. Ishlayotganini tekshirish
+
+| Tekshiruv | Kutilgan |
+|---|---|
+| **Boshqa brauzerda** (yoki inkognito, kirmagan holda) bosh sahifani oching | ✅ Admin qo'shgan mahsulot ko'rinadi |
+| Admin panelda mahsulot qo'shing → boshqa qurilmada sahifani yangilang | ✅ Yangi mahsulot chiqadi |
+| Admin panelda mahsulot o'chiring → boshqa qurilmada yangilang | ✅ Yo'qoladi |
+| Internetni o'chirib bosh sahifani oching | ✅ Katalog baribir ko'rinadi (kesh, u ham bo'lmasa seed) |
+
+Oxirgi qator avtomatik ham sinaladi:
+`tests/e2e/catalog-offline.spec.ts` REST so'rovini `route.abort()` bilan
+to'sadi va mahsulotlar baribir chizilishini tekshiradi.
+
+## Rules Playground — 3 test
+
+Konsol → **Firestore Database → Rules → Rules Playground**. Testdan oldin
+`products/1` hujjati mavjud bo'lsin (F2-QADAM dan keyin u bor).
+
+| # | Stsenariy | Sozlama | Kutilgan |
+|---|---|---|---|
+| a | **Kirmagan mehmon o'qiydi** | `get` `/products/1`, Auth **OFF** | ✅ **Allow** |
+| b | **Oddiy foydalanuvchi yoza olmaydi** | `create` yoki `update` `/products/1`, Auth **ON**, uid `USER_A_UID` (claim'siz, `admins/USER_A_UID` hujjati YO'Q) | ❌ **Deny** |
+| c | **Admin yozadi** | `update` `/products/1`, Auth **ON**, uid `ADMIN_UID`, Custom claims `{"admin": true}` | ✅ **Allow** |
+
+`blogs` uchun ham aynan shu uchta test (`/products/1` o'rniga `/blogs/1`).
+
+> c-testni claim'siz, faqat `admins/{uid}` hujjati bilan ham qaytaring:
+> Auth **ON**, uid `ADMIN_UID`, Custom claims BO'SH — `admins/ADMIN_UID`
+> hujjati bor bo'lsa baribir ✅ **Allow** bo'lishi kerak (ikkinchi, zaxira
+> yo'l; A-BO'LIM).
+>
+> b-test **eng muhimi**: u "katalogni hamma yoza oladi" holatiga
+> qaytib qolmaganini tasdiqlaydi.

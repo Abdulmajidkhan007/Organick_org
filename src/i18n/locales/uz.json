@@ -425,7 +425,13 @@
     "cancelReply": "Bekor",
     "reply": "Javob berish",
     "writeOnTelegram": "Telegramda yozing",
-    "image": "Rasm"
+    "image": "Rasm",
+    "writeError": "Firestore'ga yozib bo'lmadi. Internet va admin huquqini tekshiring.",
+    "saving": "Saqlanmoqda...",
+    "seedRun": "Boshlang'ich katalogni Firestore'ga yozish",
+    "seedRunning": "Yozilmoqda...",
+    "seedDone": "Yozildi: {{products}} mahsulot, {{blogs}} blog.",
+    "seedNotEmpty": "Firestore'da katalog allaqachon bor — hech narsa yozilmadi."
   },
   "footer": {
     "newsletter": "Yangiliklar xabariga obuna bo'ling",
