@@ -12,8 +12,9 @@ import { addOrderToFirestore } from '../firebase/firestore'
 import { getUserProfile } from '../firebase/userProfile'
 import { addOrder } from '../slices/ordersSlice'
 import { Order, OrderItem, UserAddress } from '../types'
-import shopback from '../assets/shop/shopback.webp'
-import shopfront from '../assets/shop/shopfront.webp'
+// Rasmlar `public/shop/` da — barqaror, hash'siz yo'l (src/Data.ts dagi izoh).
+const shopback = '/shop/shopback.webp'
+const shopfront = '/shop/shopfront.webp'
 
 const ORDER_STATUSES = [
   { key: 'pending',    label: 'Kutilmoqda',   color: 'bg-yellow-100 text-yellow-700' },

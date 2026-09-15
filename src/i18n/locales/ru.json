@@ -425,7 +425,13 @@
     "cancelReply": "Отмена",
     "reply": "Ответить",
     "writeOnTelegram": "Написать в Telegram",
-    "image": "Изображение"
+    "image": "Изображение",
+    "writeError": "Не удалось записать в Firestore. Проверьте сеть и права админа.",
+    "saving": "Сохранение...",
+    "seedRun": "Записать начальный каталог в Firestore",
+    "seedRunning": "Запись...",
+    "seedDone": "Записано: товаров {{products}}, блогов {{blogs}}.",
+    "seedNotEmpty": "В Firestore уже есть каталог — ничего не записано."
   },
   "footer": {
     "newsletter": "Подпишитесь на нашу рассылку",

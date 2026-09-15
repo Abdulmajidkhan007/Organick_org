@@ -12,8 +12,10 @@ tor maqsadli istisno bilan: Telegram bot tokenini sir saqlash uchun bitta
 Cloud Function (`functions/`). An'anaviy backend (API server, ma'lumotlar
 bazasi serveri) YO'Q. Ma'lumot uch joyda yashaydi:
 
-- **localStorage** — mahsulotlar, bloglar, savat, til, dark mode, buyurtma nusxasi
-- **Firebase** — Auth (Google / Email / Telefon), Firestore (`orders` kolleksiyasi) va bitta Cloud Function (`sendTelegramMessage`)
+- **localStorage** — savat, til, dark mode, buyurtma nusxasi va katalog KESHI
+  (mahsulot/blog uchun endi haqiqat manbai emas — pastga qarang)
+- **Firebase** — Auth (Google / Email / Telefon), Firestore (`orders`, `users`,
+  `products`, `blogs` kolleksiyalari) va bitta Cloud Function (`sendTelegramMessage`)
 - **Telegram Bot API** — xabar (buyurtma, kontakt, newsletter) shu Cloud Function orqali yuboriladi; brauzer Telegram'ga to'g'ridan-to'g'ri murojaat qilmaydi
 
 Stack: React 19 + TypeScript + Vite 8 + Redux Toolkit 2 + Tailwind v4 + i18next (uz/en/ru) + React Router 7. Deploy: Firebase Hosting, GitHub Actions orqali `master`ga push bo'lganda avtomatik (`docs/DEPLOY.md`).
@@ -57,22 +59,31 @@ npm run preview       # build'ni lokal ko'rish
   `functions/` ham `ignores`ga qo'shilgan — u alohida TS loyihasi, o'z `tsc`i bilan tekshiriladi.
 - `npx tsc --noEmit` → **exit 2**, sabab: `tsconfig.json:17` `baseUrl` deprecated (TS 6).
   Ya'ni typecheck hozir "qizil". Buni tuzatmasdan CI qo'shilmaydi.
-- `npm run test:e2e` → 11 test, hammasi o'tadi (~9-11s): 8 tasi `/auth` layout
+- `npm run test:e2e` → 12 test, hammasi o'tadi (~10-12s): 8 tasi `/auth` layout
   (eski), 1 tasi `tests/e2e/contact-form-validation.spec.ts`
   (`/contact` noto'g'ri email bilan sendTelegram chaqirilmasligini
-  tekshiradi), 1 tasi `tests/e2e/admin-orders-badge.spec.ts`, 1 tasi yangi
+  tekshiradi), 1 tasi `tests/e2e/admin-orders-badge.spec.ts`, 1 tasi
   `tests/e2e/dashboard-guard.spec.ts` (`/dashboard` kirmagan holda ochilsa
-  "kirish kerak" ekrani chiqishi va profil forma UMUMAN ko'rinmasligi).
+  "kirish kerak" ekrani chiqishi va profil forma UMUMAN ko'rinmasligi),
+  1 tasi yangi `tests/e2e/catalog-offline.spec.ts` (Firestore REST so'rovi
+  `route.abort()` bilan to'silsa ham bosh sahifada 12 ta mahsulot kartasi
+  chizilishi — seed'ga qaytish ishlashi).
   Chromium konteynerda oldindan bor
   (`/opt/pw-browsers/chromium`), `playwright install` KERAK EMAS.
   Layout/guard testlari faqat LAYOUT ni tekshiradi — Firebase chaqiruvlari
   sinalmaydi (real loyiha va real SMS kerak, ular qo'lda sinaladi:
   `docs/QOLDA-SINASH-TELEFON-PAROL.md`).
-- `npm run build` → exit 0, ~0.8s. **Code-splitting BOR** (route'lar `React.lazy`).
+- `npm run build` → exit 0, ~0.6s. **Code-splitting BOR** (route'lar `React.lazy`).
   Eng katta chunk'lar: `firebase-firestore` 553 kB (LAZY — bosh sahifa uni
-  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 121 kB,
-  `ui` 54 kB. `dist/` ≈ 4.1 MB.
-  Bosh sahifa yuklaydigan JS: **~544 kB raw / ~174 kB gzip** (ilgari 539/173).
+  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 122 kB,
+  `ui` 54 kB. `dist/` ≈ 4.0 MB.
+  Bosh sahifa yuklaydigan JS: **545.8 kB raw / 172.7 kB gzip**
+  (ilgari 544.7/172.4 — farq katalogning 6 ta yangi i18n kalitidan,
+  uchala tilda). O'lchash: `dist/index.html` dagi `<script>` va
+  `modulepreload` havolalari yig'indisi.
+  Katalog REST moduli (`catalogRest.ts`) ALOHIDA 2.2 kB chunk — u
+  `App.tsx` da dinamik import qilingani uchun bosh sahifa bundle'iga
+  tushmaydi.
   `index` 117 -> 121 kB ga o'sgani foydalanuvchi kabineti (profil, manzillar,
   parol) uchun qo'shilgan yangi `dashboard.profile.*` i18n kalitlaridan
   (uchala tilda) — tarjimalar `src/i18n/index.ts` orqali STATIK import
@@ -120,6 +131,10 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
   Xuddi shu qoida `users/{uid}` (foydalanuvchi kabineti — ism, telefon,
   manzillar) uchun ham: `allow read, write: if request.auth.uid == uid` —
   **admin ham o'qimaydi**. Buni kengaytirib, admin uchun ochib qo'ymang.
+  `products` / `blogs` esa ATAYLAB boshqacha: `read: if true` (katalog
+  ommaviy, mijoz uni auth'siz REST bilan o'qiydi), `write: if isAdmin()`.
+  **Yozish qatorini kengaytirmang** — shu sabab `decreaseStock` va reyting
+  hali ham localStorage'da (ular mijozdan yozishni talab qiladi).
 
 ### Ma'lumot va qaytarib bo'lmaydigan amallar
 - **`functions/src/index.ts` dan funksiya OLIB TASHLANMAYDI** — deploy
@@ -131,6 +146,8 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
   admin kiritgan mahsulot/bloglari yo'qoladi. Amaldagi kalitlar:
   `organick_cart`, `organick_products`, `organick_blogs`, `organick_orders`,
   `organick_darkMode`, `i18nextLng`.
+  (`organick_products` / `organick_blogs` endi haqiqat manbai emas, Firestore
+  katalogining KESHI — lekin kalit nomi baribir o'zgarmaydi.)
   Sxema o'zgarsa — migratsiya yozing, kalitni almashtirmang.
 - **`sendTelegram` hech qachon throw qilmaydi**, qaytgan qiymat "yetib
   bordimi" degani (`Promise<boolean>`). Lokal `npm run dev`da (Cloud
@@ -167,8 +184,12 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
   chunk'larda bo'lishi kerak. Qoidalar:
   `src/firebase/config.ts` da `db` eksporti YO'Q, uning o'rniga
   `getDb(): Promise<Firestore>` (dinamik import, keshlanadi).
-  `src/firebase/firestore.ts` statik import qilsa BO'LADI — uni faqat lazy
-  route'lar (Checkout, UserDashboard, Admin/Dashboard) ishlatadi.
+  `src/firebase/firestore.ts`, `userProfile.ts` va `catalog.ts` statik
+  import qilsa BO'LADI — ularni faqat lazy route'lar (Checkout,
+  UserDashboard, Admin/Dashboard) ishlatadi.
+  `src/firebase/catalogRest.ts` esa BOSH SAHIFA oqimidan chaqiriladi,
+  shuning uchun u `firebase/*` dan hech narsa import qilmaydi (sof
+  `fetch`) — bu qoidani buzmang.
   `src/firebase/auth.ts` esa har sahifada yuklanadi, shuning uchun undagi
   `checkIsAdmin()` firestore'ni `await import(...)` bilan oladi — buni
   statik importga aylantirmang.
@@ -180,6 +201,15 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
   `src/assets/` ga qo'ying, `node scripts/optimize-images.mjs` ni ishlating,
   keyin `.webp` ni import qiling va originalni o'chiring.
   Sabab: bosh sahifa 9 196 KB dan 1 262 KB ga aynan shu bilan tushgan.
+  **ISTISNO — `public/shop/` va `public/blog/`:** katalog (mahsulot/blog)
+  rasmlari SHU YERDA turadi va Vite importi bilan EMAS, oddiy satr yo'li
+  bilan (`/shop/Onion.webp`) ishlatiladi. Sabab: bu yo'l Firestore'ga
+  yoziladi, Vite importi esa har build'da hash'ni o'zgartiradi va eski
+  yozuv 404 bo'lib qolardi. Bu rasmlar ham `.webp` bo'lishi shart, lekin
+  ular `src/assets/` ga KO'CHIRILMAYDI. Qolgan hamma rasm (home, about,
+  team, portfoilo, ...) avvalgidek `src/assets/` da, import bilan.
+  Kesh sarlavhalari `firebase.json` da: `/assets/**` -> `immutable`,
+  `/shop/**` va `/blog/**` -> `max-age=604800` (hash yo'q, `immutable` EMAS).
 - **Telefon + parol oqimiga tegsangiz** — psevdo-email uchta joyda
   bog'langan, uchalasi bir vaqtda o'zgaradi:
   `src/utils/phoneAuth.ts` (raqamni bir ko'rinishga keltirish va email
@@ -192,7 +222,7 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
   OLIB TASHLANMAYDI — usiz hujumchi birovning raqamidan yasalgan
   manzilni band qilib, egasini bloklaydi.
 - **Yangi matn qo'shsangiz** — uchala tilga ham qo'shing:
-  `src/i18n/locales/uz.json`, `en.json`, `ru.json` (hozir uchalasi ham 375 kalit, teng).
+  `src/i18n/locales/uz.json`, `en.json`, `ru.json` (hozir uchalasi ham 381 kalit, teng).
   Komponentga to'g'ridan-to'g'ri o'zbekcha matn yozib qo'yilmaydi.
   Iloji bo'lsa mavjud kalitni qayta ishlating (masalan parol xatolari —
   `auth.errors.*` — kabinetdagi parol o'zgartirish ham shu kalitlardan
@@ -216,12 +246,14 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 ├── .firebaserc             # default Firebase project ID (loyiha ID shu yerda, boshqa joyda YO'Q)
 ├── .github/workflows/deploy.yml    # master push -> lint+build -> firebase deploy --only hosting,functions
 ├── .github/workflows/pr-check.yml  # PR -> lint+build+functions build (deploy YO'Q)
-├── firestore.rules         # Firestore qoidalari (Console'dan qo'lda Publish qilinadi)
+├── firestore.rules         # Firestore qoidalari: orders / admins / users / products / blogs (Console'dan qo'lda Publish)
 ├── firestore.indexes.json  # orders(userId, createdAt) composite index
 ├── scripts/optimize-images.mjs # PNG -> WebP (quality 80, max 1920px)
 ├── playwright.config.ts    # e2e: dev server + oldindan o'rnatilgan Chromium
 ├── tests/e2e/auth-layout.spec.ts # /auth 8 kenglikda toshib ketmasligi
 ├── tests/e2e/dashboard-guard.spec.ts # /dashboard kirmagan holda "kirish kerak", profil forma ko'rinmasligi
+├── tests/e2e/catalog-offline.spec.ts # REST bloklansa ham bosh sahifada mahsulotlar ko'rinishi (seed'ga qaytish)
+├── public/shop/  public/blog/  # KATALOG rasmlari — hash'siz, barqaror URL (Firestore'ga shu yo'l yoziladi)
 ├── index.html              # FontAwesome 6.7.2 CDN shu yerda
 ├── .env.example            # kerakli barcha env kalitlar ro'yxati
 ├── docs/DEPLOY.md          # Firebase Hosting + Cloud Function deploy — telefondan, CLI'siz qadamlar
@@ -231,7 +263,7 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
     ├── main.tsx            # kirish nuqtasi: style, Fonts, i18n, App
     ├── App.tsx             # BrowserRouter + Provider + route'lar (React.lazy + Suspense) + onAuthStateChanged
     ├── Store.ts            # Redux store: data / cart / auth / ui / orders
-    ├── Data.ts             # mahsulot+blog "ma'lumot bazasi" + Data slice (193 qator)
+    ├── Data.ts             # seed katalog + Data slice: setProducts/setBlogs (REST) + CRUD (249 qator)
     ├── types/index.ts      # BARCHA TypeScript interfeyslari shu yerda
     ├── style.css           # Tailwind + global class'lar (inpHover, admin-sidebar, ...)
     ├── Fonts.css
@@ -240,7 +272,9 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
     │   ├── config.ts       # Firebase init; `auth` (darhol) + `getDb()` (lazy Firestore)
     │   ├── auth.ts         # login helperlari + hasAdminClaim (custom claim) + changePasswordWithReauth
     │   ├── firestore.ts    # orders CRUD + onSnapshot obunalar
-    │   └── userProfile.ts  # users/{uid} CRUD: getUserProfile / saveUserProfile (firestore.ts naqshiga ergashadi)
+    │   ├── userProfile.ts  # users/{uid} CRUD: getUserProfile / saveUserProfile (firestore.ts naqshiga ergashadi)
+    │   ├── catalog.ts      # products/blogs YOZISH — SDK bilan, FAQAT admin (lazy route)
+    │   └── catalogRest.ts  # products/blogs O'QISH — sof fetch (REST), `firebase/*` SIZ
     ├── utils/
     │   ├── telegram.ts     # sendTelegram(text, kind) — Cloud Function'ni chaqiradi
     │   ├── phoneAuth.ts    # normalizePhone + psevdo-email (telefon+parol)
@@ -279,13 +313,12 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 
 **Eng katta 10 fayl** (`find src -name '*.ts*' -o -name '*.css' -o -name '*.json' | xargs wc -l`):
 `Auth/AuthPage.tsx` 686 · `UserDashboard.tsx` 556 ·
-`locales/uz.json` `ru.json` `en.json` har biri 457 ·
-`style.css` 403 · `Checkout.tsx` 375 · `Home.tsx` 366 · `Navbar.tsx` 360 ·
-`Admin/ProductsTab.tsx` 272 · `ShopSingle.tsx` 230 · `Admin/OrdersTab.tsx` 222.
-(`ProductsTab.tsx` 212 -> 272 ga o'sdi — mobil karta ro'yxati qo'shildi,
-2026-09-14. `UserDashboard.tsx` 240 -> 556 va `Checkout.tsx` 298 -> 375 ga
-o'sdi — foydalanuvchi kabineti: profil, manzillar, parol o'zgartirish
-qo'shildi, quyidagi bo'limga qarang.)
+`locales/uz.json` `ru.json` `en.json` har biri 463 ·
+`style.css` 403 · `Admin/ProductsTab.tsx` 376 · `Checkout.tsx` 376 ·
+`Home.tsx` 366 · `Navbar.tsx` 360 · `Data.ts` 249 · `ShopSingle.tsx` 231 ·
+`Admin/OrdersTab.tsx` 222 · `firebase/catalogRest.ts` 218.
+(`ProductsTab.tsx` 272 -> 376 ga o'sdi — Firestore yozish, xato ko'rsatish
+va bir martalik ko'chirish paneli qo'shildi, 2026-09-15.)
 
 ---
 
@@ -326,8 +359,34 @@ ko'rsatilmaydi — `App.tsx` uni Redux'ga `null` qilib yozadi.
 To'liq izoh: `src/utils/phoneAuth.ts`. Sozlash va qolgan xavf:
 `docs/XAVFSIZLIK-MIGRATSIYA.md` D-bo'lim.
 
-**Mahsulot/blog CRUD:** faqat Redux + localStorage (`Data.ts`), server yo'q —
-o'zgarish faqat admin o'z brauzerida ko'rinadi.
+**Mahsulot/blog CRUD (katalog):** haqiqat manbai — Firestore'dagi
+`products` / `blogs`. Ikki yo'l ATAYLAB ajratilgan:
+- **Mijoz o'qiydi — REST bilan, SDK'siz** (`src/firebase/catalogRest.ts`,
+  oddiy `fetch`). Sabab: Firestore SDK 553 kB va u lazy bo'lishi shart,
+  katalog esa bosh sahifada kerak. Bu faylga `firebase/*` ni HECH QACHON
+  import qilmang. `App.tsx` uni `await import(...)` bilan, bir marta
+  chaqiradi.
+- **Admin yozadi — SDK bilan** (`src/firebase/catalog.ts`,
+  `firebase/firestore` statik import; `/admin` allaqachon lazy route).
+  Yozish xatosi JIM YUTILMAYDI — adminga ko'rsatiladi.
+
+Oqim: sinxron kesh/seed -> ekran darhol chiziladi -> REST javobi
+`setProducts`/`setBlogs` bilan Redux'ga yoziladi va keshga saqlanadi.
+REST yiqilsa keshga, u ham bo'lmasa seed'ga qaytiladi — **sayt hech
+qachon bo'sh katalog ko'rsatmaydi** (`tests/e2e/catalog-offline.spec.ts`
+shuni tekshiradi). `organick_products` / `organick_blogs` kalitlari
+o'z nomida qoldi, lekin endi ular KESH.
+
+Bir martalik ko'chirish: `/admin` -> Mahsulotlar -> "Boshlang'ich
+katalogni Firestore'ga yozish" tugmasi. Ikkala kolleksiya ham BO'SH
+bo'lgandagina yozadi (`docs/XAVFSIZLIK-MIGRATSIYA.md` F-BO'LIM).
+
+**Hali ko'chirilmagan (qarz, 13-sessiya):** `decreaseStock`
+(`Checkout.tsx`) va `updateProductRating` (`ShopSingle.tsx`) hamon faqat
+localStorage'ga yozadi — ular atomik server yozuvini (Cloud Function)
+talab qiladi, aks holda `products` ga yozish har kimga ochilardi.
+Ularni Firestore'ga "tezda" ulab qo'ymang. Admin rasmi ham hamon qo'lda
+URL (Storage yo'q).
 
 **Foydalanuvchi profili:** `/dashboard` → "Profil" tab'i (`UserDashboard.tsx`
 → `ProfileTab`) `src/firebase/userProfile.ts` orqali `users/{uid}`
@@ -358,7 +417,7 @@ hujjatiga o'qiydi/yozadi (`getUserProfile` / `saveUserProfile`,
 |---|---|---|
 | `CLAUDE.md` | Qoidalar va xarita (shu fayl) | Dolzarb |
 | `docs/ARXITEKTURA-TARIXI.md` | Qarorlar, sabablar, ma'lum qarzlar | Dolzarb |
-| `docs/XAVFSIZLIK-MIGRATSIYA.md` | Admin huquqi (claim + `admins/{uid}`), qoidalar, index — **telefondan, CLI'siz** tartib va Rules Playground testlari; D-bo'lim: telefon+parol sozlash va qolgan xavf; E-bo'lim: `users/{uid}` (foydalanuvchi kabineti) qoidasi va testlari | Dolzarb |
+| `docs/XAVFSIZLIK-MIGRATSIYA.md` | Admin huquqi (claim + `admins/{uid}`), qoidalar, index — **telefondan, CLI'siz** tartib va Rules Playground testlari; D-bo'lim: telefon+parol sozlash va qolgan xavf; E-bo'lim: `users/{uid}` (foydalanuvchi kabineti) qoidasi va testlari; F-bo'lim: `products`/`blogs` (katalog) qoidasi, bir martalik ko'chirish va 3 ta Playground testi | Dolzarb |
 | `docs/QOLDA-SINASH-TELEFON-PAROL.md` | Telefon+parol oqimini qo'lda sinash rejasi (telefonda bajariladi) | Dolzarb |
 | `docs/DEPLOY.md` | Firebase Hosting deploy: GitHub Secrets, service account, Authorized domains — **telefondan, CLI'siz** tartib | Dolzarb |
 | `README.md` | O'rnatish/deploy yo'riqnomasi (inglizcha) | **Qisman eskirgan** — 2 ta thread env kaliti yozilmagan, `src/firebase/config.ts` da `getFirestore` borligi aytilmagan |

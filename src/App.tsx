@@ -7,6 +7,7 @@ import { auth } from './firebase/config'
 import { setUser } from './slices/authSlice'
 import { checkIsAdmin, toAuthUser } from './firebase/auth'
 import { setDarkMode } from './slices/uiSlice'
+import { setProducts, setBlogs } from './Data'
 import { ErrorBoundary } from './Components/ErrorBoundary'
 import { RouteLoader } from './Components/RouteLoader'
 
@@ -42,6 +43,35 @@ const UserDashboard   = lazy(() => import('./Components/UserDashboard').then(m =
 const AdminDashboard  = lazy(() => import('./Components/Admin/Dashboard').then(m => ({ default: m.AdminDashboard })))
 
 const AppContent = () => {
+  // KATALOG: Firestore'dan bir marta o'qiymiz (REST, SDK'siz).
+  //
+  // `catalogRest.ts` ni STATIK emas, DINAMIK import qilamiz: u bosh
+  // sahifa bundle'iga qo'shilib, uni kattalashtirmasligi kerak
+  // (CLAUDE.md — bosh sahifa JS budjeti). Modul `firebase/*` dan hech
+  // narsa olib kelmaydi, ya'ni bu chunk bir necha kB.
+  //
+  // Natija kelgunicha ekranda kesh (yoki seed) turadi — kutish yo'q.
+  // Xato bo'lsa HECH NARSA almashtirilmaydi: sayt bo'sh katalog
+  // ko'rsatmasligi kerak (src/Data.ts dagi izoh).
+  useEffect(() => {
+    const controller = new AbortController()
+
+    import('./firebase/catalogRest')
+      .then(m => m.fetchCatalog(controller.signal))
+      .then(({ products, blogs }) => {
+        if (controller.signal.aborted) return
+        if (products) store.dispatch(setProducts(products))
+        if (blogs) store.dispatch(setBlogs(blogs))
+      })
+      .catch(e => {
+        // Bekor qilingan so'rov (unmount) xato emas — jim o'tkazamiz.
+        if (controller.signal.aborted) return
+        console.error('[Katalog] Firestore REST o\'qilmadi, keshga qaytildi:', e)
+      })
+
+    return () => controller.abort()
+  }, [])
+
   useEffect(() => {
     const savedDark = localStorage.getItem('organick_darkMode') === 'true'
     store.dispatch(setDarkMode(savedDark))

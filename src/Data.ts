@@ -1,26 +1,9 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { DataState, Product, BlogPost } from "./types"
 
-import img1 from "./assets/shop/CalabreseBroccoli.webp"
-import img2 from "./assets/shop/FreshBananaFruites.webp"
-import img3 from "./assets/shop/WhiteNuts.webp"
-import img4 from "./assets/shop/VeganRedTomato.webp"
-import img5 from "./assets/shop/MungBean.webp"
-import img6 from "./assets/shop/BrownHazelnut.webp"
-import img7 from "./assets/shop/Eggs.webp"
-import img8 from "./assets/shop/ZelcoSujiElaichiRusk.webp"
-import img9 from "./assets/shop/Cucumber.webp"
-import img10 from "./assets/shop/WhiteHazelnut.webp"
-import img11 from "./assets/shop/FreshCorn.webp"
-import img12 from "./assets/shop/OrganicAlmonds.webp"
-import img13 from "./assets/shop/Cauliflower.webp"
-import img14 from "./assets/shop/Cucumber.webp"
-import img15 from "./assets/shop/Onion.webp"
-import img16 from "./assets/shop/Cabbace.webp"
-import img17 from "./assets/about/Food1.webp"
-import img18 from "./assets/about/Undefined.webp"
-import img19 from "./assets/about/Pomegranate.webp"
-import img20 from "./assets/about/Potato.webp"
+// Jamoa va portfolio rasmlari katalogga KIRMAYDI (ular Firestore'ga
+// yozilmaydi, faqat kod ichida) — shuning uchun ular avvalgidek Vite
+// importi bilan, hash va uzoq kesh bilan qoladi.
 import team1 from "./assets/Team/team1.webp"
 import team2 from "./assets/Team/team2.webp"
 import team3 from "./assets/Team/team3.webp"
@@ -33,13 +16,63 @@ import portfoilo3 from "./assets/portfoilo/portfoilo3.webp"
 import portfoilo4 from "./assets/portfoilo/portfoilo4.webp"
 import portfoilo5 from "./assets/portfoilo/portfoilo5.webp"
 import portfoilo6 from "./assets/portfoilo/portfoilo6.webp"
-import blog1 from "./assets/blog/blog1.webp"
-import blog2 from "./assets/blog/blog2.webp"
-import blog3 from "./assets/blog/blog3.webp"
-import blog4 from "./assets/blog/blog4.webp"
-import blog5 from "./assets/blog/blog5.webp"
-import blog6 from "./assets/blog/blog6.webp"
 
+// SEED RASMLAR — `public/` dan, BARQAROR yo'l bilan.
+//
+// Ilgari bu yerda `import img1 from "./assets/shop/..."` turardi. Vite
+// bunday importni build paytida HASH'li URL'ga aylantiradi
+// (`/assets/CalabreseBroccoli-Ab12Cd34.webp`) va hash HAR BUILD'DA
+// o'zgaradi. Endi katalog Firestore'da yashaydi, ya'ni rasm yo'li
+// ma'lumot bazasiga YOZILADI — hash'li URL yozilsa keyingi deploy'da
+// u 404 bo'lardi (buyurtma rasmlari bilan aynan shu xato bo'lgan).
+//
+// Shuning uchun fayllar `public/shop/` va `public/blog/` ga ko'chirildi:
+// ular `dist/` ga o'zgarishsiz nomi bilan nusxalanadi, URL abadiy bir xil.
+// Kesh sarlavhasi `firebase.json` da (`max-age=604800`, `immutable` EMAS —
+// hash yo'q, ya'ni fayl o'zgarishi mumkin).
+const img1  = "/shop/CalabreseBroccoli.webp"
+const img2  = "/shop/FreshBananaFruites.webp"
+const img3  = "/shop/WhiteNuts.webp"
+const img4  = "/shop/VeganRedTomato.webp"
+const img5  = "/shop/MungBean.webp"
+const img6  = "/shop/BrownHazelnut.webp"
+const img7  = "/shop/Eggs.webp"
+const img8  = "/shop/ZelcoSujiElaichiRusk.webp"
+const img9  = "/shop/Cucumber.webp"
+const img10 = "/shop/WhiteHazelnut.webp"
+const img11 = "/shop/FreshCorn.webp"
+const img12 = "/shop/OrganicAlmonds.webp"
+const img13 = "/shop/Cauliflower.webp"
+const img14 = "/shop/Cucumber.webp"
+const img15 = "/shop/Onion.webp"
+const img16 = "/shop/Cabbace.webp"
+const img17 = "/shop/Food1.webp"
+const img18 = "/shop/Undefined.webp"
+const img19 = "/shop/Pomegranate.webp"
+const img20 = "/shop/Potato.webp"
+const blog1 = "/blog/blog1.webp"
+const blog2 = "/blog/blog2.webp"
+const blog3 = "/blog/blog3.webp"
+const blog4 = "/blog/blog4.webp"
+const blog5 = "/blog/blog5.webp"
+const blog6 = "/blog/blog6.webp"
+
+
+// KATALOG QAYERDAN KELADI (12-sessiyadan beri):
+//
+//   1. Boshlang'ich holat — SINXRON: localStorage KESHI, u bo'lmasa kod
+//      ichidagi seed. Sahifa DARHOL chiziladi, tarmoq kutilmaydi.
+//   2. Keyin `App.tsx` bir marta Firestore'ni REST orqali o'qiydi
+//      (`src/firebase/catalogRest.ts`) va natijani `setProducts`/
+//      `setBlogs` bilan yozadi — HAQIQAT MANBAI shu.
+//   3. REST yiqilsa (tarmoq yo'q, qoida rad etdi, loyiha ID xato) hech
+//      narsa almashtirilmaydi: ekranda kesh, u ham bo'lmasa seed qoladi.
+//      Sayt hech qachon bo'sh katalog ko'rsatmaydi.
+//
+// `organick_products` / `organick_blogs` kalitlari nomi O'ZGARMADI
+// (CLAUDE.md — kalit nomini almashtirish mijoz savatini/adminning
+// mahsulotlarini yo'qotadi), LEKIN ma'nosi o'zgardi: endi ular haqiqat
+// manbai emas, shunchaki KESH.
 const loadProducts = (): Product[] => {
   try {
     const saved = localStorage.getItem('organick_products')
@@ -59,7 +92,15 @@ const loadBlogs = (): BlogPost[] => {
   return defaultBlogs
 }
 
-const defaultProducts: Product[] = [
+// localStorage to'lib ketgan (QuotaExceeded) yoki o'chirilgan brauzerda
+// yozish xato tashlaydi — kesh yozilmagani ilovani yiqitmasligi kerak.
+const cache = (key: string, value: unknown) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch { /* kesh ixtiyoriy */ }
+}
+
+export const defaultProducts: Product[] = [
   { id: 1, category: "Vegetable", img: img1, imgWidth: 209, imgHeight: 231, name: "Calabrese Broccoli", oldPrice: 20, price: 13, rating: 5, stock: 50, description: "Fresh organic calabrese broccoli, rich in vitamins and minerals. Perfect for healthy meals." },
   { id: 2, category: "Fresh", img: img2, imgWidth: 244, imgHeight: 359, name: "Fresh Banana Fruites", oldPrice: 20, price: 14, rating: 5, stock: 45, description: "Naturally ripened organic bananas, sweet and nutritious." },
   { id: 3, category: "Millets", img: img3, imgWidth: 407, imgHeight: 406, name: "White Nuts", oldPrice: 20, price: 15, rating: 5, stock: 60, description: "Premium quality white nuts, packed with healthy fats and proteins." },
@@ -82,7 +123,7 @@ const defaultProducts: Product[] = [
   { id: 20, category: "Vegetable", img: img20, imgWidth: 243, imgHeight: 314, name: "Potato", oldPrice: 20, price: 15, rating: 5, stock: 110, description: "Farm-fresh organic potatoes, versatile and filling." },
 ]
 
-const defaultBlogs: BlogPost[] = [
+export const defaultBlogs: BlogPost[] = [
   { id: 1, date: "25 Nov", img: blog1, user: "By Rachi Card", title: "The Benefits of Vitamin D & How to Get It", description: "Simply dummy text of the printing and typesetting industry. Lorem Ipsum" },
   { id: 2, date: "25 Nov", img: blog2, user: "By Rachi Card", title: "Our Favorite Summertime Tomato", description: "Simply dummy text of the printing and typesetting industry. Lorem Ipsum" },
   { id: 3, date: "25 Nov", img: blog3, user: "By Rachi Card", title: "Benefits of Vitamin C & How to Get It", description: "Simply dummy text of the printing and typesetting industry. Lorem Ipsum" },
@@ -120,20 +161,33 @@ export const Data = createSlice({
     setShopSingle(state, action: PayloadAction<Product | null>) {
       state.shopSingle = action.payload
     },
+    /**
+     * Firestore'dan (REST) kelgan katalogni o'rnatadi va keshga yozadi.
+     * Faqat `App.tsx` chaqiradi. Bo'sh ro'yxat BU YERGA KELMAYDI —
+     * `catalogRest.ts` bo'sh kolleksiyani `null` qilib qaytaradi.
+     */
+    setProducts(state, action: PayloadAction<Product[]>) {
+      state.products = action.payload
+      cache('organick_products', state.products)
+    },
+    setBlogs(state, action: PayloadAction<BlogPost[]>) {
+      state.blogs = action.payload
+      cache('organick_blogs', state.blogs)
+    },
     addProduct(state, action: PayloadAction<Product>) {
       state.products.push(action.payload)
-      localStorage.setItem('organick_products', JSON.stringify(state.products))
+      cache('organick_products', state.products)
     },
     updateProduct(state, action: PayloadAction<Product>) {
       const idx = state.products.findIndex(p => p.id === action.payload.id)
       if (idx !== -1) {
         state.products[idx] = action.payload
-        localStorage.setItem('organick_products', JSON.stringify(state.products))
+        cache('organick_products', state.products)
       }
     },
     deleteProduct(state, action: PayloadAction<number>) {
       state.products = state.products.filter(p => p.id !== action.payload)
-      localStorage.setItem('organick_products', JSON.stringify(state.products))
+      cache('organick_products', state.products)
     },
     updateProductRating(state, action: PayloadAction<{ productId: number; rating: number; userId: string }>) {
       const product = state.products.find(p => p.id === action.payload.productId)
@@ -152,29 +206,29 @@ export const Data = createSlice({
         }
         const total = product.userRatings.reduce((sum, r) => sum + r.rating, 0)
         product.rating = Math.round(total / product.userRatings.length)
-        localStorage.setItem('organick_products', JSON.stringify(state.products))
+        cache('organick_products', state.products)
       }
     },
     addBlog(state, action: PayloadAction<BlogPost>) {
       state.blogs.push(action.payload)
-      localStorage.setItem('organick_blogs', JSON.stringify(state.blogs))
+      cache('organick_blogs', state.blogs)
     },
     updateBlog(state, action: PayloadAction<BlogPost>) {
       const idx = state.blogs.findIndex(b => b.id === action.payload.id)
       if (idx !== -1) {
         state.blogs[idx] = action.payload
-        localStorage.setItem('organick_blogs', JSON.stringify(state.blogs))
+        cache('organick_blogs', state.blogs)
       }
     },
     deleteBlog(state, action: PayloadAction<number>) {
       state.blogs = state.blogs.filter(b => b.id !== action.payload)
-      localStorage.setItem('organick_blogs', JSON.stringify(state.blogs))
+      cache('organick_blogs', state.blogs)
     },
     decreaseStock(state, action: PayloadAction<{ productId: number; quantity: number }>) {
       const product = state.products.find(p => p.id === action.payload.productId)
       if (product) {
         product.stock = Math.max(0, (product.stock ?? 50) - action.payload.quantity)
-        localStorage.setItem('organick_products', JSON.stringify(state.products))
+        cache('organick_products', state.products)
       }
     },
   },
@@ -182,6 +236,8 @@ export const Data = createSlice({
 
 export const {
   setShopSingle,
+  setProducts,
+  setBlogs,
   addProduct,
   updateProduct,
   deleteProduct,

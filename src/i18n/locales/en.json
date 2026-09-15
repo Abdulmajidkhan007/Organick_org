@@ -425,7 +425,13 @@
     "cancelReply": "Cancel",
     "reply": "Reply",
     "writeOnTelegram": "Message on Telegram",
-    "image": "Image"
+    "image": "Image",
+    "writeError": "Could not write to Firestore. Check the network and admin rights.",
+    "saving": "Saving...",
+    "seedRun": "Write the initial catalog to Firestore",
+    "seedRunning": "Writing...",
+    "seedDone": "Written: {{products}} products, {{blogs}} blogs.",
+    "seedNotEmpty": "Firestore already has a catalog — nothing was written."
   },
   "footer": {
     "newsletter": "Subscribe to our Newsletter",

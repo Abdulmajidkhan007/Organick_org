@@ -6,8 +6,9 @@ import { FooterBottom, FooterTop } from './Footer'
 import { useAppDispatch, useAppSelector } from '../hooks'
 import { addToCart, openCart } from '../slices/cartSlice'
 import { updateProductRating } from '../Data'
-import shopback from '../assets/shop/shopback.webp'
-import shopfront from '../assets/shop/shopfront.webp'
+// Rasmlar `public/shop/` da — barqaror, hash'siz yo'l (src/Data.ts dagi izoh).
+const shopback = '/shop/shopback.webp'
+const shopfront = '/shop/shopfront.webp'
 
 export const ShopSingle = () => {
   const { t } = useTranslation()

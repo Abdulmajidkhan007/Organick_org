@@ -2,8 +2,9 @@ import { useTranslation } from 'react-i18next'
 import { FooterBottom, FooterTop } from './Footer'
 import { Navbar } from './Navbar'
 import { useAppSelector } from '../hooks'
-import BlogHeaderBack from '../assets/blog/BlogHeaderBack.webp'
-import BlogHeaderFront from '../assets/blog/BlogHeaderFront.webp'
+// Rasmlar `public/blog/` da — barqaror, hash'siz yo'l (src/Data.ts dagi izoh).
+const BlogHeaderBack = '/blog/BlogHeaderBack.webp'
+const BlogHeaderFront = '/blog/BlogHeaderFront.webp'
 
 export const Blog = () => {
   const { t } = useTranslation()

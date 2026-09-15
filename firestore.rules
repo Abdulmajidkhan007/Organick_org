@@ -66,6 +66,33 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
+    // KATALOG — mahsulotlar va bloglar. Ilgari ular faqat adminning
+    // localStorage'ida yashardi, ya'ni admin qo'shgan mahsulot boshqa
+    // hech kimga ko'rinmasdi. Endi manba shu ikki kolleksiya.
+    //
+    // `read: if true` — katalog OMMAVIY: kirmagan mehmon ham do'konni
+    // ko'rishi kerak. Bu yerda maxfiy ma'lumot YO'Q (mijoz telefoni
+    // yoki manzili emas — faqat mahsulot nomi, narxi, rasm URL'i).
+    // Mijoz buni Firestore SDK'siz, oddiy REST GET bilan o'qiydi
+    // (src/firebase/catalogRest.ts) — shuning uchun o'qish auth'siz
+    // ishlashi SHART.
+    //
+    // `write: if isAdmin()` — yozish faqat admin claim'i yoki
+    // `admins/{uid}` hujjati bo'lganda (yuqoridagi `isAdmin()`).
+    // DIQQAT: bu qatorni kengaytirmang. `decreaseStock` va reyting
+    // hozircha localStorage'da aynan shuning uchun — ular har bir
+    // mijozdan yozishni talab qilardi, ya'ni katalogni hammaga ochib
+    // qo'yardi. Ular Cloud Function orqali keladi (13-sessiya).
+    match /products/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /blogs/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Qolgan hamma narsa yopiq.
     match /{document=**} {
       allow read, write: if false;

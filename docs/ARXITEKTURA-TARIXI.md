@@ -91,10 +91,14 @@ Natija: Firestore yozish muvaffaqiyatsiz bo'lsa, buyurtma localStorage'da yotadi
 **hech qachon ko'rsatilmaydi** — ya'ni "fallback" aslida fallback emas.
 Yoki `ordersSlice` o'chirilishi, yoki dashboard'lar ikkala manbani birlashtirishi kerak.
 
-Mahsulot va bloglar ham shunga o'xshash: `Data.ts` da CRUD bor, lekin u faqat
-`organick_products` / `organick_blogs` localStorage kalitlariga yozadi. Admin yangi
-mahsulot qo'shsa — **faqat o'z brauzerida** ko'rinadi, mijozlarda emas. Bu tizimning
-hozirgi holati, xato emas, lekin "admin panel" nomi shuni yashiradi.
+Mahsulot va bloglar ham shunday edi: `Data.ts` da CRUD bor edi, lekin u faqat
+`organick_products` / `organick_blogs` localStorage kalitlariga yozardi. Admin yangi
+mahsulot qo'shsa — **faqat o'z brauzerida** ko'rinardi, mijozlarda emas.
+
+> **2026-09-15 da tuzatildi (17-bo'lim):** katalog endi Firestore'dagi
+> `products` / `blogs` kolleksiyalarida. Mijoz uni REST bilan o'qiydi,
+> admin SDK bilan yozadi; localStorage kalitlari **kesh** bo'lib qoldi.
+> Yuqoridagi `orders` uchun "ikki manba" muammosi esa o'z joyida.
 
 ---
 
@@ -735,3 +739,145 @@ Light va dark rejimda ham natija bir xil. Ma'lumot oqimi, Redux,
 localStorage kalitlari o'zgarmadi — bu sof ko'rinish (CSS/markup) ishi;
 `OrdersTab`, `BlogsTab`, `StatsTab`, `Dashboard.tsx` (sidebar)ga
 tegilmadi.
+
+---
+
+## 17. Katalogni Firestore'ga ko'chirish (2026-09-15)
+
+### Muammo
+
+3-bo'limda yozilgan holat: `Data.ts` dagi mahsulot/blog CRUD faqat
+`organick_products` / `organick_blogs` localStorage kalitlariga yozardi.
+Ya'ni admin yangi mahsulot qo'shsa u **faqat adminning o'z brauzerida**
+ko'rinardi — boshqa qurilmada, boshqa mijozda yo'q. "Admin panel" degan
+nom shu haqiqatni yashirardi.
+
+### Nega mijoz uchun REST, SDK emas
+
+Katalog aynan **bosh sahifada** kerak. Firestore SDK chunk'i esa 553 kB
+(+`re2js`) va u ataylab lazy — bosh sahifa uni umuman so'ramaydi
+(`vite.config.js` dagi izoh, 13-bo'lim "Bundle va lazy-loading").
+SDK'ni katalog o'qish uchun ishlatsak, u bosh sahifa bundle'iga tushib
+butun code-splitting bekor bo'lardi: ~544 kB → ~1.1 MB.
+
+Firestore'ning REST API'si xuddi shu ma'lumotni oddiy `fetch` GET bilan
+beradi va `firestore.rules` unga **bir xil** amal qiladi — qoida SDK'ga
+emas, serverga yozilgan. Shuning uchun mijoz yo'li:
+
+```
+GET https://firestore.googleapis.com/v1/projects/<projectId>/databases/(default)/documents/products
+```
+
+`src/firebase/catalogRest.ts` shu javobni (`stringValue` / `integerValue` /
+`doubleValue` / `arrayValue` ko'rinishidagi maydonlarni) `Product[]` va
+`BlogPost[]` ga aylantiradi. Fayl `firebase/*` dan **hech narsa** import
+qilmaydi — na statik, na dinamik.
+
+`projectId` mavjud `VITE_FIREBASE_PROJECT_ID` dan olinadi, yangi env
+kaliti qo'shilmadi.
+
+Ikkita tafsilot:
+- REST standart holatda bir sahifada atigi **20 hujjat** qaytaradi.
+  Shuning uchun `pageSize=300` qo'yiladi va `nextPageToken` bo'yicha
+  oxirigacha o'qiladi — katalog 20 tadan oshsa jimgina qirqilib qolmasin.
+- Hujjat `id` si **hujjat nomidan** olinadi (`products/12` → 12), maydon
+  ichidagi `id` dan emas: ikki manba bir-biriga zid bo'lib qolmasligi uchun.
+
+Admin **yozish** yo'li esa SDK bilan (`src/firebase/catalog.ts`,
+`firebase/firestore` ni statik import qiladi) — `/admin` allaqachon lazy
+route, ya'ni SDK o'sha chunk'da qoladi. Bu `firestore.ts` va
+`userProfile.ts` bilan bir xil naqsh.
+
+### Ma'lumot oqimi va "sayt hech qachon bo'sh bo'lmasin"
+
+1. Boshlang'ich holat — **sinxron**: localStorage keshi, u bo'lmasa kod
+   ichidagi seed. Sahifa darhol chiziladi, tarmoq kutilmaydi.
+2. `App.tsx` bir marta REST o'qiydi (`await import('./firebase/catalogRest')`
+   — dinamik, bosh sahifa bundle'iga qo'shilmasin uchun) va natijani
+   `setProducts`/`setBlogs` bilan Redux'ga yozadi. **Haqiqat manbai shu.**
+3. REST yiqilsa (tarmoq yo'q, qoida rad etdi, loyiha ID xato) hech narsa
+   almashtirilmaydi — ekranda kesh, u ham bo'lmasa seed qoladi.
+
+Bo'sh kolleksiya ham `null` bo'lib qaytadi (`catalogRest.ts` →
+`nonEmptyOrNull`), ya'ni bo'sh ro'yxat mavjud keshni **almashtirib
+yubormaydi**. Aks holda qoida noto'g'ri Publish qilingan payt saytda
+bo'sh do'kon ko'rinardi.
+
+`organick_products` / `organick_blogs` kalitlari **nomi o'zgarmadi**
+(CLAUDE.md), lekin ma'nosi o'zgardi: endi ular haqiqat manbai emas, kesh.
+
+Regressiya testi: `tests/e2e/catalog-offline.spec.ts` REST so'rovini
+`page.route(...).abort()` bilan to'sadi va bosh sahifada 12 ta mahsulot
+kartasi baribir chizilishini tekshiradi (toza brauzer konteksti, ya'ni
+localStorage bo'sh — eng yomon holat, "seed'ga qaytish").
+
+### Nega seed rasmlar `public/` ga ko'chdi
+
+`Data.ts` dagi seed rasmlar Vite importi edi (`import img1 from
+"./assets/shop/CalabreseBroccoli.webp"`). Vite ularni build paytida
+**hash'li** URL'ga aylantiradi va hash har build'da o'zgaradi.
+
+Endi rasm yo'li Firestore'ga **yoziladi** — hash'li URL yozilsa keyingi
+deploy'dan keyin u 404 bo'lardi. Buyurtma rasmlari bilan aynan shu xato
+bo'lgan edi (9-sessiya, `OrderItemThumb.tsx` shuning uchun rasmni
+`productId` orqali qayta topadi).
+
+Shuning uchun:
+- `src/assets/shop/*.webp` → `public/shop/*.webp` (18 ta)
+- `src/assets/blog/*.webp` → `public/blog/*.webp` (8 ta)
+- `src/assets/about/{Food1,Undefined,Pomegranate,Potato}.webp` →
+  `public/shop/` (4 ta — ular ham mahsulot rasmi edi, faqat `Data.ts`
+  ishlatardi; `about/` da qolganlari `About.tsx` niki, ular tegilmadi)
+
+Fayllar `.webp` holida, qayta siqilmasdan ko'chdi — `dist/` ga
+o'zgarishsiz nomi bilan nusxalanadi, URL abadiy bir xil.
+
+Kesh sarlavhasi `firebase.json` da: `/shop/**` va `/blog/**` uchun
+`public, max-age=604800` — **`immutable` EMAS**, chunki hash yo'q, ya'ni
+fayl mazmuni o'zgarishi mumkin. (`/assets/**` esa hash'li, u
+`max-age=31536000, immutable` bo'lib qoladi.)
+
+Shu yo'l bilan `Shop.tsx`, `ShopSingle.tsx`, `Cart.tsx`, `Checkout.tsx`,
+`Blog.tsx` dagi fon rasmlari ham importdan oddiy satrga o'tdi.
+
+### Bundle ta'siri
+
+| | Ilgari | Endi |
+|---|---|---|
+| Bosh sahifa JS (raw) | 544.7 kB | 545.8 kB |
+| Bosh sahifa JS (gzip) | 172.4 kB | 172.7 kB |
+| `firebase/firestore` bosh sahifada | yo'q | yo'q |
+
++1.1 kB — bu **faqat** 6 ta yangi i18n kaliti (uchala tilda), ya'ni
+CLAUDE.md da yozilgan "yangi matn qo'shishning narxi". `catalogRest.ts`
+alohida 2.2 kB chunk bo'lib qoldi, bosh sahifa bundle'iga tushmadi.
+
+Tekshirish (har build'dan keyin):
+```bash
+grep -l "firebase/firestore" dist/assets/index-*.js   # bo'sh chiqishi SHART
+```
+
+### Qolgan qarz (13-sessiya uchun)
+
+1. **`decreaseStock` (Checkout.tsx) va `updateProductRating`
+   (ShopSingle.tsx) hali ham localStorage'da.** Ular Firestore'ga
+   ko'chirilmadi, chunki ikkalasi ham **oddiy mijozdan** `products` ga
+   yozishni talab qiladi — ya'ni `allow write` ni hammaga ochib qo'yish
+   kerak bo'lardi. To'g'ri yechim — atomik server yozuvi
+   (Cloud Function + `FieldValue.increment`), 13-sessiyada.
+
+   Oqibati bugun: mijoz buyurtma bergach stock uning brauzerida kamayadi,
+   lekin serverdagi katalogda emas. Keyingi REST o'qishda (sahifa
+   yangilanganda) serverdagi qiymat qaytib keladi, ya'ni **lokal kamayish
+   yo'qoladi**. Reyting ham shunday. Ilgari bu qiymatlar o'sha brauzerda
+   abadiy qolardi — bu o'zgarish ataylab: katalogning haqiqat manbai endi
+   server. Bu vaqtincha va 13-sessiyada yopiladi.
+
+2. **Firebase Storage yo'q.** Admin rasmni hamon **qo'lda URL** sifatida
+   kiritadi (`ProductsTab.tsx` → "Rasm URL" maydoni oddiy matn).
+   Storage 13-sessiyada, alohida `storage.rules` va Console sozlamasi
+   bilan keladi. `img` maydoni oddiy satr bo'lib qolgani uchun bu
+   keyinchalik sxemani o'zgartirmaydi.
+
+3. **3-bo'limdagi `orders` uchun "ikki manba" muammosi** o'z joyida
+   qoldi — bu sessiya faqat katalogga tegdi.

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { addBlog, updateBlog, deleteBlog } from '../../Data'
+import { saveBlogToFirestore, deleteBlogFromFirestore } from '../../firebase/catalog'
 import { BlogPost } from '../../types'
 
 const emptyBlog: Omit<BlogPost, 'id'> = {
@@ -26,15 +27,31 @@ export const BlogsTab = ({ showBlogForm, setShowBlogForm }: BlogsTabProps) => {
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null)
   const [newBlog, setNewBlog] = useState<Omit<BlogPost, 'id'>>(emptyBlog)
   const [deleteBlogConfirm, setDeleteBlogConfirm] = useState<number | null>(null)
+  const [saving, setSaving] = useState(false)
+  // Xato JIM YUTILMAYDI — ProductsTab bilan bir xil naqsh.
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSaveBlog = () => {
+  // TARTIB MUHIM: avval Firestore, keyin Redux (ProductsTab dagi izoh).
+  const handleSaveBlog = async () => {
     if (!newBlog.title) return
-    if (editingBlog) {
-      dispatch(updateBlog({ ...newBlog, id: editingBlog.id }))
-    } else {
-      const maxId = blogs.reduce((max, b) => Math.max(max, b.id), 0)
-      dispatch(addBlog({ ...newBlog, id: maxId + 1 }))
+    const maxId = blogs.reduce((max, b) => Math.max(max, b.id), 0)
+    const blog: BlogPost = editingBlog
+      ? { ...newBlog, id: editingBlog.id }
+      : { ...newBlog, id: maxId + 1 }
+
+    setSaving(true)
+    setError(null)
+    try {
+      await saveBlogToFirestore(blog)
+    } catch (e) {
+      console.error('[Admin] blogni saqlab bo\'lmadi:', e)
+      setError(t('admin.writeError'))
+      setSaving(false)
+      return
     }
+    setSaving(false)
+
+    dispatch(editingBlog ? updateBlog(blog) : addBlog(blog))
     setShowBlogForm(false)
     setEditingBlog(null)
     setNewBlog(emptyBlog)
@@ -43,10 +60,20 @@ export const BlogsTab = ({ showBlogForm, setShowBlogForm }: BlogsTabProps) => {
   const handleEditBlog = (b: BlogPost) => {
     setEditingBlog(b)
     setNewBlog({ ...b })
+    setError(null)
     setShowBlogForm(true)
   }
 
-  const handleDeleteBlog = (id: number) => {
+  const handleDeleteBlog = async (id: number) => {
+    setError(null)
+    try {
+      await deleteBlogFromFirestore(id)
+    } catch (e) {
+      console.error('[Admin] blogni o\'chirib bo\'lmadi:', e)
+      setError(t('admin.writeError'))
+      setDeleteBlogConfirm(null)
+      return
+    }
     dispatch(deleteBlog(id))
     setDeleteBlogConfirm(null)
   }
@@ -63,6 +90,12 @@ export const BlogsTab = ({ showBlogForm, setShowBlogForm }: BlogsTabProps) => {
           {showBlogForm ? t('admin.cancel') : t('admin.addBlog')}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-4 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+          <i className="fas fa-triangle-exclamation mr-2"></i>{error}
+        </div>
+      )}
 
       {showBlogForm && (
         <div className="bg-white dark:bg-[#1e293b] rounded-2xl p-6 shadow-sm mb-6 fade-in">
@@ -103,8 +136,10 @@ export const BlogsTab = ({ showBlogForm, setShowBlogForm }: BlogsTabProps) => {
             </div>
           </div>
           <div className="flex gap-3 mt-4">
-            <button onClick={handleSaveBlog}
-              className="bg-[#7EB693] text-white px-6 py-2 rounded-xl font-semibold hover:opacity-90">{t('admin.save')}</button>
+            <button onClick={handleSaveBlog} disabled={saving}
+              className="bg-[#7EB693] text-white px-6 py-2 rounded-xl font-semibold hover:opacity-90 disabled:opacity-60">
+              {saving ? t('admin.saving') : t('admin.save')}
+            </button>
             <button onClick={() => { setShowBlogForm(false); setEditingBlog(null) }}
               className="border border-gray-300 dark:border-gray-600 px-6 py-2 rounded-xl font-semibold text-gray-600 dark:text-gray-300">{t('admin.cancel')}</button>
           </div>

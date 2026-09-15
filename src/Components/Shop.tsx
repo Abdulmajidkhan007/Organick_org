@@ -6,8 +6,9 @@ import { FooterBottom, FooterTop } from './Footer'
 import { useAppDispatch, useAppSelector } from '../hooks'
 import { addToCart, openCart } from '../slices/cartSlice'
 import { Product } from '../types'
-import shopfront from '../assets/shop/shopfront.webp'
-import shopback from '../assets/shop/shopback.webp'
+// Rasmlar `public/shop/` da — barqaror, hash'siz yo'l (src/Data.ts dagi izoh).
+const shopfront = '/shop/shopfront.webp'
+const shopback = '/shop/shopback.webp'
 
 const CATEGORIES = ['All', 'Vegetable', 'Fresh', 'Millets', 'Health', 'Nuts', 'Spicy', 'Fruits']
 

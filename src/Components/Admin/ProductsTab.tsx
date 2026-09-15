@@ -2,6 +2,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppDispatch, useAppSelector } from '../../hooks'
 import { addProduct, updateProduct, deleteProduct } from '../../Data'
+import {
+  saveProductToFirestore,
+  deleteProductFromFirestore,
+  seedCatalogToFirestore,
+} from '../../firebase/catalog'
 import { Product } from '../../types'
 
 const emptyProduct: Omit<Product, 'id'> = {
@@ -22,23 +27,53 @@ interface ProductsTabProps {
   setShowProductForm: (v: boolean) => void
 }
 
+// Bir martalik ko'chirish tugmasining holati.
+type SeedState =
+  | { kind: 'idle' }
+  | { kind: 'running' }
+  | { kind: 'done'; products: number; blogs: number }
+  | { kind: 'notEmpty' }
+  | { kind: 'error' }
+
 export const ProductsTab = ({ showProductForm, setShowProductForm }: ProductsTabProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const products = useAppSelector(s => s.data.products)
+  const blogs = useAppSelector(s => s.data.blogs)
+  const user = useAppSelector(s => s.auth.user)
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>(emptyProduct)
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
+  const [saving, setSaving] = useState(false)
+  // Xato JIM YUTILMAYDI: Firestore yozuvi bajarilmasa admin buni
+  // ko'rishi shart, aks holda u o'zgarish saqlandi deb o'ylaydi.
+  const [error, setError] = useState<string | null>(null)
+  const [seed, setSeed] = useState<SeedState>({ kind: 'idle' })
 
-  const handleSaveProduct = () => {
+  // TARTIB MUHIM: avval Firestore, keyin Redux. Teskarisi bo'lsa yozuv
+  // yiqilganda ekranda "saqlandi" holat qolib, haqiqat bilan
+  // farq qilib ketardi.
+  const handleSaveProduct = async () => {
     if (!newProduct.name || !newProduct.price) return
-    if (editingProduct) {
-      dispatch(updateProduct({ ...newProduct, id: editingProduct.id }))
-    } else {
-      const maxId = products.reduce((max, p) => Math.max(max, p.id), 0)
-      dispatch(addProduct({ ...newProduct, id: maxId + 1 }))
+    const maxId = products.reduce((max, p) => Math.max(max, p.id), 0)
+    const product: Product = editingProduct
+      ? { ...newProduct, id: editingProduct.id }
+      : { ...newProduct, id: maxId + 1 }
+
+    setSaving(true)
+    setError(null)
+    try {
+      await saveProductToFirestore(product)
+    } catch (e) {
+      console.error('[Admin] mahsulotni saqlab bo\'lmadi:', e)
+      setError(t('admin.writeError'))
+      setSaving(false)
+      return
     }
+    setSaving(false)
+
+    dispatch(editingProduct ? updateProduct(product) : addProduct(product))
     setShowProductForm(false)
     setEditingProduct(null)
     setNewProduct(emptyProduct)
@@ -47,12 +82,40 @@ export const ProductsTab = ({ showProductForm, setShowProductForm }: ProductsTab
   const handleEditProduct = (p: Product) => {
     setEditingProduct(p)
     setNewProduct({ ...p })
+    setError(null)
     setShowProductForm(true)
   }
 
-  const handleDeleteProduct = (id: number) => {
+  const handleDeleteProduct = async (id: number) => {
+    setError(null)
+    try {
+      await deleteProductFromFirestore(id)
+    } catch (e) {
+      console.error('[Admin] mahsulotni o\'chirib bo\'lmadi:', e)
+      setError(t('admin.writeError'))
+      setDeleteConfirm(null)
+      return
+    }
     dispatch(deleteProduct(id))
     setDeleteConfirm(null)
+  }
+
+  /**
+   * Bir martalik ko'chirish. `seedCatalogToFirestore` ikkala
+   * kolleksiya ham BO'SH bo'lgandagina yozadi — to'la bo'lsa
+   * `written: false` qaytaradi va biz ogohlantiramiz.
+   */
+  const handleSeed = async () => {
+    setSeed({ kind: 'running' })
+    try {
+      const res = await seedCatalogToFirestore(products, blogs)
+      setSeed(res.written
+        ? { kind: 'done', products: res.products, blogs: res.blogs }
+        : { kind: 'notEmpty' })
+    } catch (e) {
+      console.error('[Admin] katalogni ko\'chirib bo\'lmadi:', e)
+      setSeed({ kind: 'error' })
+    }
   }
 
   return (
@@ -67,6 +130,45 @@ export const ProductsTab = ({ showProductForm, setShowProductForm }: ProductsTab
           {showProductForm ? t('admin.cancel') : t('admin.addProduct')}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-4 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+          <i className="fas fa-triangle-exclamation mr-2"></i>{error}
+        </div>
+      )}
+
+      {/* BIR MARTALIK KO'CHIRISH — faqat admin ko'radi. `/admin` route'i
+          allaqachon admin bilan chegaralangan (Dashboard.tsx), bu shart
+          ikkinchi qavat: panel hech qachon oddiy foydalanuvchiga
+          chizilmasin. */}
+      {user?.isAdmin && (
+        <div className="mb-6 rounded-2xl border border-[#7EB693]/40 bg-[#7EB693]/5 p-4">
+          <button
+            onClick={handleSeed}
+            disabled={seed.kind === 'running'}
+            className="bg-[#274C5B] text-white px-4 py-2 rounded-xl font-semibold text-sm hover:opacity-90 disabled:opacity-60"
+          >
+            <i className="fas fa-database mr-2"></i>
+            {seed.kind === 'running' ? t('admin.seedRunning') : t('admin.seedRun')}
+          </button>
+          {seed.kind === 'done' && (
+            <p className="mt-3 text-sm text-green-700 dark:text-green-400">
+              <i className="fas fa-circle-check mr-2"></i>
+              {t('admin.seedDone', { products: seed.products, blogs: seed.blogs })}
+            </p>
+          )}
+          {seed.kind === 'notEmpty' && (
+            <p className="mt-3 text-sm text-yellow-700 dark:text-yellow-400">
+              <i className="fas fa-triangle-exclamation mr-2"></i>{t('admin.seedNotEmpty')}
+            </p>
+          )}
+          {seed.kind === 'error' && (
+            <p className="mt-3 text-sm text-red-700 dark:text-red-300">
+              <i className="fas fa-circle-xmark mr-2"></i>{t('admin.writeError')}
+            </p>
+          )}
+        </div>
+      )}
 
       {showProductForm && (
         <div className="bg-white dark:bg-[#1e293b] rounded-2xl p-6 shadow-sm mb-6 fade-in">
@@ -128,8 +230,10 @@ export const ProductsTab = ({ showProductForm, setShowProductForm }: ProductsTab
             </div>
           </div>
           <div className="flex gap-3 mt-4">
-            <button onClick={handleSaveProduct}
-              className="bg-[#7EB693] text-white px-6 py-2 rounded-xl font-semibold hover:opacity-90">{t('admin.save')}</button>
+            <button onClick={handleSaveProduct} disabled={saving}
+              className="bg-[#7EB693] text-white px-6 py-2 rounded-xl font-semibold hover:opacity-90 disabled:opacity-60">
+              {saving ? t('admin.saving') : t('admin.save')}
+            </button>
             <button onClick={() => { setShowProductForm(false); setEditingProduct(null) }}
               className="border border-gray-300 dark:border-gray-600 px-6 py-2 rounded-xl font-semibold text-gray-600 dark:text-gray-300">{t('admin.cancel')}</button>
           </div>
