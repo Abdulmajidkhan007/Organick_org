@@ -9,6 +9,7 @@ import {
   ConfirmationResult,
   EmailAuthProvider,
   linkWithCredential,
+  reauthenticateWithCredential,
   updatePassword,
   updateProfile,
   getIdTokenResult,
@@ -128,6 +129,24 @@ export const toAuthUser = (user: User, isAdmin: boolean): AuthUser => ({
 /** Ro'yxatdan o'tish oxirida ism saqlash uchun (telefon oqimida). */
 export const updateDisplayName = (user: User, name: string) =>
   updateProfile(user, { displayName: name })
+
+/**
+ * Kabinetdan parol o'zgartirish: avval eski parol bilan qayta-autentifikatsiya
+ * (`updatePassword` "yaqinda kirgan" bo'lishni talab qiladi), keyin yangisini
+ * yozadi. `user.email` — email/parol foydalanuvchisida haqiqiy email,
+ * telefon+parol foydalanuvchisida psevdo-email (`phoneAuth.ts`); ikkalasida
+ * ham bu funksiya ishlaydi, chunki Firebase'ning o'zi ikkisini ham xuddi
+ * shu email+parol sifatida ko'radi. Xatolar (`auth/wrong-password` va
+ * boshqalar) `throw` qilinadi — chaqiruvchi tomonda tushunarli xabarga aylanadi.
+ */
+export const changePasswordWithReauth = async (user: User, currentPassword: string, newPassword: string) => {
+  if (!user.email) {
+    throw Object.assign(new Error('Foydalanuvchida email yo\'q'), { code: 'auth/missing-email' })
+  }
+  const credential = EmailAuthProvider.credential(user.email, currentPassword)
+  await reauthenticateWithCredential(user, credential)
+  await updatePassword(user, newPassword)
+}
 
 export const signOutUser = () => signOut(auth)
 
