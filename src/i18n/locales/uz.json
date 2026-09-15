@@ -183,6 +183,7 @@
     "saveFailedTelegramOk": "Buyurtmangiz operatorlarimizga Telegram orqali yuborildi va ular tez orada bog'lanadi, lekin u shaxsiy kabinetingizda ko'rinmaydi. Buyurtma raqamini saqlab qo'ying.",
     "saveFailedNoTelegram": "Buyurtma na serverga saqlandi, na Telegram orqali yuborildi. Iltimos, buyurtma raqami bilan biz bilan bog'laning yoki qaytadan urinib ko'ring.",
     "contactUs": "Biz bilan bog'lanish",
+    "savedAddresses": "Saqlangan manzillar:",
     "errors": {
       "nameRequired": "Ism kiritish shart",
       "phoneRequired": "Telefon raqam kiritish shart",
@@ -200,7 +201,33 @@
     "shopNow": "Xarid qilish",
     "loginRequired": "Buyurtmalarni ko'rish uchun tizimga kiring",
     "loadError": "Buyurtmalar yuklanmadi",
-    "loadErrorDesc": "Ro'yxat hozir olinmadi. Sahifani yangilang yoki keyinroq urinib ko'ring."
+    "loadErrorDesc": "Ro'yxat hozir olinmadi. Sahifani yangilang yoki keyinroq urinib ko'ring.",
+    "profile": {
+      "nameTitle": "Ism",
+      "namePlaceholder": "To'liq ismingiz",
+      "save": "Saqlash",
+      "saving": "Saqlanmoqda...",
+      "saved": "Saqlandi",
+      "saveError": "Saqlanmadi. Qaytadan urinib ko'ring.",
+      "phoneNote": "Telefon: {{phone}} (o'zgartirilmaydi)",
+      "addressesTitle": "Manzillarim",
+      "noAddresses": "Hali manzil qo'shilmagan",
+      "addressLabelPlaceholder": "Nom (masalan: Uy, Ish)",
+      "addressTextPlaceholder": "Shahar, ko'cha, uy raqami",
+      "addAddress": "Manzil qo'shish",
+      "updateAddress": "Manzilni saqlash",
+      "cancel": "Bekor qilish",
+      "addressLimitReached": "Eng ko'pi 5 ta manzil saqlash mumkin",
+      "password": {
+        "title": "Parolni o'zgartirish",
+        "currentPlaceholder": "Joriy parol",
+        "newPlaceholder": "Yangi parol",
+        "confirmPlaceholder": "Yangi parolni tasdiqlang",
+        "submit": "Parolni yangilash",
+        "saving": "Yangilanmoqda...",
+        "saved": "Parol muvaffaqiyatli o'zgartirildi"
+      }
+    }
   },
   "contact": {
     "title": "Bog'lanish",

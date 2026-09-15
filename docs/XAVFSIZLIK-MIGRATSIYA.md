@@ -650,3 +650,61 @@ berish oqimiga tegadi. Avval Playground'da sinang, keyin Publish qiling:
 | Kirgan foydalanuvchi o'z nomidan | `create`, uid `USER_A_UID`, `userId: "USER_A_UID"` | ✅ Allow |
 | Kirgan foydalanuvchi nomsiz | `create`, uid `USER_A_UID`, `userId: null` | ✅ Allow |
 | Kirgan foydalanuvchi **boshqa** nomdan | `create`, uid `USER_A_UID`, `userId: "USER_B_UID"` | ❌ Deny |
+
+---
+
+# E-BO'LIM — Foydalanuvchi kabineti (`users/{uid}`), telefondan, CLI'siz
+
+> Foydalanuvchi kabineti (profil, saqlangan manzillar, parol o'zgartirish)
+> `users/{uid}` hujjatiga yozadi. Bu bo'lim shu qoidani Publish qilish
+> qadamlarini va Rules Playground testlarini yozadi. `orders` va `admins`
+> qoidalariga bu **tegmaydi**.
+
+## E1-QADAM. Qoidani Publish qilish
+
+1. Console → **Build → Firestore Database** → **Rules** tabi.
+2. Hozirgi matnni telefoningizga nusxa oling (A4-QADAM'dagi kabi — orqaga
+   qaytish nusxasi).
+3. Tahrirlagichdagi hamma matnni o'chirib, repodagi **`firestore.rules`**
+   faylining to'liq matnini qo'ying (u ichida quyidagi blok bor):
+
+   ```
+   match /users/{uid} {
+     allow read, write: if request.auth != null && request.auth.uid == uid;
+   }
+   ```
+
+4. **Publish** → tasdiqlash oynasi chiqsa **Publish**.
+
+Bu qoida **faqat egasi** o'z `users/{uid}` hujjatini o'qiy/yoza oladi —
+admin ham, boshqa foydalanuvchi ham yo'q. Mijoz manzili (telefon, uy
+manzili) shu bilan yangi ochiq joyga chiqmaydi (CLAUDE.md, Maxfiylik).
+
+## E2-QADAM. Ishlayotganini tekshirish
+
+Oddiy hisob bilan kiring → **/dashboard → Profil** tab'ini oching:
+
+| Tekshiruv | Kutilgan |
+|---|---|
+| Ism saqlash | ✅ Saqlanadi, sahifani yangilashda ham turadi |
+| Manzil qo'shish/tahrirlash/o'chirish | ✅ Ishlaydi, eng ko'pi 5 ta |
+| Parol o'zgartirish (email/parol yoki telefon+parol hisobida) | ✅ Eski parol so'raladi, keyin yangilanadi |
+| Google hisobida parol bo'limi | ✅ Umuman ko'rinmaydi |
+
+Brauzer konsolida `Missing or insufficient permissions` chiqsa — qoida
+hali Publish qilinmagan yoki hujjat ID'si UID bilan mos emas.
+
+## Rules Playground — 2 test
+
+Konsol → **Firestore Database → Rules → Rules Playground**. Testdan oldin
+`users/USER_A_UID` hujjatini yarating (Data tabi → Start collection →
+`users` → Document ID: `USER_A_UID`, masalan `fullName: "Test"` maydoni bilan).
+
+| # | Stsenariy | Sozlama | Kutilgan |
+|---|---|---|---|
+| a | **Egasi o'z hujjatini o'qiydi** | `get` `/users/USER_A_UID`, Auth **ON**, uid `USER_A_UID` | ✅ **Allow** |
+| b | **Boshqa foydalanuvchi o'qiy olmaydi** | `get` `/users/USER_A_UID`, Auth **ON**, uid `USER_B_UID` | ❌ **Deny** |
+
+> b-test admin uchun ham amal qiladi: `isAdmin()` bu qoidada ishlatilmagan,
+> ya'ni admin ham boshqaning (yoki hatto o'zining, agar admin claim/hujjat
+> UID'i boshqa bo'lsa) `users` hujjatini faqat o'z UID'i orqali o'qiy oladi.

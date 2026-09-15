@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Navbar } from './Navbar'
@@ -9,8 +9,9 @@ import { decreaseStock } from '../Data'
 import { sendTelegram } from '../utils/telegram'
 import { isValidPhone } from '../utils/validate'
 import { addOrderToFirestore } from '../firebase/firestore'
+import { getUserProfile } from '../firebase/userProfile'
 import { addOrder } from '../slices/ordersSlice'
-import { Order, OrderItem } from '../types'
+import { Order, OrderItem, UserAddress } from '../types'
 import shopback from '../assets/shop/shopback.webp'
 import shopfront from '../assets/shop/shopfront.webp'
 
@@ -41,9 +42,21 @@ export const Checkout = () => {
   const [loading, setLoading] = useState(false)
   const [orderId, setOrderId] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [savedAddresses, setSavedAddresses] = useState<UserAddress[]>([])
   // Buyurtma ikki mustaqil kanal bilan ketadi: Firestore va Telegram.
   // Biri yiqilsa ham mijozga "muvaffaqiyatli" deb ko'rsatmaymiz.
   const [delivery, setDelivery] = useState({ firestoreOk: true, telegramOk: true })
+
+  // Kabinetda saqlangan manzillar — bo'lsa, mijoz ularni bir bosishda
+  // qo'yishi mumkin, majburiy emas (qo'lda yozish ham ishlayveradi).
+  useEffect(() => {
+    if (!user?.uid) return
+    let cancelled = false
+    getUserProfile(user.uid)
+      .then(profile => { if (!cancelled) setSavedAddresses(profile?.addresses || []) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [user])
 
   const subtotal = items.reduce((s, i) => s + i.product.price * i.quantity, 0)
 
@@ -262,6 +275,23 @@ export const Checkout = () => {
                     placeholder={t('checkout.addressPlaceholder')}
                   />
                   {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+                  {savedAddresses.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs text-gray-400 mb-1.5">{t('checkout.savedAddresses')}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {savedAddresses.map(a => (
+                          <button
+                            key={a.id}
+                            type="button"
+                            onClick={() => set('address', a.text)}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-full bg-[#7EB693]/10 text-[#274C5B] dark:text-[#7EB693] hover:bg-[#7EB693]/20 transition-colors"
+                          >
+                            <i className="fas fa-location-dot mr-1"></i>{a.label || a.text}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1">

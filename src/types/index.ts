@@ -87,6 +87,19 @@ export interface Order {
   adminNote?: string
 }
 
+export interface UserAddress {
+  id: string
+  label: string
+  text: string
+}
+
+export interface UserProfile {
+  fullName: string
+  phone: string
+  addresses: UserAddress[]
+  updatedAt: string
+}
+
 export interface DataState {
   products: Product[]
   teams: TeamMember[]

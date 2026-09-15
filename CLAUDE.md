@@ -57,24 +57,34 @@ npm run preview       # build'ni lokal ko'rish
   `functions/` ham `ignores`ga qo'shilgan — u alohida TS loyihasi, o'z `tsc`i bilan tekshiriladi.
 - `npx tsc --noEmit` → **exit 2**, sabab: `tsconfig.json:17` `baseUrl` deprecated (TS 6).
   Ya'ni typecheck hozir "qizil". Buni tuzatmasdan CI qo'shilmaydi.
-- `npm run test:e2e` → 9 test, hammasi o'tadi (~8s): 8 tasi `/auth` layout
-  (eski), 1 tasi yangi `tests/e2e/contact-form-validation.spec.ts`
+- `npm run test:e2e` → 11 test, hammasi o'tadi (~9-11s): 8 tasi `/auth` layout
+  (eski), 1 tasi `tests/e2e/contact-form-validation.spec.ts`
   (`/contact` noto'g'ri email bilan sendTelegram chaqirilmasligini
-  tekshiradi). Chromium konteynerda oldindan bor
+  tekshiradi), 1 tasi `tests/e2e/admin-orders-badge.spec.ts`, 1 tasi yangi
+  `tests/e2e/dashboard-guard.spec.ts` (`/dashboard` kirmagan holda ochilsa
+  "kirish kerak" ekrani chiqishi va profil forma UMUMAN ko'rinmasligi).
+  Chromium konteynerda oldindan bor
   (`/opt/pw-browsers/chromium`), `playwright install` KERAK EMAS.
-  Layout testlari faqat LAYOUT ni tekshiradi — Firebase chaqiruvlari
+  Layout/guard testlari faqat LAYOUT ni tekshiradi — Firebase chaqiruvlari
   sinalmaydi (real loyiha va real SMS kerak, ular qo'lda sinaladi:
   `docs/QOLDA-SINASH-TELEFON-PAROL.md`).
 - `npm run build` → exit 0, ~0.8s. **Code-splitting BOR** (route'lar `React.lazy`).
   Eng katta chunk'lar: `firebase-firestore` 553 kB (LAZY — bosh sahifa uni
-  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 117 kB,
+  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 121 kB,
   `ui` 54 kB. `dist/` ≈ 4.1 MB.
-  Bosh sahifa yuklaydigan JS: **539 kB raw / 173 kB gzip** (ilgari 525/167).
-  `index` 114 -> 117 kB ga o'sgani uchala ommaviy forma (kontakt, newsletter,
-  checkout) uchun qo'shilgan 14 ta yangi i18n kalitidan (`checkout.errors.*`,
-  `contact.form.errors.*`, `footer.errors.*`, uchala tilda) — tarjimalar
-  `src/i18n/index.ts` orqali STATIK import qilinadi, ya'ni ular doim
-  bosh sahifa bundle'ida. Yangi matn qo'shishning narxi shu.
+  Bosh sahifa yuklaydigan JS: **~544 kB raw / ~174 kB gzip** (ilgari 539/173).
+  `index` 117 -> 121 kB ga o'sgani foydalanuvchi kabineti (profil, manzillar,
+  parol) uchun qo'shilgan yangi `dashboard.profile.*` i18n kalitlaridan
+  (uchala tilda) — tarjimalar `src/i18n/index.ts` orqali STATIK import
+  qilinadi, ya'ni ular doim bosh sahifa bundle'ida. Yangi matn qo'shishning
+  narxi shu. `firebase-auth` ham bir necha baytga o'sdi
+  (`reauthenticateWithCredential` importi, `src/firebase/auth.ts` →
+  `changePasswordWithReauth`) — bu funksiya ham har sahifada yuklanadi,
+  chunki `auth.ts` statik.
+  `firebase/firestore` bosh sahifa chunk'iga TUSHMAGANI tasdiqlangan:
+  `grep -l "firebase/firestore" dist/assets/index-*.js` bo'sh natija beradi
+  (yangi `src/firebase/userProfile.ts` ham `firestore.ts` naqshiga ergashib
+  faqat lazy route'larda — UserDashboard, Checkout — ishlatiladi).
 
 ### `.env`
 ```bash
@@ -107,6 +117,9 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
   o'qish huquqi endi toraytirilgan: `read` faqat o'z buyurtmasi
   (`resource.data.userId == request.auth.uid`) yoki admin claim'i uchun.
   Buni qayta kengaytirmang.
+  Xuddi shu qoida `users/{uid}` (foydalanuvchi kabineti — ism, telefon,
+  manzillar) uchun ham: `allow read, write: if request.auth.uid == uid` —
+  **admin ham o'qimaydi**. Buni kengaytirib, admin uchun ochib qo'ymang.
 
 ### Ma'lumot va qaytarib bo'lmaydigan amallar
 - **`functions/src/index.ts` dan funksiya OLIB TASHLANMAYDI** — deploy
@@ -179,8 +192,11 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
   OLIB TASHLANMAYDI — usiz hujumchi birovning raqamidan yasalgan
   manzilni band qilib, egasini bloklaydi.
 - **Yangi matn qo'shsangiz** — uchala tilga ham qo'shing:
-  `src/i18n/locales/uz.json`, `en.json`, `ru.json` (hozir uchalasi ham 289 kalit, teng).
+  `src/i18n/locales/uz.json`, `en.json`, `ru.json` (hozir uchalasi ham 375 kalit, teng).
   Komponentga to'g'ridan-to'g'ri o'zbekcha matn yozib qo'yilmaydi.
+  Iloji bo'lsa mavjud kalitni qayta ishlating (masalan parol xatolari —
+  `auth.errors.*` — kabinetdagi parol o'zgartirish ham shu kalitlardan
+  foydalanadi, ularni takrorlamaydi).
 
 ---
 
@@ -205,6 +221,7 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 ├── scripts/optimize-images.mjs # PNG -> WebP (quality 80, max 1920px)
 ├── playwright.config.ts    # e2e: dev server + oldindan o'rnatilgan Chromium
 ├── tests/e2e/auth-layout.spec.ts # /auth 8 kenglikda toshib ketmasligi
+├── tests/e2e/dashboard-guard.spec.ts # /dashboard kirmagan holda "kirish kerak", profil forma ko'rinmasligi
 ├── index.html              # FontAwesome 6.7.2 CDN shu yerda
 ├── .env.example            # kerakli barcha env kalitlar ro'yxati
 ├── docs/DEPLOY.md          # Firebase Hosting + Cloud Function deploy — telefondan, CLI'siz qadamlar
@@ -221,8 +238,9 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
     ├── hooks/index.ts      # useAppDispatch / useAppSelector
     ├── firebase/
     │   ├── config.ts       # Firebase init; `auth` (darhol) + `getDb()` (lazy Firestore)
-    │   ├── auth.ts         # login helperlari + hasAdminClaim (custom claim)
-    │   └── firestore.ts    # orders CRUD + onSnapshot obunalar
+    │   ├── auth.ts         # login helperlari + hasAdminClaim (custom claim) + changePasswordWithReauth
+    │   ├── firestore.ts    # orders CRUD + onSnapshot obunalar
+    │   └── userProfile.ts  # users/{uid} CRUD: getUserProfile / saveUserProfile (firestore.ts naqshiga ergashadi)
     ├── utils/
     │   ├── telegram.ts     # sendTelegram(text, kind) — Cloud Function'ni chaqiradi
     │   ├── phoneAuth.ts    # normalizePhone + psevdo-email (telefon+parol)
@@ -243,12 +261,12 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
     │   ├── Portfoilo.tsx  PortfoiloSingle.tsx      # nomi shunday yozilgan (typo tarixiy)
     │   ├── Shop.tsx  ShopSingle.tsx                # katalog va mahsulot sahifasi
     │   ├── Cart.tsx  CartSidebar.tsx
-    │   ├── Checkout.tsx    # (298 q.) buyurtma berish + getStatusStyle eksporti
+    │   ├── Checkout.tsx    # (375 q.) buyurtma berish + getStatusStyle eksporti + saqlangan manzil tugmalari
     │   ├── Contact.tsx  ContactForm.tsx
     │   ├── ScrollIndicator.tsx   # Navbar ichida; sof scroll listener + CSS (motion YO'Q)
     │   ├── RouteLoader.tsx       # lazy route uchun <Suspense> fallback
     │   ├── NotFound.tsx
-    │   ├── UserDashboard.tsx     # (240 q.) foydalanuvchi buyurtmalari
+    │   ├── UserDashboard.tsx     # (556 q.) tab'lar: Buyurtmalarim (o'zgarishsiz) + Profil (ism/manzillar/parol)
     │   ├── OrderItemThumb.tsx    # buyurtma qatoridagi mahsulot rasmi (productId orqali qayta topiladi, zaxira — ikonka)
     │   └── Admin/                # admin panel — tab'larga bo'lingan, hammasi STATIK import (lazy route ichida yana lazy shart emas)
     │       ├── Dashboard.tsx     # (182 q.) sidebar + tab tanlash + umumiy state (orders, showProductForm/showBlogForm)
@@ -260,12 +278,14 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 ```
 
 **Eng katta 10 fayl** (`find src -name '*.ts*' -o -name '*.css' -o -name '*.json' | xargs wc -l`):
-`Auth/AuthPage.tsx` 686 · `locales/uz.json` `ru.json` `en.json` har biri 430 ·
-`style.css` 403 · `Home.tsx` 366 · `Navbar.tsx` 360 · `Checkout.tsx` 345 ·
-`Admin/ProductsTab.tsx` 272 · `UserDashboard.tsx` 240 · `ShopSingle.tsx` 230 ·
-`Admin/OrdersTab.tsx` 222.
+`Auth/AuthPage.tsx` 686 · `UserDashboard.tsx` 556 ·
+`locales/uz.json` `ru.json` `en.json` har biri 457 ·
+`style.css` 403 · `Checkout.tsx` 375 · `Home.tsx` 366 · `Navbar.tsx` 360 ·
+`Admin/ProductsTab.tsx` 272 · `ShopSingle.tsx` 230 · `Admin/OrdersTab.tsx` 222.
 (`ProductsTab.tsx` 212 -> 272 ga o'sdi — mobil karta ro'yxati qo'shildi,
-2026-09-14, quyidagi bo'limga qarang.)
+2026-09-14. `UserDashboard.tsx` 240 -> 556 va `Checkout.tsx` 298 -> 375 ga
+o'sdi — foydalanuvchi kabineti: profil, manzillar, parol o'zgartirish
+qo'shildi, quyidagi bo'limga qarang.)
 
 ---
 
@@ -309,6 +329,27 @@ To'liq izoh: `src/utils/phoneAuth.ts`. Sozlash va qolgan xavf:
 **Mahsulot/blog CRUD:** faqat Redux + localStorage (`Data.ts`), server yo'q —
 o'zgarish faqat admin o'z brauzerida ko'rinadi.
 
+**Foydalanuvchi profili:** `/dashboard` → "Profil" tab'i (`UserDashboard.tsx`
+→ `ProfileTab`) `src/firebase/userProfile.ts` orqali `users/{uid}`
+hujjatiga o'qiydi/yozadi (`getUserProfile` / `saveUserProfile`,
+`firestore.ts` naqshiga ergashadi). Uch mustaqil karta:
+- **Ism** — `updateDisplayName` bilan Firebase Auth'ga YOZILADI, bir vaqtda
+  `users/{uid}.fullName` ga ham (ikkalasi — Redux'dagi `user.displayName`
+  ham `dispatch(setUser(...))` bilan darhol yangilanadi, `onAuthStateChanged`
+  kutilmaydi, u profil yangilanishida ishga tushmaydi).
+- **Manzillar** — `users/{uid}.addresses` massivi, eng ko'pi 5 ta
+  (`MAX_ADDRESSES`). `Checkout.tsx` ularni o'qib, manzil maydoni ostida
+  bir bosishda to'ldiradigan tugmalar ko'rsatadi — ixtiyoriy, qo'lda
+  yozish ham ishlayveradi.
+- **Parol** — faqat `auth.currentUser.providerData` da `password`
+  provayderi bo'lganda ko'rinadi (Google'da parol yo'q).
+  `changePasswordWithReauth` (`src/firebase/auth.ts`) avval
+  `EmailAuthProvider` bilan qayta-autentifikatsiya, keyin `updatePassword`.
+  Xato xabarlari **mavjud** `auth.errors.*` kalitlaridan (yangi kalit
+  qo'shilmagan — AuthPage bilan bir xil naqsh).
+`firestore.rules` → `users/{uid}`: **faqat egasi**, admin ham o'qimaydi
+(`docs/XAVFSIZLIK-MIGRATSIYA.md` E-bo'lim).
+
 ---
 
 ## 6. Hujjatlar ro'yxati
@@ -317,7 +358,7 @@ o'zgarish faqat admin o'z brauzerida ko'rinadi.
 |---|---|---|
 | `CLAUDE.md` | Qoidalar va xarita (shu fayl) | Dolzarb |
 | `docs/ARXITEKTURA-TARIXI.md` | Qarorlar, sabablar, ma'lum qarzlar | Dolzarb |
-| `docs/XAVFSIZLIK-MIGRATSIYA.md` | Admin huquqi (claim + `admins/{uid}`), qoidalar, index — **telefondan, CLI'siz** tartib va Rules Playground testlari; D-bo'lim: telefon+parol sozlash va qolgan xavf | Dolzarb |
+| `docs/XAVFSIZLIK-MIGRATSIYA.md` | Admin huquqi (claim + `admins/{uid}`), qoidalar, index — **telefondan, CLI'siz** tartib va Rules Playground testlari; D-bo'lim: telefon+parol sozlash va qolgan xavf; E-bo'lim: `users/{uid}` (foydalanuvchi kabineti) qoidasi va testlari | Dolzarb |
 | `docs/QOLDA-SINASH-TELEFON-PAROL.md` | Telefon+parol oqimini qo'lda sinash rejasi (telefonda bajariladi) | Dolzarb |
 | `docs/DEPLOY.md` | Firebase Hosting deploy: GitHub Secrets, service account, Authorized domains — **telefondan, CLI'siz** tartib | Dolzarb |
 | `README.md` | O'rnatish/deploy yo'riqnomasi (inglizcha) | **Qisman eskirgan** — 2 ta thread env kaliti yozilmagan, `src/firebase/config.ts` da `getFirestore` borligi aytilmagan |

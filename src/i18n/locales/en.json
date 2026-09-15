@@ -220,6 +220,7 @@
     "saveFailedTelegramOk": "Your order was sent to our operators via Telegram and they will contact you shortly, but it will not appear in your account. Please keep the order number.",
     "saveFailedNoTelegram": "The order was neither saved to the server nor sent via Telegram. Please contact us with the order number or try again.",
     "contactUs": "Contact us",
+    "savedAddresses": "Saved addresses:",
     "errors": {
       "nameRequired": "Name is required",
       "phoneRequired": "Phone number is required",
@@ -237,7 +238,33 @@
     "shopNow": "Shop Now",
     "loginRequired": "Please login to view your orders",
     "loadError": "Orders could not be loaded",
-    "loadErrorDesc": "The list could not be fetched. Refresh the page or try again later."
+    "loadErrorDesc": "The list could not be fetched. Refresh the page or try again later.",
+    "profile": {
+      "nameTitle": "Name",
+      "namePlaceholder": "Your full name",
+      "save": "Save",
+      "saving": "Saving...",
+      "saved": "Saved",
+      "saveError": "Could not save. Please try again.",
+      "phoneNote": "Phone: {{phone}} (cannot be changed)",
+      "addressesTitle": "My Addresses",
+      "noAddresses": "No addresses added yet",
+      "addressLabelPlaceholder": "Label (e.g. Home, Work)",
+      "addressTextPlaceholder": "City, street, house number",
+      "addAddress": "Add Address",
+      "updateAddress": "Save Address",
+      "cancel": "Cancel",
+      "addressLimitReached": "You can save up to 5 addresses",
+      "password": {
+        "title": "Change Password",
+        "currentPlaceholder": "Current password",
+        "newPlaceholder": "New password",
+        "confirmPlaceholder": "Confirm new password",
+        "submit": "Update Password",
+        "saving": "Updating...",
+        "saved": "Password changed successfully"
+      }
+    }
   },
   "blog": {
     "title": "Recent News",
