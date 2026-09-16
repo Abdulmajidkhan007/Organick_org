@@ -431,7 +431,13 @@
     "seedRun": "Boshlang'ich katalogni Firestore'ga yozish",
     "seedRunning": "Yozilmoqda...",
     "seedDone": "Yozildi: {{products}} mahsulot, {{blogs}} blog.",
-    "seedNotEmpty": "Firestore'da katalog allaqachon bor — hech narsa yozilmadi."
+    "seedNotEmpty": "Firestore'da katalog allaqachon bor — hech narsa yozilmadi.",
+    "uploadImage": "Rasm yuklash",
+    "uploading": "Yuklanmoqda...",
+    "uploadFailed": "Rasmni yuklab bo'lmadi. Internetni tekshirib qayta urining.",
+    "uploadTooLarge": "Rasmni 1 MB dan kichik qilib siqib bo'lmadi. Boshqa rasm tanlang.",
+    "uploadUnsupported": "Brauzer rasm siqishni qo'llab-quvvatlamaydi.",
+    "uploadUnreadable": "Faylni rasm sifatida o'qib bo'lmadi. Boshqa fayl tanlang."
   },
   "footer": {
     "newsletter": "Yangiliklar xabariga obuna bo'ling",

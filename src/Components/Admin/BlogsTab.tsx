@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../../hooks'
 import { addBlog, updateBlog, deleteBlog } from '../../Data'
 import { saveBlogToFirestore, deleteBlogFromFirestore } from '../../firebase/catalog'
 import { BlogPost } from '../../types'
+import { ImageUploadField } from './ImageUploadField'
 
 const emptyBlog: Omit<BlogPost, 'id'> = {
   date: new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short' }),
@@ -121,12 +122,12 @@ export const BlogsTab = ({ showBlogForm, setShowBlogForm }: BlogsTabProps) => {
                 onChange={e => setNewBlog(b => ({ ...b, date: e.target.value }))}
                 className="w-full inpHover h-10" placeholder="25 Nov" />
             </div>
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1">{t('admin.blogImage')}</label>
-              <input type="text" value={newBlog.img}
-                onChange={e => setNewBlog(b => ({ ...b, img: e.target.value }))}
-                className="w-full inpHover h-10" placeholder="https://example.com/image.jpg" />
-            </div>
+            <ImageUploadField
+              label={t('admin.blogImage')}
+              value={newBlog.img}
+              onChange={url => setNewBlog(b => ({ ...b, img: url }))}
+              kind="blog"
+            />
             <div className="sm:col-span-2">
               <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1">{t('admin.blogContent')}</label>
               <textarea

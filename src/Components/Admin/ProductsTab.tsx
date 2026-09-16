@@ -8,6 +8,7 @@ import {
   seedCatalogToFirestore,
 } from '../../firebase/catalog'
 import { Product } from '../../types'
+import { ImageUploadField } from './ImageUploadField'
 
 const emptyProduct: Omit<Product, 'id'> = {
   category: 'Vegetable',
@@ -216,12 +217,12 @@ export const ProductsTab = ({ showProductForm, setShowProductForm }: ProductsTab
                 {[1,2,3,4,5].map(r => <option key={r} value={r}>{r} ★</option>)}
               </select>
             </div>
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1">{t('admin.productImage')}</label>
-              <input type="text" value={newProduct.img}
-                onChange={e => setNewProduct(p => ({ ...p, img: e.target.value }))}
-                className="w-full inpHover h-10" placeholder="https://example.com/image.jpg" />
-            </div>
+            <ImageUploadField
+              label={t('admin.productImage')}
+              value={newProduct.img}
+              onChange={url => setNewProduct(p => ({ ...p, img: url }))}
+              kind="product"
+            />
             <div className="sm:col-span-2">
               <label className="block text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1">{t('admin.productDesc')}</label>
               <textarea value={newProduct.description || ''}

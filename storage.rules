@@ -1,0 +1,29 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // KATALOG RASMLARI. Bu yerda Firestore'dagi `isAdmin()` YO'Q —
+    // ataylab: Storage qoidalari Firestore hujjatlarini o'qiy olmaydi
+    // (custom claim ham, `admins/{uid}` ham shu yerdan ko'rinmaydi),
+    // shuning uchun yozish sharti "kirgan foydalanuvchi + 1 MB + rasm
+    // turi", isAdmin() emas.
+    //
+    // Haqiqiy chegara SHU YERDA emas — Firestore'da: `products`/`blogs`
+    // ga yozish faqat admin claim'i yoki `admins/{uid}` hujjati bilan
+    // ruxsat etilgan (firestore.rules). Storage'ga tushgan rasm o'sha
+    // yozuvga bog'lanmasa (`img` maydoniga kirmasa) — hech kimga
+    // ko'rinmaydigan, hech narsaga ta'sir qilmaydigan fayl bo'lib
+    // qoladi. Ya'ni oddiy kirgan foydalanuvchi (admin bo'lmasa ham)
+    // shu yerga rasm yuklay oladi, lekin uni katalogga qo'sha olmaydi.
+    match /catalog/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.resource.size < 1 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Qolgan hamma narsa yopiq.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
