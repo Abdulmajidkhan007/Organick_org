@@ -805,3 +805,83 @@ Konsol → **Firestore Database → Rules → Rules Playground**. Testdan oldin
 >
 > b-test **eng muhimi**: u "katalogni hamma yoza oladi" holatiga
 > qaytib qolmaganini tasdiqlaydi.
+
+# G-BO'LIM — Firebase Storage (admin rasm yuklash), telefondan, CLI'siz
+
+> 15-sessiyadan boshlab admin mahsulot/blog rasmini telefondan to'g'ridan-
+> to'g'ri yuklay oladi: fayl tanlanadi, brauzerda siqiladi
+> (`src/utils/compressImage.ts`), Firebase Storage'ga yuklanadi
+> (`src/firebase/storage.ts`), qaytgan URL `img` maydoniga o'zi yoziladi.
+> Ilgari admin rasmni boshqa joyga (masalan, boshqa saytga) yuklab, URL'ini
+> qo'lda nusxalab kelishi kerak edi — telefondan bu amalda ishlamasdi.
+> `firestore.rules`, `orders`, `admins`, `users` qoidalariga bu **tegmaydi**.
+
+## G1-QADAM. Storage'ni yoqish (BIR MARTA, faqat birinchi sozlashda)
+
+Agar loyihada Storage hali umuman yoqilmagan bo'lsa:
+
+1. Console → **Build → Storage** → **Get started**.
+2. Xavfsizlik qoidalari savolida **"Start in production mode"** ni tanlang
+   (keyingi qadamda baribir o'z qoidamizni qo'yamiz — bu yerda "test mode"
+   tanlash shart emas).
+3. Bucket joylashuvini (location) tanlang — bu **KEYIN O'ZGARTIRILMAYDI**.
+   Firestore bilan bir xil mintaqani tanlash tavsiya etiladi.
+4. **Done**.
+
+`.env` dagi `VITE_FIREBASE_STORAGE_BUCKET` allaqachon mavjud (`.env.example`)
+— yangi env kaliti KERAK EMAS, Storage yoqilgach shu bucket ishlatiladi.
+
+## G2-QADAM. `storage.rules` ni Publish qilish
+
+1. Console → **Build → Storage** → **Rules** tabi.
+2. Hozirgi matnni telefoningizga nusxa oling (orqaga qaytish nusxasi).
+3. Tahrirlagichdagi hamma matnni o'chirib, repodagi **`storage.rules`**
+   faylining to'liq matnini qo'ying:
+
+   ```
+   match /catalog/{allPaths=**} {
+     allow read: if true;
+     allow write: if request.auth != null
+       && request.resource.size < 1 * 1024 * 1024
+       && request.resource.contentType.matches('image/.*');
+   }
+   ```
+
+4. **Publish** → tasdiqlash oynasi chiqsa **Publish**.
+
+**Nega `isAdmin()` YO'Q bu yerda** — Storage qoidalari Firestore
+hujjatlarini o'qiy olmaydi (custom claim ham, `admins/{uid}` ham shu
+yerdan ko'rinmaydi — ikkalasi boshqa mahsulot, `exists()`/`request.auth
+.token` Firestore qoidalariga xos). Shuning uchun yozish sharti
+"kirgan foydalanuvchi + 1 MB dan kichik + rasm turi" — `isAdmin()` emas.
+
+**Haqiqiy chegara SHU YERDA emas — Firestore'da.** `products`/`blogs`
+kolleksiyasiga yozish `firestore.rules` da `allow write: if isAdmin()`
+bilan cheklangan (F-BO'LIM). Storage'ga tushgan rasm o'sha yozuvga
+bog'lanmasa (ya'ni admin uni `img` maydoniga qo'shmasa) — hech kimga
+ko'rinmaydigan, katalogka hech qanday ta'sir qilmaydigan fayl bo'lib
+qoladi. Ya'ni: oddiy kirgan foydalanuvchi (admin bo'lmasa ham) shu
+`catalog/` yo'liga rasm yuklay oladi, lekin uni katalogga (mahsulot/blog
+hujjatiga) qo'sha OLMAYDI — buni faqat admin qila oladi. Bu ataylab
+shunday: Storage qoidalari darajasida admin tekshiruvi qo'shish qo'shimcha
+Firestore o'qishi (`isAdmin()` chaqiruvi) va murakkablik qo'shardi, holbuki
+haqiqiy himoya allaqachon bor.
+
+## G3-QADAM. Ishlayotganini tekshirish
+
+| Tekshiruv | Kutilgan |
+|---|---|
+| Admin — /admin → Mahsulotlar → "Rasm yuklash" → telefon galereyasidan katta (bir necha MB) rasm tanlash | ✅ Tugma "Yuklanmoqda..." ko'rsatadi, keyin kichik preview chiqadi, matn maydoniga Storage URL yoziladi |
+| Shu mahsulotni saqlash → boshqa qurilmada/inkognitoda bosh sahifani ochish | ✅ Yangi rasm hamma mijozga ko'rinadi |
+| Internetni o'chirib "Rasm yuklash" bosish | ✅ Qizil xato matni chiqadi (jim yutilmaydi) |
+| Rasm o'rniga boshqa fayl turi (masalan .pdf) tanlashga urinish | `accept="image/*"` odatda oldini oladi; agar baribir o'tsa — Storage qoidasi `contentType` shartiga qaramay rad etadi |
+
+## Ongli qarz (bu sessiyada QILINMADI)
+
+- **Eski rasm o'chirilmaydi.** Mahsulot/blog tahrirlanganda va rasm
+  almashtirilganda, Storage'dagi ESKI fayl qolib ketaveradi (yo'qolgan
+  havola emas — shunchaki ishlatilmay qolgan fayl, joy egallaydi).
+  O'chirish keyingi sessiyaga qoldirildi (`docs/ARXITEKTURA-TARIXI.md`).
+- `decreaseStock` (`Checkout.tsx`) va `updateProductRating`
+  (`ShopSingle.tsx`) hamon localStorage'da — bu Storage bilan bog'liq
+  emas, F-BO'LIM/CLAUDE.md'da yozilgan qarz, 14-sessiyaga rejalashtirilgan.

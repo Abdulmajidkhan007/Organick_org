@@ -59,28 +59,32 @@ npm run preview       # build'ni lokal ko'rish
   `functions/` ham `ignores`ga qo'shilgan — u alohida TS loyihasi, o'z `tsc`i bilan tekshiriladi.
 - `npx tsc --noEmit` → **exit 2**, sabab: `tsconfig.json:17` `baseUrl` deprecated (TS 6).
   Ya'ni typecheck hozir "qizil". Buni tuzatmasdan CI qo'shilmaydi.
-- `npm run test:e2e` → 12 test, hammasi o'tadi (~10-12s): 8 tasi `/auth` layout
+- `npm run test:e2e` → 13 test, hammasi o'tadi (~10-12s): 8 tasi `/auth` layout
   (eski), 1 tasi `tests/e2e/contact-form-validation.spec.ts`
   (`/contact` noto'g'ri email bilan sendTelegram chaqirilmasligini
   tekshiradi), 1 tasi `tests/e2e/admin-orders-badge.spec.ts`, 1 tasi
   `tests/e2e/dashboard-guard.spec.ts` (`/dashboard` kirmagan holda ochilsa
   "kirish kerak" ekrani chiqishi va profil forma UMUMAN ko'rinmasligi),
-  1 tasi yangi `tests/e2e/catalog-offline.spec.ts` (Firestore REST so'rovi
+  1 tasi `tests/e2e/catalog-offline.spec.ts` (Firestore REST so'rovi
   `route.abort()` bilan to'silsa ham bosh sahifada 12 ta mahsulot kartasi
-  chizilishi — seed'ga qaytish ishlashi).
+  chizilishi — seed'ga qaytish ishlashi), 1 tasi yangi
+  `tests/e2e/compress-image.spec.ts` (`compressImage`ni haqiqiy brauzerda
+  3000x2000 rasm bilan chaqiradi va natija ≤1200px, <1MB ekanini raqam
+  bilan tekshiradi — DOM/canvas kerak bo'lgani uchun unit test emas, e2e).
   Chromium konteynerda oldindan bor
   (`/opt/pw-browsers/chromium`), `playwright install` KERAK EMAS.
   Layout/guard testlari faqat LAYOUT ni tekshiradi — Firebase chaqiruvlari
   sinalmaydi (real loyiha va real SMS kerak, ular qo'lda sinaladi:
   `docs/QOLDA-SINASH-TELEFON-PAROL.md`).
-- `npm run build` → exit 0, ~0.6s. **Code-splitting BOR** (route'lar `React.lazy`).
+- `npm run build` → exit 0, ~0.5-0.6s. **Code-splitting BOR** (route'lar `React.lazy`).
   Eng katta chunk'lar: `firebase-firestore` 553 kB (LAZY — bosh sahifa uni
-  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 122 kB,
-  `ui` 54 kB. `dist/` ≈ 4.0 MB.
-  Bosh sahifa yuklaydigan JS: **545.8 kB raw / 172.7 kB gzip**
-  (ilgari 544.7/172.4 — farq katalogning 6 ta yangi i18n kalitidan,
-  uchala tilda). O'lchash: `dist/index.html` dagi `<script>` va
-  `modulepreload` havolalari yig'indisi.
+  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 124 kB,
+  `ui` 54 kB, `Admin/Dashboard` (rasm yuklash kodi shu yerda, LAZY) 39 kB.
+  `dist/` ≈ 4.0 MB.
+  Bosh sahifa yuklaydigan JS: **547.1 kB raw / 174.8 kB gzip**
+  (ilgari 545.7/174.4 — farq rasm yuklash uchun qo'shilgan 6 ta yangi
+  i18n kalitidan, uchala tilda). O'lchash: `dist/index.html` dagi
+  `<script>` va `modulepreload` havolalari yig'indisi.
   Katalog REST moduli (`catalogRest.ts`) ALOHIDA 2.2 kB chunk — u
   `App.tsx` da dinamik import qilingani uchun bosh sahifa bundle'iga
   tushmaydi.
@@ -96,6 +100,10 @@ npm run preview       # build'ni lokal ko'rish
   `grep -l "firebase/firestore" dist/assets/index-*.js` bo'sh natija beradi
   (yangi `src/firebase/userProfile.ts` ham `firestore.ts` naqshiga ergashib
   faqat lazy route'larda — UserDashboard, Checkout — ishlatiladi).
+  `firebase/storage` ham SHU XIL tasdiqlangan:
+  `grep -l "firebase/storage" dist/assets/index-*.js` bo'sh natija beradi —
+  `uploadCatalogImage`/`compressImage` faqat `Admin/Dashboard` lazy
+  chunk'ida (2026-09-16, 18-sessiya, `src/firebase/storage.ts`).
 
 ### `.env`
 ```bash
@@ -210,6 +218,22 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
   team, portfoilo, ...) avvalgidek `src/assets/` da, import bilan.
   Kesh sarlavhalari `firebase.json` da: `/assets/**` -> `immutable`,
   `/shop/**` va `/blog/**` -> `max-age=604800` (hash yo'q, `immutable` EMAS).
+  **Admin telefondan yuklagan katalog rasmi — YANA BOSHQA yo'l:** admin
+  `/admin` panelidan (`ProductsTab`/`BlogsTab` → `ImageUploadField`)
+  fayl tanlaganda, u `src/utils/compressImage.ts` bilan brauzerda
+  siqiladi (eng ko'pi 1200px, webp 0.8, natija 1 MB dan kichik bo'lishi
+  SHART) va `src/firebase/storage.ts` orqali Firebase Storage'ga
+  (`catalog/<product|blog>/<timestamp>-<random>.webp`) yuklanadi;
+  qaytgan URL oddiy `string` sifatida `img` maydoniga yoziladi — sxema
+  o'zgarmaydi. Qoidalari `storage.rules` da (Console'dan qo'lda Publish,
+  firestore.rules bilan bir xil tartib): yozish "kirgan foydalanuvchi +
+  1 MB dan kichik + rasm turi" bilan cheklangan, `isAdmin()` EMAS — u
+  Storage'da yo'q, haqiqiy chegara Firestore'dagi `products`/`blogs`
+  yozish qoidasida (docs/XAVFSIZLIK-MIGRATSIYA.md G-BO'LIM). Eski rasm
+  tahrirlashda Storage'dan O'CHIRILMAYDI — ongli qarz
+  (docs/ARXITEKTURA-TARIXI.md 18-bo'lim). `firebase/storage` faqat shu
+  ikki admin faylidan chaqiriladi — bosh sahifadan chaqiriladigan
+  modulga (statik ham, dinamik ham) HECH QACHON import qilinmaydi.
 - **Telefon + parol oqimiga tegsangiz** — psevdo-email uchta joyda
   bog'langan, uchalasi bir vaqtda o'zgaradi:
   `src/utils/phoneAuth.ts` (raqamni bir ko'rinishga keltirish va email
@@ -248,11 +272,13 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 ├── .github/workflows/pr-check.yml  # PR -> lint+build+functions build (deploy YO'Q)
 ├── firestore.rules         # Firestore qoidalari: orders / admins / users / products / blogs (Console'dan qo'lda Publish)
 ├── firestore.indexes.json  # orders(userId, createdAt) composite index
-├── scripts/optimize-images.mjs # PNG -> WebP (quality 80, max 1920px)
+├── storage.rules           # Storage qoidalari: catalog/** — kirgan foydalanuvchi+1MB+rasm (Console'dan qo'lda Publish, isAdmin() YO'Q)
+├── scripts/optimize-images.mjs # PNG -> WebP (quality 80, max 1920px) — faqat src/assets/, admin yuklagan rasmga TEGMAYDI
 ├── playwright.config.ts    # e2e: dev server + oldindan o'rnatilgan Chromium
 ├── tests/e2e/auth-layout.spec.ts # /auth 8 kenglikda toshib ketmasligi
 ├── tests/e2e/dashboard-guard.spec.ts # /dashboard kirmagan holda "kirish kerak", profil forma ko'rinmasligi
 ├── tests/e2e/catalog-offline.spec.ts # REST bloklansa ham bosh sahifada mahsulotlar ko'rinishi (seed'ga qaytish)
+├── tests/e2e/compress-image.spec.ts # compressImage — 1200px/1MB'ga siqilishi RAQAM bilan o'lchanadi
 ├── public/shop/  public/blog/  # KATALOG rasmlari — hash'siz, barqaror URL (Firestore'ga shu yo'l yoziladi)
 ├── index.html              # FontAwesome 6.7.2 CDN shu yerda
 ├── .env.example            # kerakli barcha env kalitlar ro'yxati
@@ -274,11 +300,13 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
     │   ├── firestore.ts    # orders CRUD + onSnapshot obunalar
     │   ├── userProfile.ts  # users/{uid} CRUD: getUserProfile / saveUserProfile (firestore.ts naqshiga ergashadi)
     │   ├── catalog.ts      # products/blogs YOZISH — SDK bilan, FAQAT admin (lazy route)
-    │   └── catalogRest.ts  # products/blogs O'QISH — sof fetch (REST), `firebase/*` SIZ
+    │   ├── catalogRest.ts  # products/blogs O'QISH — sof fetch (REST), `firebase/*` SIZ
+    │   └── storage.ts      # uploadCatalogImage — `firebase/storage` DINAMIK import, FAQAT admin fayllaridan chaqiriladi
     ├── utils/
     │   ├── telegram.ts     # sendTelegram(text, kind) — Cloud Function'ni chaqiradi
     │   ├── phoneAuth.ts    # normalizePhone + psevdo-email (telefon+parol)
-    │   └── validate.ts     # isValidEmail + isValidPhone — kontakt/newsletter/checkout formalari
+    │   ├── validate.ts     # isValidEmail + isValidPhone — kontakt/newsletter/checkout formalari
+    │   └── compressImage.ts # canvas orqali rasm siqish (≤1200px, webp/jpeg, <1MB) — sof funksiya, DOMsiz test qilib bo'lmaydi (Playwright kerak)
     ├── i18n/
     │   ├── index.ts        # i18next init (lng: 'uz')
     │   └── locales/        # uz.json / en.json / ru.json
@@ -306,19 +334,22 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
     │       ├── Dashboard.tsx     # (182 q.) sidebar + tab tanlash + umumiy state (orders, showProductForm/showBlogForm)
     │       ├── StatsTab.tsx      # (88 q.) "Boshqaruv paneli" tab'i
     │       ├── OrdersTab.tsx     # (222 q.) buyurtmalar ro'yxati + javob berish
-    │       ├── ProductsTab.tsx   # (212 q.) mahsulotlar CRUD
-    │       └── BlogsTab.tsx      # (147 q.) bloglar CRUD
+    │       ├── ProductsTab.tsx   # (377 q.) mahsulotlar CRUD
+    │       ├── BlogsTab.tsx      # (183 q.) bloglar CRUD
+    │       └── ImageUploadField.tsx # (87 q.) rasm URL input + "Rasm yuklash" tugmasi — ProductsTab/BlogsTab ikkalasi ishlatadi
     └── assets/             # 3.1 MB: 77 ta .webp + 4 ta .svg (PNG QOLMAGAN)
 ```
 
 **Eng katta 10 fayl** (`find src -name '*.ts*' -o -name '*.css' -o -name '*.json' | xargs wc -l`):
 `Auth/AuthPage.tsx` 686 · `UserDashboard.tsx` 556 ·
-`locales/uz.json` `ru.json` `en.json` har biri 463 ·
-`style.css` 403 · `Admin/ProductsTab.tsx` 376 · `Checkout.tsx` 376 ·
+`locales/uz.json` `ru.json` `en.json` har biri 469 ·
+`style.css` 403 · `Admin/ProductsTab.tsx` 377 · `Checkout.tsx` 376 ·
 `Home.tsx` 366 · `Navbar.tsx` 360 · `Data.ts` 249 · `ShopSingle.tsx` 231 ·
 `Admin/OrdersTab.tsx` 222 · `firebase/catalogRest.ts` 218.
 (`ProductsTab.tsx` 272 -> 376 ga o'sdi — Firestore yozish, xato ko'rsatish
-va bir martalik ko'chirish paneli qo'shildi, 2026-09-15.)
+va bir martalik ko'chirish paneli qo'shildi, 2026-09-15. 376 -> 377 —
+rasm maydoni `ImageUploadField` bilan almashtirildi, 2026-09-16. Locale
+fayllar 463 -> 469 — rasm yuklash uchun 6 ta yangi kalit, uchala tilda.)
 
 ---
 
@@ -381,12 +412,23 @@ Bir martalik ko'chirish: `/admin` -> Mahsulotlar -> "Boshlang'ich
 katalogni Firestore'ga yozish" tugmasi. Ikkala kolleksiya ham BO'SH
 bo'lgandagina yozadi (`docs/XAVFSIZLIK-MIGRATSIYA.md` F-BO'LIM).
 
-**Hali ko'chirilmagan (qarz, 13-sessiya):** `decreaseStock`
+**Hali ko'chirilmagan (qarz, 14-sessiya):** `decreaseStock`
 (`Checkout.tsx`) va `updateProductRating` (`ShopSingle.tsx`) hamon faqat
 localStorage'ga yozadi — ular atomik server yozuvini (Cloud Function)
 talab qiladi, aks holda `products` ga yozish har kimga ochilardi.
-Ularni Firestore'ga "tezda" ulab qo'ymang. Admin rasmi ham hamon qo'lda
-URL (Storage yo'q).
+Ularni Firestore'ga "tezda" ulab qo'ymang.
+
+**Admin rasm yuklash (18-sessiya, 2026-09-16):** admin endi rasmni
+telefondan to'g'ridan-to'g'ri yuklay oladi — qo'lda URL yozish shart
+emas (lekin hali ham ishlaydi, matn maydoni qolgan). Oqim:
+`ProductsTab`/`BlogsTab` → `ImageUploadField` → `compressImage`
+(brauzerda siqish, ≤1200px/<1MB) → `uploadCatalogImage`
+(`firebase/storage`, faqat admin fayllaridan chaqiriladi) → qaytgan URL
+`img` maydoniga yoziladi. Storage qoidasi (`storage.rules`) `isAdmin()`
+ishlatmaydi — haqiqiy chegara hamon Firestore'da (`products`/`blogs`
+yozish faqat admin). Ongli qarz: eski rasm Storage'dan o'chirilmaydi
+(`docs/ARXITEKTURA-TARIXI.md` 18-bo'lim, `docs/XAVFSIZLIK-MIGRATSIYA.md`
+G-BO'LIM).
 
 **Foydalanuvchi profili:** `/dashboard` → "Profil" tab'i (`UserDashboard.tsx`
 → `ProfileTab`) `src/firebase/userProfile.ts` orqali `users/{uid}`
@@ -417,7 +459,7 @@ hujjatiga o'qiydi/yozadi (`getUserProfile` / `saveUserProfile`,
 |---|---|---|
 | `CLAUDE.md` | Qoidalar va xarita (shu fayl) | Dolzarb |
 | `docs/ARXITEKTURA-TARIXI.md` | Qarorlar, sabablar, ma'lum qarzlar | Dolzarb |
-| `docs/XAVFSIZLIK-MIGRATSIYA.md` | Admin huquqi (claim + `admins/{uid}`), qoidalar, index — **telefondan, CLI'siz** tartib va Rules Playground testlari; D-bo'lim: telefon+parol sozlash va qolgan xavf; E-bo'lim: `users/{uid}` (foydalanuvchi kabineti) qoidasi va testlari; F-bo'lim: `products`/`blogs` (katalog) qoidasi, bir martalik ko'chirish va 3 ta Playground testi | Dolzarb |
+| `docs/XAVFSIZLIK-MIGRATSIYA.md` | Admin huquqi (claim + `admins/{uid}`), qoidalar, index — **telefondan, CLI'siz** tartib va Rules Playground testlari; D-bo'lim: telefon+parol sozlash va qolgan xavf; E-bo'lim: `users/{uid}` (foydalanuvchi kabineti) qoidasi va testlari; F-bo'lim: `products`/`blogs` (katalog) qoidasi, bir martalik ko'chirish va 3 ta Playground testi; G-bo'lim: Firebase Storage yoqish va `storage.rules` Publish qilish (admin rasm yuklash) | Dolzarb |
 | `docs/QOLDA-SINASH-TELEFON-PAROL.md` | Telefon+parol oqimini qo'lda sinash rejasi (telefonda bajariladi) | Dolzarb |
 | `docs/DEPLOY.md` | Firebase Hosting deploy: GitHub Secrets, service account, Authorized domains — **telefondan, CLI'siz** tartib | Dolzarb |
 | `README.md` | O'rnatish/deploy yo'riqnomasi (inglizcha) | **Qisman eskirgan** — 2 ta thread env kaliti yozilmagan, `src/firebase/config.ts` da `getFirestore` borligi aytilmagan |

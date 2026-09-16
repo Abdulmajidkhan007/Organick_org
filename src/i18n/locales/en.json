@@ -431,7 +431,13 @@
     "seedRun": "Write the initial catalog to Firestore",
     "seedRunning": "Writing...",
     "seedDone": "Written: {{products}} products, {{blogs}} blogs.",
-    "seedNotEmpty": "Firestore already has a catalog — nothing was written."
+    "seedNotEmpty": "Firestore already has a catalog — nothing was written.",
+    "uploadImage": "Upload image",
+    "uploading": "Uploading...",
+    "uploadFailed": "Couldn't upload the image. Check your connection and try again.",
+    "uploadTooLarge": "Couldn't compress the image below 1 MB. Choose a different image.",
+    "uploadUnsupported": "Your browser doesn't support image compression.",
+    "uploadUnreadable": "Couldn't read the file as an image. Choose a different file."
   },
   "footer": {
     "newsletter": "Subscribe to our Newsletter",

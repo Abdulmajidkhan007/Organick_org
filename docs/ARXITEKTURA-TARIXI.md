@@ -881,3 +881,123 @@ grep -l "firebase/firestore" dist/assets/index-*.js   # bo'sh chiqishi SHART
 
 3. **3-bo'limdagi `orders` uchun "ikki manba" muammosi** o'z joyida
    qoldi — bu sessiya faqat katalogga tegdi.
+
+## 18. Admin rasm yuklash — Firebase Storage (2026-09-16)
+
+### Muammo
+
+17-bo'limda yozilgan qarz #2: admin rasmni hamon **qo'lda URL** sifatida
+kiritishi kerak edi (`ProductsTab.tsx` / `BlogsTab.tsx` — rasm maydoni
+`type="text"`). Egasi faqat telefondan ishlaydi: telefonda "rasmni
+boshqa saytga yuklab, URL nusxalab kel" oqimi amalda ishlamaydi.
+
+### Nega siqish BRAUZERDA qilinadi, server tomonda emas
+
+Telefon kamerasidan kelgan rasm odatda **3-5 MB JPEG**. Loyihadagi
+katalog rasmlari (webp) o'rtacha 29 KB (shop) / 50 KB (blog) — 9-bo'limda
+shu farqni yo'qotmaslik uchun aynan `scripts/optimize-images.mjs`
+yozilgan edi, lekin u `sharp` bilan **Node'da** ishlaydi, brauzerda emas
+— bu yerda yordam bermaydi.
+
+Variant edi: (a) siqilmagan faylni to'g'ridan-to'g'ri Storage'ga yuklab,
+keyin Cloud Function orqali siqish, yoki (b) brauzerda, yuklashdan
+OLDIN siqish. (a) yechim server tomonda `sharp`/`squoosh` kabi og'ir
+bog'liqlik, alohida Cloud Function chaqiruvi (+kutish, +xarajat) va
+"siqilmagan fayl vaqtincha Storage'da yotadi" degan oraliq holatni talab
+qilardi. (b) ni tanladik: `<canvas>` + `toBlob('image/webp', 0.8)` —
+brauzerda allaqachon bor API, yangi bog'liqlik SHART EMAS. Fayl hech
+qachon 1 MB dan katta holda tarmoqqa chiqmaydi, ya'ni mijozning o'zi
+telefon internetida yuklaganda ham tezroq.
+
+**Yangi kutubxona (`browser-image-compression` va h.k.) ATAYLAB
+olinmadi** — `canvas.toBlob` vazifani to'liq bajaradi, qo'shimcha
+bog'liqlik faqat bundle va ta'minot zanjiri (supply chain) xavfini
+oshirardi.
+
+`src/utils/compressImage.ts`: eni eng ko'pi 1200px (bo'yi mutanosib),
+webp 0.8 sifat. `toBlob` webp qo'llab-quvvatlamasa (ba'zi eski
+brauzerlar `null` qaytaradi) — jpeg 0.8 ga qaytadi. Natija 1 MB dan
+katta bo'lsa sifat pasaytirilib eng ko'pi 3 marta qayta uriniladi;
+oxirida ham katta bo'lsa `CompressImageError('too-large')` tashlanadi —
+**jimgina katta fayl yuklab yuborilmaydi**. Xato KOD bilan keladi
+(matn bilan emas) — `ImageUploadField.tsx` uni `t()` orqali tarjima
+qiladi, util komponent emas, o'zi matn tanlay olmaydi (CLAUDE.md: yangi
+matn to'g'ridan-to'g'ri komponentga yozilmaydi qoidasi util'larga ham
+tegishli).
+
+O'lchov (taxmin emas — `tests/e2e/compress-image.spec.ts`, Playwright
+orqali haqiqiy brauzerda ishga tushadi): 3000×2000 tasodifiy naqshli PNG
+(175 724 bayt) → natija **1200×800px, 62 562 bayt, image/webp** — ham
+enidan (≤1200px), ham hajmidan (<1 MB) shart bajarildi.
+
+### Nega `firebase/storage` bosh sahifaga tushmaydi
+
+`src/firebase/storage.ts` — `config.ts` dagi `getFunctionsInstance()`
+naqshiga ergashadi: `firebase/storage` DINAMIK import qilinadi va
+natija (promise) keshlanadi, `getStorage(app)` bir marta chaqiriladi.
+Bu faylni faqat `ImageUploadField.tsx` (ProductsTab/BlogsTab, ular esa
+faqat lazy `/admin` route) chaqiradi — SDK bosh sahifa bundle'iga
+tushmaydi. `vite.config.js` dagi `VENDOR_GROUPS`ga `firebase/storage`
+ATAYLAB qo'shilmadi: u faqat admin chunk'ida kerak, alohida guruhga
+ajratishning ma'nosi yo'q (13-bo'limdagi `firebase-auth`/`firebase-
+firestore` bo'linishi ulardan farqli — ular bosh sahifada HAM kerak).
+
+Tekshirish (har build'dan keyin):
+```bash
+grep -l "firebase/storage" dist/assets/index-*.js   # bo'sh chiqishi SHART
+```
+
+### `storage.rules` — nega `isAdmin()` yo'q
+
+Firestore qoidalaridagi `isAdmin()` (10-bo'lim) Firestore hujjatini
+o'qiydi (`admins/{uid}`) yoki auth token claim'ini tekshiradi — bu
+mexanizm **Storage qoidalarida yo'q**: Storage `request.auth` dan
+tashqari boshqa hech narsani (Firestore hujjatlarini ham) o'qiy olmaydi.
+Shuning uchun `storage.rules` yozish sharti "kirgan foydalanuvchi + 1 MB
+dan kichik + rasm turi" — `isAdmin()` emas.
+
+Bu xavfsiz, chunki haqiqiy chegara boshqa joyda: `firestore.rules` da
+`products`/`blogs` ga yozish hamon faqat admin uchun. Storage'ga tushgan
+rasm o'sha yozuvga (mahsulot/blog hujjatining `img` maydoniga) bog'lanmasa
+— hech kimga ko'rinmaydigan, katalogga hech qanday ta'sir qilmaydigan
+fayl bo'lib qoladi. To'liq izoh: `docs/XAVFSIZLIK-MIGRATSIYA.md`
+G-BO'LIM.
+
+### Ma'lumot sxemasi o'zgarmadi
+
+`Product.img` / `BlogPost.img` hamon oddiy `string` (12-sessiyada
+shunday rejalashtirilgan edi — 17-bo'lim). Storage'dan qaytgan
+`getDownloadURL()` natijasi ham oddiy URL satri, qo'lda yozilgan URL
+bilan bir xil formatda — Firestore hujjati, `catalogRest.ts` parser,
+`firestore.rules` — hech biriga tegilmadi.
+
+### Bundle ta'siri
+
+| | Ilgari | Endi |
+|---|---|---|
+| Bosh sahifa JS (raw) | 545.74 kB | 547.12 kB |
+| Bosh sahifa JS (gzip) | 174.41 kB | 174.78 kB |
+| `firebase/storage` bosh sahifada | yo'q | yo'q |
+
++1.38 kB raw / +0.37 kB gzip — bu ham **faqat** yangi i18n kalitlari
+(6 ta, uchala tilda: `uploadImage`, `uploading`, `uploadFailed`,
+`uploadTooLarge`, `uploadUnsupported`, `uploadUnreadable`) — 17-bo'limda
+yozilgan "yangi matn qo'shishning narxi" shu safar ham takrorlandi.
+`compressImage.ts`, `storage.ts` va `ImageUploadField.tsx` — hech biri
+bosh sahifa bundle'ida YO'Q (yuqoridagi `grep` bilan tasdiqlangan).
+
+### Qolgan qarz (keyingi sessiyalar uchun)
+
+1. **Eski rasm Storage'dan o'chirilmaydi.** Mahsulot/blog tahrirlanib
+   rasm almashtirilganda, avvalgi fayl `catalog/<kind>/...` ostida
+   qolib ketaveradi — hech kim unga endi havola qilmaydi, lekin u
+   Storage'da joy egallashda davom etadi. Buni tuzatish uchun eski
+   `img` qiymatini (agar u `firebase storage` domenidan bo'lsa)
+   `deleteObject` bilan o'chirish kerak — bu ONGLI ravishda bu
+   sessiyaga kiritilmadi (kichik xavf: eski fayl hech qachon
+   ko'rsatilmaydi, faqat saqlash joyi sarflanadi).
+2. **`decreaseStock` / `updateProductRating` hamon localStorage'da** —
+   17-bo'limdagi qarz, Storage bilan bog'liq emas, hali ham 14-sessiya
+   rejasida (Cloud Function + atomik yozuv).
+3. **`firestore.rules`, Cloud Function, auth, kabinet, dizayn tili
+   O'ZGARMADI** — bu sessiyaning maqsadi faqat rasm yuklash edi.
