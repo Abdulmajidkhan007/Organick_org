@@ -79,13 +79,25 @@ service cloud.firestore {
     //
     // `write: if isAdmin()` — yozish faqat admin claim'i yoki
     // `admins/{uid}` hujjati bo'lganda (yuqoridagi `isAdmin()`).
-    // DIQQAT: bu qatorni kengaytirmang. `decreaseStock` va reyting
-    // hozircha localStorage'da aynan shuning uchun — ular har bir
-    // mijozdan yozishni talab qilardi, ya'ni katalogni hammaga ochib
-    // qo'yardi. Ular Cloud Function orqali keladi (13-sessiya).
+    // DIQQAT: bu qatorni kengaytirmang. Zaxira (`stock`) va reyting
+    // (`rating`/`ratingSum`/`ratingCount`) mijozdan ham yozishni talab
+    // qiladi — buni bu qoida orqali ochish katalogni hammaga ochiq
+    // qilardi. Shuning uchun ular `functions/src/index.ts` dagi
+    // `applyOrderStock` / `rateProduct` Cloud Function'lari orqali,
+    // Admin SDK bilan keladi (Admin SDK qoidalardan chetlab o'tadi).
     match /products/{id} {
       allow read: if true;
       allow write: if isAdmin();
+
+      // `products/{id}/ratings/{uid}` — mijozning har bir mahsulotga
+      // qo'ygan bahosi. BU YERDA ATAYLAB alohida `match` YO'Q: unga
+      // faqat Cloud Function (`rateProduct`, Admin SDK) yozadi, Admin
+      // SDK esa qoidalardan chetlab o'tadi — mijoz esa uni umuman
+      // o'qimaydi/yozmaydi (o'rtacha baho `products/{id}` hujjatida,
+      // `rating`/`ratingSum`/`ratingCount`). Fayl oxiridagi
+      // `match /{document=**} { allow read, write: if false; }` bu
+      // sub-kolleksiyani ham qamrab oladi — qoida "yozilmay qolgani"
+      // emas, ATAYLAB shunday. To'liq sabab: docs/ARXITEKTURA-TARIXI.md.
     }
 
     match /blogs/{id} {

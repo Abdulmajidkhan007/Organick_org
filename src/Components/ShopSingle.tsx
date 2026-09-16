@@ -5,7 +5,8 @@ import { Navbar } from './Navbar'
 import { FooterBottom, FooterTop } from './Footer'
 import { useAppDispatch, useAppSelector } from '../hooks'
 import { addToCart, openCart } from '../slices/cartSlice'
-import { updateProductRating } from '../Data'
+import { setProductRatingSummary } from '../Data'
+import { rateProduct } from '../utils/rating'
 // Rasmlar `public/shop/` da — barqaror, hash'siz yo'l (src/Data.ts dagi izoh).
 const shopback = '/shop/shopback.webp'
 const shopfront = '/shop/shopfront.webp'
@@ -25,6 +26,8 @@ export const ShopSingle = () => {
   const [hoverRating, setHoverRating] = useState(0)
   const [userRating, setUserRating] = useState(0)
   const [added, setAdded] = useState(false)
+  const [ratingSaving, setRatingSaving] = useState(false)
+  const [ratingError, setRatingError] = useState(false)
 
   if (!product) {
     return (
@@ -52,15 +55,29 @@ export const ShopSingle = () => {
     setTimeout(() => setAdded(false), 2000)
   }
 
-  const handleRate = (rating: number) => {
+  const handleRate = async (rating: number) => {
     if (!user) { navigate('/auth'); return }
-    setUserRating(rating)
-    dispatch(updateProductRating({ productId: product.id, rating, userId: user.uid }))
+    if (ratingSaving) return
+    setRatingSaving(true)
+    setRatingError(false)
+    const result = await rateProduct(product.id, rating)
+    setRatingSaving(false)
+    if (result) {
+      setUserRating(rating)
+      dispatch(setProductRatingSummary({ productId: product.id, ...result }))
+    } else {
+      // Jim yutilmaydi — mijozga ko'rsatiladi, star holati o'zgarmaydi
+      // (server yozmadi, ekranda ham eski qiymat qolishi kerak).
+      setRatingError(true)
+    }
   }
 
-  const avgRating = product.userRatings && product.userRatings.length > 0
-    ? product.userRatings.reduce((s, r) => s + r.rating, 0) / product.userRatings.length
-    : product.rating
+  // O'rtacha reyting endi serverda hisoblanadi (`product.rating`,
+  // Cloud Function `rateProduct`). Eski `userRatings` faqat sharh sonini
+  // ko'rsatishda zaxira sifatida ishlatiladi — hali serverga ko'chmagan
+  // eski localStorage keshi uchun.
+  const avgRating = product.rating
+  const reviewCount = product.ratingCount ?? product.userRatings?.length ?? 0
 
   return (
     <>
@@ -112,7 +129,7 @@ export const ShopSingle = () => {
                 ))}
               </div>
               <span className="text-gray-500 dark:text-gray-400 text-sm">
-                ({product.userRatings?.length || 0} {t('productDetail.reviews')})
+                ({reviewCount} {t('productDetail.reviews')})
               </span>
             </div>
 
@@ -171,20 +188,26 @@ export const ShopSingle = () => {
         <div className="bg-[#F9F8F8] dark:bg-[#1e293b] rounded-2xl p-8 mb-12">
           <h3 className="text-xl font-bold text-[#274C5B] dark:text-white mb-4">{t('productDetail.yourRating')}</h3>
           {user ? (
-            <div className="flex items-center gap-2 star-rating">
-              {[1,2,3,4,5].map(s => (
-                <button
-                  key={s}
-                  onMouseEnter={() => setHoverRating(s)}
-                  onMouseLeave={() => setHoverRating(0)}
-                  onClick={() => handleRate(s)}
-                  className={`text-3xl transition-colors star ${s <= (hoverRating || userRating) ? 'text-yellow-400' : 'text-gray-300'}`}
-                >★</button>
-              ))}
-              {userRating > 0 && (
-                <span className="ml-3 text-[#7EB693] font-semibold">{userRating}/5</span>
+            <>
+              <div className="flex items-center gap-2 star-rating">
+                {[1,2,3,4,5].map(s => (
+                  <button
+                    key={s}
+                    disabled={ratingSaving}
+                    onMouseEnter={() => setHoverRating(s)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    onClick={() => handleRate(s)}
+                    className={`text-3xl transition-colors star disabled:opacity-50 disabled:cursor-not-allowed ${s <= (hoverRating || userRating) ? 'text-yellow-400' : 'text-gray-300'}`}
+                  >★</button>
+                ))}
+                {userRating > 0 && (
+                  <span className="ml-3 text-[#7EB693] font-semibold">{userRating}/5</span>
+                )}
+              </div>
+              {ratingError && (
+                <p className="text-red-500 text-sm mt-2">{t('productDetail.ratingError')}</p>
               )}
-            </div>
+            </>
           ) : (
             <button onClick={() => navigate('/auth')} className="text-[#7EB693] font-semibold hover:underline">
               {t('auth.login')} → {t('productDetail.writeReview')}

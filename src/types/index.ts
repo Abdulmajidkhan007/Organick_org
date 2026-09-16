@@ -14,7 +14,17 @@ export interface Product {
   oldPrice: number
   price: number
   rating: number
+  // ESKI, endi ishlatilmayotgan maydon — faqat eski localStorage
+  // ma'lumoti buzilmasligi uchun saqlanadi (`Data.ts` -> `updateProductRating`).
+  // Haqiqat manbai endi `ratingSum` / `ratingCount` (Firestore, Cloud
+  // Function `rateProduct` orqali) — docs/ARXITEKTURA-TARIXI.md.
   userRatings?: UserRating[]
+  // Serverda (Cloud Function `rateProduct`) hisoblangan hisoblagichlar.
+  // `rating` = Math.round(ratingSum / ratingCount), shu maydonlarning o'zi
+  // ham mahsulot hujjatida saqlanadi — har chaqiruvda hammasini qayta
+  // sanamaslik uchun (O(1)).
+  ratingCount?: number
+  ratingSum?: number
   description?: string
   stock?: number
 }
@@ -85,6 +95,10 @@ export interface Order {
   status: OrderStatus
   createdAt: string
   adminNote?: string
+  // Cloud Function `applyOrderStock` shu buyurtma uchun zaxirani
+  // kamaytirgandan keyin `true` qo'yadi (server tomonda, Admin SDK
+  // bilan). Idempotentlik belgisi — ikkinchi chaqiruv hech narsa qilmaydi.
+  stockApplied?: boolean
 }
 
 export interface UserAddress {

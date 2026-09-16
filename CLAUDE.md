@@ -59,7 +59,7 @@ npm run preview       # build'ni lokal ko'rish
   `functions/` ham `ignores`ga qo'shilgan — u alohida TS loyihasi, o'z `tsc`i bilan tekshiriladi.
 - `npx tsc --noEmit` → **exit 2**, sabab: `tsconfig.json:17` `baseUrl` deprecated (TS 6).
   Ya'ni typecheck hozir "qizil". Buni tuzatmasdan CI qo'shilmaydi.
-- `npm run test:e2e` → 13 test, hammasi o'tadi (~10-12s): 8 tasi `/auth` layout
+- `npm run test:e2e` → 14 test, hammasi o'tadi (~10-12s): 8 tasi `/auth` layout
   (eski), 1 tasi `tests/e2e/contact-form-validation.spec.ts`
   (`/contact` noto'g'ri email bilan sendTelegram chaqirilmasligini
   tekshiradi), 1 tasi `tests/e2e/admin-orders-badge.spec.ts`, 1 tasi
@@ -67,35 +67,43 @@ npm run preview       # build'ni lokal ko'rish
   "kirish kerak" ekrani chiqishi va profil forma UMUMAN ko'rinmasligi),
   1 tasi `tests/e2e/catalog-offline.spec.ts` (Firestore REST so'rovi
   `route.abort()` bilan to'silsa ham bosh sahifada 12 ta mahsulot kartasi
-  chizilishi — seed'ga qaytish ishlashi), 1 tasi yangi
+  chizilishi — seed'ga qaytish ishlashi), 1 tasi
   `tests/e2e/compress-image.spec.ts` (`compressImage`ni haqiqiy brauzerda
   3000x2000 rasm bilan chaqiradi va natija ≤1200px, <1MB ekanini raqam
-  bilan tekshiradi — DOM/canvas kerak bo'lgani uchun unit test emas, e2e).
+  bilan tekshiradi — DOM/canvas kerak bo'lgani uchun unit test emas, e2e),
+  1 tasi yangi `tests/e2e/apply-order-stock.spec.ts` (`src/utils/stock.ts`
+  dagi `applyOrderStock`ni — Checkout.tsx chaqiradigan HAQIQIY modulni,
+  Vite dev-server orqali — chaqiradi, Cloud Function so'rovini
+  `route.abort()` bilan to'sadi va throw qilmasligini, `false` qaytarishini,
+  `console.error`ga yozishini (jim yutilmasligi) tekshiradi; to'liq
+  Checkout UI oqimi emas, chunki bu haqiqiy Firestore YOZISH (backend
+  tasdiqlashini kutadigan `setDoc`) muvaffaqiyatini talab qiladi — buni
+  bu konteynerda (real loyiha yo'q) soxtalashtirib bo'lmaydi).
   Chromium konteynerda oldindan bor
   (`/opt/pw-browsers/chromium`), `playwright install` KERAK EMAS.
   Layout/guard testlari faqat LAYOUT ni tekshiradi — Firebase chaqiruvlari
   sinalmaydi (real loyiha va real SMS kerak, ular qo'lda sinaladi:
   `docs/QOLDA-SINASH-TELEFON-PAROL.md`).
-- `npm run build` → exit 0, ~0.5-0.6s. **Code-splitting BOR** (route'lar `React.lazy`).
+- `npm run build` → exit 0, ~0.4-0.6s. **Code-splitting BOR** (route'lar `React.lazy`).
   Eng katta chunk'lar: `firebase-firestore` 553 kB (LAZY — bosh sahifa uni
-  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 124 kB,
+  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 125 kB,
   `ui` 54 kB, `Admin/Dashboard` (rasm yuklash kodi shu yerda, LAZY) 39 kB.
-  `dist/` ≈ 4.0 MB.
-  Bosh sahifa yuklaydigan JS: **547.1 kB raw / 174.8 kB gzip**
-  (ilgari 545.7/174.4 — farq rasm yuklash uchun qo'shilgan 6 ta yangi
-  i18n kalitidan, uchala tilda). O'lchash: `dist/index.html` dagi
-  `<script>` va `modulepreload` havolalari yig'indisi.
-  Katalog REST moduli (`catalogRest.ts`) ALOHIDA 2.2 kB chunk — u
+  `dist/` ≈ 4.2 MB.
+  Bosh sahifa yuklaydigan JS: **≈548.2 kB raw / ≈175.0 kB gzip**
+  (ilgari 547.1/174.8 — farq `checkout.stockWarning` va
+  `productDetail.ratingError` — 2 ta yangi i18n kalit, uchala tilda — va
+  `Data.ts` dagi yangi `setProductRatingSummary` reducer'idan; ular
+  statik import qilinadi, home bundle'da). O'lchash: `dist/index.html`
+  dagi `<script>` va `modulepreload` havolalari yig'indisi.
+  Katalog REST moduli (`catalogRest.ts`) ALOHIDA 2.3 kB chunk — u
   `App.tsx` da dinamik import qilingani uchun bosh sahifa bundle'iga
   tushmaydi.
-  `index` 117 -> 121 kB ga o'sgani foydalanuvchi kabineti (profil, manzillar,
-  parol) uchun qo'shilgan yangi `dashboard.profile.*` i18n kalitlaridan
-  (uchala tilda) — tarjimalar `src/i18n/index.ts` orqali STATIK import
-  qilinadi, ya'ni ular doim bosh sahifa bundle'ida. Yangi matn qo'shishning
-  narxi shu. `firebase-auth` ham bir necha baytga o'sdi
-  (`reauthenticateWithCredential` importi, `src/firebase/auth.ts` →
-  `changePasswordWithReauth`) — bu funksiya ham har sahifada yuklanadi,
-  chunki `auth.ts` statik.
+  `src/utils/stock.ts` / `src/utils/rating.ts` — `telegram.ts` bilan bir
+  xil naqsh (`firebase/functions` DINAMIK import), lekin ular
+  `Checkout.tsx` / `ShopSingle.tsx` (ikkalasi ham lazy route) ichidan
+  chaqiriladi, shuning uchun home bundle o'lchamiga umuman ta'sir
+  qilmaydi (`firebase/functions` o'zi allaqachon `sendTelegram` orqali
+  home bundle'da — bu YANGI emas, o'zgarmadi).
   `firebase/firestore` bosh sahifa chunk'iga TUSHMAGANI tasdiqlangan:
   `grep -l "firebase/firestore" dist/assets/index-*.js` bo'sh natija beradi
   (yangi `src/firebase/userProfile.ts` ham `firestore.ts` naqshiga ergashib
@@ -141,8 +149,11 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
   **admin ham o'qimaydi**. Buni kengaytirib, admin uchun ochib qo'ymang.
   `products` / `blogs` esa ATAYLAB boshqacha: `read: if true` (katalog
   ommaviy, mijoz uni auth'siz REST bilan o'qiydi), `write: if isAdmin()`.
-  **Yozish qatorini kengaytirmang** — shu sabab `decreaseStock` va reyting
-  hali ham localStorage'da (ular mijozdan yozishni talab qiladi).
+  **Yozish qatorini kengaytirmang** — zaxira (`stock`) va reyting
+  (`rating`/`ratingSum`/`ratingCount`) mijozdan ham yozishni talab qiladi,
+  shuning uchun ular bu qoida orqali emas, Cloud Function orqali keladi
+  (`applyOrderStock`, `rateProduct` — `functions/src/index.ts`, Admin SDK
+  qoidalardan chetlab o'tadi). 5-bo'lim, "Zaxira va reyting".
 
 ### Ma'lumot va qaytarib bo'lmaydigan amallar
 - **`functions/src/index.ts` dan funksiya OLIB TASHLANMAYDI** — deploy
@@ -279,17 +290,18 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 ├── tests/e2e/dashboard-guard.spec.ts # /dashboard kirmagan holda "kirish kerak", profil forma ko'rinmasligi
 ├── tests/e2e/catalog-offline.spec.ts # REST bloklansa ham bosh sahifada mahsulotlar ko'rinishi (seed'ga qaytish)
 ├── tests/e2e/compress-image.spec.ts # compressImage — 1200px/1MB'ga siqilishi RAQAM bilan o'lchanadi
+├── tests/e2e/apply-order-stock.spec.ts # applyOrderStock — Cloud Function tosilsa ham throw qilmasligi, xato jim yutilmasligi
 ├── public/shop/  public/blog/  # KATALOG rasmlari — hash'siz, barqaror URL (Firestore'ga shu yo'l yoziladi)
 ├── index.html              # FontAwesome 6.7.2 CDN shu yerda
 ├── .env.example            # kerakli barcha env kalitlar ro'yxati
 ├── docs/DEPLOY.md          # Firebase Hosting + Cloud Function deploy — telefondan, CLI'siz qadamlar
 ├── functions/               # Cloud Function — o'z package.json/tsconfig.json bilan ALOHIDA loyiha
-│   └── src/index.ts         # sendTelegramMessage (onCall): Telegram sirlari + IP-limit shu yerda
+│   └── src/index.ts         # sendTelegramMessage + applyOrderStock + rateProduct (onCall): Telegram sirlari + IP-limit + zaxira/reyting shu yerda
 └── src/
     ├── main.tsx            # kirish nuqtasi: style, Fonts, i18n, App
     ├── App.tsx             # BrowserRouter + Provider + route'lar (React.lazy + Suspense) + onAuthStateChanged
     ├── Store.ts            # Redux store: data / cart / auth / ui / orders
-    ├── Data.ts             # seed katalog + Data slice: setProducts/setBlogs (REST) + CRUD (249 qator)
+    ├── Data.ts             # seed katalog + Data slice: setProducts/setBlogs (REST) + CRUD (283 qator)
     ├── types/index.ts      # BARCHA TypeScript interfeyslari shu yerda
     ├── style.css           # Tailwind + global class'lar (inpHover, admin-sidebar, ...)
     ├── Fonts.css
@@ -304,6 +316,8 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
     │   └── storage.ts      # uploadCatalogImage — `firebase/storage` DINAMIK import, FAQAT admin fayllaridan chaqiriladi
     ├── utils/
     │   ├── telegram.ts     # sendTelegram(text, kind) — Cloud Function'ni chaqiradi
+    │   ├── stock.ts        # applyOrderStock(orderId) — Cloud Function, zaxirani atomik kamaytiradi (telegram.ts naqshi)
+    │   ├── rating.ts       # rateProduct(productId, rating) — Cloud Function, O(1) reyting (telegram.ts naqshi)
     │   ├── phoneAuth.ts    # normalizePhone + psevdo-email (telefon+parol)
     │   ├── validate.ts     # isValidEmail + isValidPhone — kontakt/newsletter/checkout formalari
     │   └── compressImage.ts # canvas orqali rasm siqish (≤1200px, webp/jpeg, <1MB) — sof funksiya, DOMsiz test qilib bo'lmaydi (Playwright kerak)
@@ -357,12 +371,13 @@ fayllar 463 -> 469 — rasm yuklash uchun 6 ta yangi kalit, uchala tilda.)
 
 **Buyurtma:** `Checkout.tsx handleOrder()`
 → validatsiya → `dispatch(addOrder)` (localStorage) → `addOrderToFirestore()`
-→ `decreaseStock` → `sendTelegram(text, 'order')` (Cloud Function chaqiradi,
-token brauzerda yo'q) → savat tozalanadi.
+→ (Firestore yozildimi — `applyOrderStock(orderId)`) → `sendTelegram(text, 'order')`
+(Cloud Function chaqiradi, token brauzerda yo'q) → savat tozalanadi.
 Firestore va Telegram — ikki **mustaqil** kanal; ikkalasining natijasi
 `delivery` state'ida saqlanadi va mijozga rostini ko'rsatadi:
 Firestore yiqilsa ogohlantirish chiqadi, ikkalasi ham yiqilsa "yuborilmadi"
-deyiladi (endi jimgina "muvaffaqiyatli" deyilmaydi).
+deyiladi (endi jimgina "muvaffaqiyatli" deyilmaydi). `stockApplied` —
+zaxira kanalining natijasi, pastdagi "Zaxira va reyting" bo'limiga qarang.
 
 **Buyurtmani ko'rish:** admin — `subscribeAllOrders()` (hamma hujjat, qoidalar
 buni faqat admin claim'iga ochadi); foydalanuvchi — `subscribeUserOrders()`
@@ -412,11 +427,35 @@ Bir martalik ko'chirish: `/admin` -> Mahsulotlar -> "Boshlang'ich
 katalogni Firestore'ga yozish" tugmasi. Ikkala kolleksiya ham BO'SH
 bo'lgandagina yozadi (`docs/XAVFSIZLIK-MIGRATSIYA.md` F-BO'LIM).
 
-**Hali ko'chirilmagan (qarz, 14-sessiya):** `decreaseStock`
-(`Checkout.tsx`) va `updateProductRating` (`ShopSingle.tsx`) hamon faqat
-localStorage'ga yozadi — ular atomik server yozuvini (Cloud Function)
-talab qiladi, aks holda `products` ga yozish har kimga ochilardi.
-Ularni Firestore'ga "tezda" ulab qo'ymang.
+**Zaxira va reyting (19-sessiya, Cloud Function orqali atomik):**
+`decreaseStock` (`Data.ts`) va `updateProductRating` (`Data.ts` /
+`ShopSingle.tsx`) endi ISHLATILMAYDI — ular faqat SHU brauzerning
+localStorage keshini o'zgartirardi, boshqa mijozga ko'rinmasdi va ikki
+mijoz bir vaqtda oxirgi donani sotib olishi mumkin edi. Ikkalasi ham
+o'chirilmadi (eski localStorage ma'lumoti buzilmasin), lekin kodda
+izoh bilan "qarz" deb belgilangan.
+
+Haqiqiy yozuv endi ikkita Cloud Function orqali, Admin SDK bilan
+(`functions/src/index.ts`) — `products` -> `write: if isAdmin()`
+qoidasini kengaytirmasdan:
+- **`applyOrderStock({ orderId })`** — `Checkout.tsx` Firestore'ga
+  buyurtma yozilgandan KEYIN chaqiradi (`src/utils/stock.ts`). Mehmon
+  ham chaqira oladi. Kamaytiriladigan miqdorni mijoz emas, funksiyaning
+  o'zi `orders/{orderId}` hujjatidan o'qiydi — soxta so'rov bilan
+  zaxirani nolga tushirib bo'lmaydi. Idempotent (`stockApplied` bayrog'i
+  bilan). Yiqilsa buyurtma bekor qilinmaydi, `delivery.stockOk = false`
+  orqali mijozga ogohlantirish ko'rsatiladi (jim yutilmaydi).
+- **`rateProduct({ productId, rating })`** — `ShopSingle.tsx` chaqiradi
+  (`src/utils/rating.ts`), kirgan foydalanuvchi uchun. O(1): butun
+  `ratings` sub-kolleksiyasi qayta sanalmaydi, `products/{id}` dagi
+  `ratingSum`/`ratingCount` hisoblagichlar yangilanadi va `rating`
+  (mavjud maydon) shulardan qayta hisoblanadi. Eski baho
+  `products/{id}/ratings/{uid}` da saqlanadi — bu sub-kolleksiyaga
+  `firestore.rules`da QASDDAN qoida yo'q (faqat Admin SDK yozadi, mijoz
+  umuman kirmaydi). To'liq sabab: `docs/ARXITEKTURA-TARIXI.md` 19-bo'lim.
+
+`Product.ratingCount` / `ratingSum` — yangi ixtiyoriy maydonlar (eski
+hujjatlar buzilmaydi).
 
 **Admin rasm yuklash (18-sessiya, 2026-09-16):** admin endi rasmni
 telefondan to'g'ridan-to'g'ri yuklay oladi — qo'lda URL yozish shart

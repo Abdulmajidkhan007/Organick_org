@@ -5,8 +5,8 @@ import { Navbar } from './Navbar'
 import { FooterBottom } from './Footer'
 import { useAppDispatch, useAppSelector } from '../hooks'
 import { clearCart } from '../slices/cartSlice'
-import { decreaseStock } from '../Data'
 import { sendTelegram } from '../utils/telegram'
+import { applyOrderStock } from '../utils/stock'
 import { isValidPhone } from '../utils/validate'
 import { addOrderToFirestore } from '../firebase/firestore'
 import { getUserProfile } from '../firebase/userProfile'
@@ -46,7 +46,11 @@ export const Checkout = () => {
   const [savedAddresses, setSavedAddresses] = useState<UserAddress[]>([])
   // Buyurtma ikki mustaqil kanal bilan ketadi: Firestore va Telegram.
   // Biri yiqilsa ham mijozga "muvaffaqiyatli" deb ko'rsatmaymiz.
-  const [delivery, setDelivery] = useState({ firestoreOk: true, telegramOk: true })
+  // `stockOk` uchinchisi — Firestore'ga buyurtma yozilgandan KEYIN
+  // chaqiriladigan `applyOrderStock` natijasi (faqat firestoreOk=true
+  // bo'lganda urinib ko'riladi, shuning uchun boshlang'ich holati true:
+  // "hali urinilmagan" holatida ogohlantirish ko'rsatilmasin).
+  const [delivery, setDelivery] = useState({ firestoreOk: true, telegramOk: true, stockOk: true })
 
   // Kabinetda saqlangan manzillar — bo'lsa, mijoz ularni bir bosishda
   // qo'yishi mumkin, majburiy emas (qo'lda yozish ham ishlayveradi).
@@ -112,7 +116,16 @@ export const Checkout = () => {
       console.warn('[Firestore] Order write failed (permission?), saved to localStorage:', e)
     }
 
-    items.forEach(i => dispatch(decreaseStock({ productId: i.product.id, quantity: i.quantity })))
+    // Zaxira endi serverda (Cloud Function `applyOrderStock`, atomik)
+    // kamaytiriladi — FAQAT Firestore'ga buyurtma haqiqatan yozilgan
+    // bo'lsa (aks holda funksiya `orders/{orderId}`ni topa olmaydi).
+    // Chaqiruv yiqilsa buyurtma BEKOR QILINMAYDI (mijoz aybdor emas),
+    // faqat `delivery.stockOk` orqali mijozga jim yutilmasdan
+    // ko'rsatiladi (pastdagi render).
+    let stockOk = true
+    if (firestoreOk) {
+      stockOk = await applyOrderStock(id)
+    }
 
     const itemLines = orderItems
       .map(i => `• ${i.productName} x${i.quantity} — $${(i.price * i.quantity).toFixed(2)}`)
@@ -135,13 +148,13 @@ export const Checkout = () => {
     const telegramOk = await sendTelegram(text, 'order')
 
     dispatch(clearCart())
-    setDelivery({ firestoreOk, telegramOk })
+    setDelivery({ firestoreOk, telegramOk, stockOk })
     setOrderId(id)
     setLoading(false)
   }
 
   if (orderId) {
-    const { firestoreOk, telegramOk } = delivery
+    const { firestoreOk, telegramOk, stockOk } = delivery
     // Hech qayerga yetib bormagan buyurtmani "qabul qilindi" deb ko'rsatmaymiz.
     const failed = !firestoreOk && !telegramOk
 
@@ -178,6 +191,20 @@ export const Checkout = () => {
                 </p>
                 <p className={`text-sm ${failed ? 'text-red-600 dark:text-red-300' : 'text-amber-700 dark:text-amber-300'}`}>
                   {failed ? t('checkout.saveFailedNoTelegram') : t('checkout.saveFailedTelegramOk')}
+                </p>
+              </div>
+            )}
+
+            {/* Faqat firestoreOk=true bo'lganda ma'noli — aks holda
+                zaxira umuman urinilmagan (yuqoridagi bloknikidan ajratib
+                ko'rsatiladi, mijoz aybdor emasligi aniq bo'lsin). */}
+            {firestoreOk && !stockOk && (
+              <div
+                role="alert"
+                className="rounded-xl border p-4 mb-6 text-left bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800"
+              >
+                <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+                  <i className="fas fa-circle-exclamation mr-1"></i>{t('checkout.stockWarning')}
                 </p>
               </div>
             )}
