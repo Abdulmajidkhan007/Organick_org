@@ -374,9 +374,19 @@ export const UserDashboard = () => {
   const [loadError, setLoadError] = useState(false)
   const [activeTab, setActiveTab] = useState<'orders' | 'profile'>('orders')
 
+  // Effekt qayta ishga tushganda (masalan `user` obyekti yangilansa —
+  // profil ismi o'zgarishi ham shunga kiradi) eski xato ko'rsatilib
+  // qolmasin: bu render paytida solishtirib tozalanadi (React'ning
+  // tavsiya qilingan "adjust state while rendering" naqshi), effekt
+  // ichida sinxron setState chaqirmaslik uchun (`react-hooks/set-state-in-effect`).
+  const [loadErrorForUser, setLoadErrorForUser] = useState(user?.uid)
+  if (user?.uid !== loadErrorForUser) {
+    setLoadErrorForUser(user?.uid)
+    setLoadError(false)
+  }
+
   useEffect(() => {
     if (!user?.uid) return
-    setLoadError(false)
     const unsub = subscribeUserOrders(
       user.uid,
       orders => { setUserOrders(orders); setLoadError(false) },

@@ -27,6 +27,12 @@ const ORDER_STATUSES = [
 export const getStatusStyle = (status: string) =>
   ORDER_STATUSES.find(s => s.key === status) || ORDER_STATUSES[0]
 
+// Modul darajasida: `Date.now()` komponent tanasidan tashqarida, chunki
+// `react-hooks/purity` uni komponent ichida chaqirilsa render paytida
+// chaqirilishi mumkin deb (noto'g'ri) belgilaydi — bu yerda u faqat
+// `handleOrder` (haqiqiy onClick handler) ichida ishlatiladi.
+const makeOrderId = () => 'ORD-' + Date.now().toString(36).toUpperCase()
+
 export const Checkout = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -80,7 +86,7 @@ export const Checkout = () => {
     setErrors({})
     setLoading(true)
 
-    const id = 'ORD-' + Date.now().toString(36).toUpperCase()
+    const id = makeOrderId()
     const orderItems: OrderItem[] = items.map(i => ({
       productId: i.product.id,
       productName: i.product.name,
