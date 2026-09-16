@@ -107,6 +107,7 @@
     "submitReview": "Submit Review",
     "relatedProducts": "Related Products",
     "yourRating": "Your Rating",
+    "ratingError": "Could not save your rating. Please try again.",
     "inStock": "In Stock",
     "outOfStock": "Out of Stock",
     "backToShop": "Back to Shop",
@@ -221,6 +222,7 @@
     "saveFailedNoTelegram": "The order was neither saved to the server nor sent via Telegram. Please contact us with the order number or try again.",
     "contactUs": "Contact us",
     "savedAddresses": "Saved addresses:",
+    "stockWarning": "Your order was accepted, but the warehouse stock count could not be updated due to a technical issue. This does not affect your order.",
     "errors": {
       "nameRequired": "Name is required",
       "phoneRequired": "Phone number is required",

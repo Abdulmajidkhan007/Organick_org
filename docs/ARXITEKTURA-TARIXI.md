@@ -1001,3 +1001,193 @@ bosh sahifa bundle'ida YO'Q (yuqoridagi `grep` bilan tasdiqlangan).
    rejasida (Cloud Function + atomik yozuv).
 3. **`firestore.rules`, Cloud Function, auth, kabinet, dizayn tili
    O'ZGARMADI** — bu sessiyaning maqsadi faqat rasm yuklash edi.
+
+---
+
+## 19. Zaxira (stock) va reyting — atomik, Cloud Function orqali (2026-09-16)
+
+### Muammo
+
+`decreaseStock` (`Checkout.tsx`) va `updateProductRating` (`ShopSingle.tsx`)
+faqat Redux + localStorage'ga yozardi — 17-bo'limda katalog Firestore'ga
+ko'chgandan keyin ham shu ikkitasi eski holicha qolgan edi (o'sha
+bo'limdagi 2-band, keyin 18-bo'limda ham "qarz" sifatida takrorlangan).
+Amaliy oqibati ikkita:
+
+1. **Poyga sharti (race condition).** Ikki mijoz bir vaqtda oxirgi
+   donani sotib olsa, ikkalasi ham "muvaffaqiyatli" ko'radi — zaxira
+   faqat o'sha mijozning brauzerida kamayardi, boshqa hech kimga
+   ta'sir qilmasdi.
+2. **Reyting hech kimga ko'rinmasdi.** `updateProductRating` ham xuddi
+   shunday — faqat baho qo'ygan mijozning localStorage'ida.
+
+To'g'ridan-to'g'ri yechim — `firestore.rules`da `products` yozish
+qoidasini mijozga ochish — CLAUDE.md'dagi buzilmas qoidani buzardi:
+"Yozish qatorini kengaytirmang" (`products` -> `write: if isAdmin()`),
+chunki bu katalogni (nom, narx, rasm) ham har kimga tahrirlash imkonini
+berardi, faqat `stock`/`rating` emas — Firestore qoidalari maydon
+darajasida emas, HUJJAT darajasida ishlaydi (`allow write` butun
+hujjatga tegishli, "faqat shu ikki maydonga yozish" degan granulярlik
+yo'q, murakkab qoida bilan ham buni ishonchli qilib bo'lmaydi).
+
+### Yechim — ikkita Cloud Function, Admin SDK
+
+`functions/src/index.ts` ga ikkita yangi `onCall` funksiya qo'shildi —
+`sendTelegramMessage` bilan bir xil fayl, bir xil naqsh (Admin SDK,
+`db.runTransaction`). Admin SDK Firestore qoidalaridan MUTLAQO chetlab
+o'tadi, shuning uchun mijoz `stock`/`rating`ni bilvosita, faqat shu
+ikki funksiya orqali va faqat funksiya ruxsat bergan shaklda o'zgartira
+oladi — `firestore.rules`dagi `write: if isAdmin()` o'zgarishsiz qoldi.
+
+### Nega ikkita ALOHIDA funksiya, bittasi emas
+
+`applyOrderStock` va `rateProduct` bir-biriga bog'liq emas — turli
+paytda (biri checkout'da, biri mahsulot sahifasida), turli auth
+talabi bilan (birinchisi mehmonga ochiq, ikkinchisi kirishni talab
+qiladi) chaqiriladi. Bitta "universal" funksiyaga birlashtirish
+(`{ action: 'stock' | 'rating', ... }` kabi) auth tekshiruvini shartli
+qilib murakkablashtirardi va ikkalasining xato turlari (`not-found` vs
+`unauthenticated`) aralashib ketardi. Ajratilgan holda har biri o'z
+kirish shartini `onCall` darajasida yozadi — o'qish oson, test qilish
+oson.
+
+### Nega `applyOrderStock` mijoz yuborgan `items`ga ISHONMAYDI
+
+Funksiya parametr sifatida FAQAT `orderId` qabul qiladi — `items`
+YO'Q. Agar mijoz "men shu productId'dan 999 dona sotib oldim" deb
+o'zi miqdor yuborsa (hatto orderId to'g'ri bo'lsa ham), zaxirani
+soxta so'rov bilan nolga tushirish mumkin bo'lardi (boshqa mijozlarga
+zarar — xizmatni rad etish shakli). Shuning uchun funksiya
+kamaytiriladigan miqdorni FAQAT `orders/{orderId}` hujjatining o'zidan
+o'qiydi — bu hujjat `Checkout.tsx` tomonidan Firestore'ga allaqachon
+yozilgan (`addOrderToFirestore`, `orders` -> `allow create: if true`,
+lekin keyin `update`/`delete` faqat admin) va mijoz uni endi o'zgartira
+olmaydi. Ya'ni "qancha sotib olindi" degan haqiqat FAQAT bitta joyda —
+buyurtma hujjatida — saqlanadi, funksiya boshqa hech qanday manbaga
+ishonmaydi.
+
+Idempotentlik (`stockApplied` bayrog'i) ham shu mantiqning davomi:
+funksiya ikkinchi marta chaqirilsa (tarmoq qayta urinishi, mijoz
+tugmani ikki marta bossa — garchi UI buni oldini olishga harakat
+qilsa ham), zaxira IKKINCHI marta kamaymaydi.
+
+### Nega `rateProduct` O(1), butun `ratings`ni sanamaydi
+
+Eski `updateProductRating` (localStorage) har safar BUTUN
+`userRatings` massivini qayta yig'ib, o'rtachani hisoblardi — bu
+kichik massivda arzon, lekin Firestore'da "butun sub-kolleksiyani har
+bahoda o'qish" narxli (o'qish soni ortadi, mahsulot mashhur bo'lgani
+sayin sekinlashadi). Shuning uchun `products/{id}` hujjatida ikkita
+hisoblagich saqlanadi: `ratingSum`, `ratingCount`. Har chaqiruvda
+faqat: (1) mijozning ESKI bahosi o'qiladi (`ratings/{uid}`, bitta
+hujjat), (2) ikkita son yangilanadi, (3) `rating` shulardan qayta
+hisoblanadi. Necha kishi baho qo'ygan bo'lishidan qat'i — bitta
+chaqiruv har doim 2 ta o'qish + 2 ta yozish.
+
+### Nega `products/{id}/ratings/{uid}` uchun `firestore.rules`da QOIDA YO'Q
+
+Bu ATAYLAB — kelajakdagi sessiya "qoida yozilmay qolibdi, xato" deb
+o'ylamasin, deb shu yerda alohida yozib qo'yilmoqda:
+
+- Bu sub-kolleksiyaga FAQAT `rateProduct` (Admin SDK) yozadi. Admin SDK
+  qoidalarni MUTLAQO o'qimaydi — demak bu yerga qoida yozish bu
+  yo'lni na qattiqroq, na yumshoqroq qilmaydi.
+- Mijoz bu sub-kolleksiyani na o'qiydi, na yozadi — kerak emas: o'rtacha
+  baho (`rating`) va sonlar (`ratingSum`/`ratingCount`) allaqachon
+  `products/{id}` hujjatida, OMMAVIY o'qiladigan (`read: if true`).
+  Mijozning shaxsiy bahosi boshqa hech kimga ko'rsatilmaydi (hozircha
+  UI buni talab qilmaydi — faqat "mening bergan bahom" ekranda mahalliy
+  `useState` bilan saqlanadi, sahifani yangilasangiz yo'qoladi; buni
+  kabinet-darajasida saqlash keyingi ish, hozirgi ish doirasidan
+  tashqarida).
+- `firestore.rules` faylining oxiridagi
+  `match /{document=**} { allow read, write: if false; }` bu
+  sub-kolleksiyani HAM avtomatik yopadi (Firestore qoidalari
+  segment-darajasida ishlaydi: `match /products/{id}` faqat o'sha
+  hujjatning O'ZINI qamraydi, ostidagi sub-kolleksiyalarni EMAS —
+  shuning uchun bu yerda maxsus `match` yozish emas, aksincha YOZMASLIK
+  to'g'ri xavfsiz standart holatga tushiradi).
+
+Qisqasi: bu qoidalar faylida "kamchilik" emas — mijoz kirishi
+kerak bo'lmagan yo'lga qasddan yo'l qo'yilmagan.
+
+### Client tomon: `src/utils/stock.ts` / `src/utils/rating.ts`
+
+Ikkalasi ham `src/utils/telegram.ts` bilan bir xil naqsh: `firebase/
+functions`ni DINAMIK import qiladi (bosh sahifa bundle'iga qo'shimcha
+og'irlik solmasin — garchi bu ikkala fayl o'zi allaqachon FAQAT lazy
+route'lardan, Checkout.tsx va ShopSingle.tsx'dan chaqirilsa ham,
+naqshni buzmaslik uchun), va HECH QACHON throw qilmaydi.
+
+Farqi: `telegram.ts` oddiy `boolean` qaytaradi ("yetib bordimi").
+`stock.ts` ham xuddi shunday (`boolean` — Checkout.tsx faqat ok/emasligi
+bilan qiziqadi). `rating.ts` esa `RateProductResult | null` qaytaradi —
+chunki `ShopSingle.tsx` serverda hisoblangan yangi `rating`/`ratingSum`/
+`ratingCount`ni Redux'ga DARHOL yozishi kerak (butun mahsulotlar
+ro'yxatini qayta o'qimasdan); oddiy `boolean` bu ma'lumotni olib
+kela olmasdi. Ikkalasida ham xato `console.error`ga yoziladi — jim
+yutilmaydi (`tests/e2e/apply-order-stock.spec.ts` buni tekshiradi).
+
+### Checkout.tsx: `stockOk` — uchinchi mustaqil kanal
+
+15-bo'limda (aslida `Checkout.tsx`ning o'zida) Firestore va Telegram
+ikki mustaqil kanal ekani va biri yiqilsa ham "muvaffaqiyatli"
+deyilmasligi yozilgan edi. `applyOrderStock` uchinchi kanal sifatida
+qo'shildi — LEKIN muvaffaqiyat/muvaffaqiyatsizlik darajasi
+BOSHQACHA: Firestore yoki Telegram ikkalasi ham yiqilsa buyurtma
+"yuborilmadi" deyiladi (mijoz operatorlarga umuman yetmagan bo'lishi
+mumkin). `stockOk = false` esa BUNDAY EMAS — buyurtmaning o'zi
+Firestore'ga allaqachon yozilgan, mijoz operatorlarga yetgan, faqat
+zaxira hisoblagichi yangilanmagan (texnik, ko'rinmas nosozlik). Shuning
+uchun `stockOk = false` buyurtmani "muvaffaqiyatsiz" qilmaydi — alohida,
+yumshoqroq ogohlantirish ko'rsatiladi (`checkout.stockWarning`), mijoz
+qayta buyurtma berishga undalmaydi.
+
+`applyOrderStock` FAQAT `firestoreOk === true` bo'lganda chaqiriladi —
+aks holda `orders/{orderId}` Firestore'da umuman yo'q, funksiya
+`not-found` bilan yiqiladi (foydasiz tarmoq so'rovi).
+
+### Eski reducer'lar (`decreaseStock`, `updateProductRating`)
+
+Ikkalasi ham `Data.ts`da O'CHIRILMADI — eski localStorage'dagi
+`organick_products` keshi bu maydonlar (`stock`, `userRatings`) bilan
+saqlangan bo'lishi mumkin, reducer o'chirilsa TypeScript buzilmasa ham
+eski keshni o'qishda hech narsa yiqilmaydi (chunki reducer shunchaki
+CHAQIRILMAYDI endi) — lekin kelajakda kimdir "hali ham shu yo'lni
+ishlataveraman" deb yangi kod yozmasligi uchun ikkalasi ham izoh bilan
+"QARZ — ENDI ISHLATILMAYDI" deb belgilandi. `Product.userRatings`
+maydoni ham xuddi shu sababdan turibdi (CLAUDE.md — localStorage
+sxemasi/kalitlari buzilmaydi qoidasi).
+
+### `Product` tipiga qo'shilgan maydonlar
+
+`ratingCount?: number`, `ratingSum?: number` — ikkalasi ham
+IXTIYORIY, eski Firestore hujjatlarida (yoki eski localStorage
+keshida) bu maydonlar yo'q bo'lishi mumkin; `rateProduct` birinchi
+chaqiruvda `(product.ratingSum || 0)` / `(product.ratingCount || 0)`
+bilan `undefined`ni `0` deb hisoblaydi, ya'ni eski hujjat birinchi
+baholanganda avtomatik "to'g'ri" boshlanadi.
+
+### Test — nega to'liq Checkout UI oqimi emas
+
+`tests/e2e/apply-order-stock.spec.ts` — `applyOrderStock` chaqiruvi
+`route.abort()` bilan to'silganda: (1) throw QILMAYDI, (2) `false`
+qaytaradi, (3) xato `console.error`ga yoziladi (jim yutilmaydi).
+
+Bu sinov to'g'ridan-to'g'ri `src/utils/stock.ts`ni — Checkout.tsx
+chaqiradigan AYNAN SHU modulni, Vite dev-server orqali (mock emas) —
+chaqiradi, TO'LIQ Checkout formasini to'ldirib yubormaydi. Sabab:
+`Checkout.tsx` `applyOrderStock`ni FAQAT `firestoreOk === true`
+bo'lganda chaqiradi, ya'ni haqiqiy Firestore YOZISH (`setDoc`)
+muvaffaqiyatli bo'lishi kerak. Firestore Web SDK yozish oqimi
+oddiy REST emas — backend'ning real tasdiqlashini kutadi (streaming
+protokol) va bu konteynerda (real Firebase loyihasi yo'q, chiquvchi
+HTTPS proksi orqali, sertifikat ishonchi yo'q — `npx playwright test`
+paytida `ERR_TUNNEL_CONNECTION_FAILED`/`ERR_CERT_AUTHORITY_INVALID`
+ko'rinadi) soxtalashtirib bo'lmaydi. Bu aynan CLAUDE.md/
+`playwright.config.ts`da allaqachon yozilgan chegara — "Firebase
+chaqiruvlari sinalmaydi" — shu sababning o'zi. Shuning uchun sinov
+funksiyaning shartnomasini (never throw, xato jim yutilmaydi) to'g'ridan-
+to'g'ri tekshiradi — bu aynan Checkout.tsx'da `try/catch` bilan
+o'ralmagan chaqiruvni (`stockOk = await applyOrderStock(id)`) himoya
+qiladigan shartnoma.

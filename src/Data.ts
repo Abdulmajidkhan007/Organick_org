@@ -189,6 +189,15 @@ export const Data = createSlice({
       state.products = state.products.filter(p => p.id !== action.payload)
       cache('organick_products', state.products)
     },
+    /**
+     * QARZ — ENDI ISHLATILMAYDI (19-sessiya, stock/reyting Cloud
+     * Function'ga ko'chgandan beri). Reyting endi serverda, Cloud
+     * Function `rateProduct` orqali hisoblanadi (atomik, hammaga
+     * ko'rinadi) — pastdagi `setProductRatingSummary`ga qarang.
+     * Bu reducer FAQAT eski localStorage'da qolgan `userRatings`
+     * ma'lumoti buzilmasligi uchun o'chirilmadi (CLAUDE.md — localStorage
+     * kalitlari/sxemasi buzilmaydi qoidasi). Yangi kod buni chaqirmasin.
+     */
     updateProductRating(state, action: PayloadAction<{ productId: number; rating: number; userId: string }>) {
       const product = state.products.find(p => p.id === action.payload.productId)
       if (product) {
@@ -209,6 +218,20 @@ export const Data = createSlice({
         cache('organick_products', state.products)
       }
     },
+    /**
+     * Cloud Function `rateProduct` server tomonda hisoblagan natijani
+     * Redux'ga (va keshga) yozadi — hisoblashning O'ZI bu yerda emas,
+     * `functions/src/index.ts`da.
+     */
+    setProductRatingSummary(state, action: PayloadAction<{ productId: number; rating: number; ratingSum: number; ratingCount: number }>) {
+      const product = state.products.find(p => p.id === action.payload.productId)
+      if (product) {
+        product.rating = action.payload.rating
+        product.ratingSum = action.payload.ratingSum
+        product.ratingCount = action.payload.ratingCount
+        cache('organick_products', state.products)
+      }
+    },
     addBlog(state, action: PayloadAction<BlogPost>) {
       state.blogs.push(action.payload)
       cache('organick_blogs', state.blogs)
@@ -224,6 +247,16 @@ export const Data = createSlice({
       state.blogs = state.blogs.filter(b => b.id !== action.payload)
       cache('organick_blogs', state.blogs)
     },
+    /**
+     * QARZ — ENDI ISHLATILMAYDI (19-sessiya). Zaxira endi serverda,
+     * Cloud Function `applyOrderStock` orqali kamaytiriladi (atomik,
+     * Firestore'dagi haqiqiy `products` hujjatiga yoziladi — bu reducer
+     * esa faqat SHU brauzerning localStorage keshini o'zgartirardi,
+     * boshqa mijozga ko'rinmasdi). O'chirilmadi — eski keshli
+     * brauzerlarda hujjat shakli buzilmasin (CLAUDE.md). Yangi kod buni
+     * chaqirmasin, `src/utils/stock.ts` -> `applyOrderStock`dan
+     * foydalaning.
+     */
     decreaseStock(state, action: PayloadAction<{ productId: number; quantity: number }>) {
       const product = state.products.find(p => p.id === action.payload.productId)
       if (product) {
@@ -242,6 +275,7 @@ export const {
   updateProduct,
   deleteProduct,
   updateProductRating,
+  setProductRatingSummary,
   addBlog,
   updateBlog,
   deleteBlog,

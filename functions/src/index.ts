@@ -134,3 +134,136 @@ export const sendTelegramMessage = onCall(
     }
   },
 )
+
+// ============================================================================
+// ZAXIRA (stock) va REYTING — atomik, Admin SDK orqali.
+//
+// `firestore.rules`: `products` -> `write: if isAdmin()`. Buni kengaytirib
+// bo'lmaydi (aks holda katalogni har kim tahrirlaydi), shuning uchun mijoz
+// tomonidan kerak bo'ladigan ikkita yozish (buyurtmadan keyin zaxirani
+// kamaytirish, reyting qo'yish) shu ikki Cloud Function orqali keladi —
+// Admin SDK qoidalardan chetlab o'tadi, lekin funksiyaning o'zi qat'iy
+// tekshiradi (nima yoziladi va qancha). To'liq sabab:
+// docs/ARXITEKTURA-TARIXI.md.
+// ============================================================================
+
+interface OrderItemData {
+  productId: number
+  quantity: number
+}
+
+/**
+ * Buyurtma berilgandan keyin zaxirani kamaytiradi. Mehmon ham chaqira
+ * oladi — buyurtmani kirmagan mijoz ham beradi, shuning uchun
+ * `request.auth` talab qilinmaydi.
+ *
+ * XAVFSIZLIK: funksiya faqat `orderId` qabul qiladi, `items`NI EMAS.
+ * Kamaytiriladigan miqdor FAQAT `orders/{orderId}` hujjatidan o'qiladi —
+ * mijoz o'zi qancha va qaysi mahsulot deb aytishi mumkin emas. Shu
+ * sababli soxta so'rov bilan zaxirani nolga tushirib bo'lmaydi (ko'pi
+ * bilan o'sha buyurtmadagi haqiqiy miqdorlar qo'llaniladi, va faqat bir
+ * marta — pastga qarang).
+ *
+ * IDEMPOTENT: `orders/{orderId}.stockApplied === true` bo'lsa hech narsa
+ * qilmaydi. Bu ikki sabab uchun kerak: (1) mijoz tarmoq sekinligida
+ * tugmani ikki marta bosishi yoki chaqiruv qayta urinishi mumkin,
+ * (2) shu bilan bir xil buyurtma uchun zaxira ikki marta kamaymaydi.
+ */
+export const applyOrderStock = onCall(async request => {
+  const data = request.data as { orderId?: unknown }
+  const orderId = typeof data.orderId === 'string' ? data.orderId.trim() : ''
+  if (!orderId) throw new HttpsError('invalid-argument', "Buyurtma ID'si kiritilmagan.")
+
+  const db = getFirestore()
+  const orderRef = db.collection('orders').doc(orderId)
+
+  return db.runTransaction(async (tx: Transaction) => {
+    const orderSnap = await tx.get(orderRef)
+    if (!orderSnap.exists) {
+      throw new HttpsError('not-found', "Bunday buyurtma topilmadi.")
+    }
+
+    const order = orderSnap.data() as { items?: OrderItemData[]; stockApplied?: boolean }
+    if (order.stockApplied === true) {
+      return { ok: true, alreadyApplied: true }
+    }
+
+    const items = Array.isArray(order.items) ? order.items : []
+
+    // Transaction qoidasi: HAMMA o'qish yozishdan OLDIN bo'lishi shart.
+    const productRefs = items.map(i => db.collection('products').doc(String(i.productId)))
+    const productSnaps = productRefs.length > 0 ? await Promise.all(productRefs.map(ref => tx.get(ref))) : []
+
+    productSnaps.forEach((snap, idx) => {
+      if (!snap.exists) return
+      const quantity = items[idx].quantity
+      if (typeof quantity !== 'number' || !(quantity > 0)) return
+      const currentStock = (snap.data() as { stock?: number }).stock
+      // Manfiy bo'lmasin — bir necha mijoz bir vaqtda buyurtma bersa ham.
+      const newStock = Math.max(0, (currentStock ?? 0) - quantity)
+      tx.update(snap.ref, { stock: newStock })
+    })
+
+    tx.update(orderRef, { stockApplied: true })
+    return { ok: true, alreadyApplied: false }
+  })
+})
+
+const MIN_RATING = 1
+const MAX_RATING = 5
+
+/**
+ * Mahsulotga baho qo'yadi/yangilaydi. Kirmagan foydalanuvchi chaqira
+ * olmaydi (`unauthenticated`) — reyting kim tomonidan qo'yilgani
+ * (`request.auth.uid`) shu yerda aniqlanadi, mijoz o'zi uid yubormaydi.
+ *
+ * O(1): butun `ratings` sub-kolleksiyasi qayta sanalmaydi. `products/{id}`
+ * hujjatida ikkita hisoblagich saqlanadi — `ratingSum` va `ratingCount` —
+ * va har chaqiruvda faqat shu ikkitasi yangilanadi:
+ *   newSum   = (ratingSum || 0)   - (eskiBaho || 0) + rating
+ *   newCount = (ratingCount || 0) + (eskiBaho bo'lmasa 1, aks holda 0)
+ * `Product.rating` (mavjud, sxema o'zgarmagan maydon) — shu ikkitadan
+ * hisoblangan o'rtacha, yaxlitlangan.
+ *
+ * `products/{id}/ratings/{uid}` hujjati eski bahoni bilish uchun kerak
+ * (qayta baholaganda eskisini `newSum`dan ayirish uchun). Bu
+ * sub-kolleksiyaga `firestore.rules`da QASDDAN alohida qoida YO'Q: unga
+ * faqat shu Admin SDK yozadi (qoidalardan chetlab o'tadi), mijoz esa uni
+ * umuman o'qimaydi/yozmaydi — fayl oxiridagi `match /{document=**}`
+ * (hamma narsa yopiq) uni ham qamrab oladi. To'liq sabab:
+ * docs/ARXITEKTURA-TARIXI.md.
+ */
+export const rateProduct = onCall(async request => {
+  if (!request.auth) throw new HttpsError('unauthenticated', "Baho qo'yish uchun tizimga kirish kerak.")
+  const uid = request.auth.uid
+
+  const data = request.data as { productId?: unknown; rating?: unknown }
+  const productId = typeof data.productId === 'number' ? data.productId : Number(data.productId)
+  const rating = typeof data.rating === 'number' ? data.rating : NaN
+
+  if (!Number.isFinite(productId)) throw new HttpsError('invalid-argument', "Mahsulot ID'si noto'g'ri.")
+  if (!Number.isInteger(rating) || rating < MIN_RATING || rating > MAX_RATING) {
+    throw new HttpsError('invalid-argument', "Baho 1 dan 5 gacha butun son bo'lishi kerak.")
+  }
+
+  const db = getFirestore()
+  const productRef = db.collection('products').doc(String(productId))
+  const ratingRef = productRef.collection('ratings').doc(uid)
+
+  return db.runTransaction(async (tx: Transaction) => {
+    const [productSnap, ratingSnap] = await Promise.all([tx.get(productRef), tx.get(ratingRef)])
+    if (!productSnap.exists) throw new HttpsError('not-found', 'Bunday mahsulot topilmadi.')
+
+    const product = productSnap.data() as { ratingSum?: number; ratingCount?: number }
+    const previous = ratingSnap.exists ? (ratingSnap.data() as { rating?: number }).rating : undefined
+
+    const newSum = (product.ratingSum || 0) - (previous || 0) + rating
+    const newCount = (product.ratingCount || 0) + (previous ? 0 : 1)
+    const newRating = Math.round(newSum / newCount)
+
+    tx.update(productRef, { ratingSum: newSum, ratingCount: newCount, rating: newRating })
+    tx.set(ratingRef, { rating, date: new Date().toISOString() })
+
+    return { rating: newRating, ratingSum: newSum, ratingCount: newCount }
+  })
+})

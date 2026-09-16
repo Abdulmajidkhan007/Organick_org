@@ -107,6 +107,7 @@
     "submitReview": "Sharh yuborish",
     "relatedProducts": "O'xshash mahsulotlar",
     "yourRating": "Sizning reytingingiz",
+    "ratingError": "Bahoni saqlab bo'lmadi. Iltimos, qaytadan urinib ko'ring.",
     "inStock": "Mavjud",
     "outOfStock": "Tugagan",
     "backToShop": "Do'konga qaytish",
@@ -184,6 +185,7 @@
     "saveFailedNoTelegram": "Buyurtma na serverga saqlandi, na Telegram orqali yuborildi. Iltimos, buyurtma raqami bilan biz bilan bog'laning yoki qaytadan urinib ko'ring.",
     "contactUs": "Biz bilan bog'lanish",
     "savedAddresses": "Saqlangan manzillar:",
+    "stockWarning": "Buyurtmangiz qabul qilindi, lekin ombordagi zaxira soni texnik nosozlik sababli yangilanmadi. Bu buyurtmangizga ta'sir qilmaydi.",
     "errors": {
       "nameRequired": "Ism kiritish shart",
       "phoneRequired": "Telefon raqam kiritish shart",
