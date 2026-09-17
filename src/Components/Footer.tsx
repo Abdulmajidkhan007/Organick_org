@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { sendTelegram } from '../utils/telegram'
+import { addMessageToFirestore } from '../firebase/messages'
 import { isValidEmail } from '../utils/validate'
 import logo from '../assets/logo.webp'
 import footer from '../assets/footer.webp'
@@ -18,9 +19,14 @@ export const FooterTop = () => {
     if (!isValidEmail(message)) { setError(t('footer.errors.emailInvalid')); return }
     setError('')
     setSending(true)
-    const ok = await sendTelegram(`📧 Newsletter subscription:\n${message}`, 'newsletter')
+    // Telegram va Firestore MUSTAQIL kanallar — biri yiqilsa ikkinchisi
+    // baribir ishlaydi (ContactForm.tsx / Checkout.tsx dagi naqsh).
+    const [telegramOk, firestoreOk] = await Promise.all([
+      sendTelegram(`📧 Newsletter subscription:\n${message}`, 'newsletter'),
+      addMessageToFirestore('newsletter', { email: message }),
+    ])
     setSending(false)
-    if (ok) {
+    if (telegramOk || firestoreOk) {
       setMessage('')
       alert(t('footer.subscribe') + '!')
     } else {

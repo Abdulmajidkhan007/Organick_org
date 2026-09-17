@@ -3,22 +3,30 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAppSelector } from '../../hooks'
 import { subscribeAllOrders } from '../../firebase/firestore'
-import { Order } from '../../types'
+import { subscribeAllMessages } from '../../firebase/messages'
+import { Message, Order } from '../../types'
 import { StatsTab } from './StatsTab'
 import { OrdersTab } from './OrdersTab'
 import { ProductsTab } from './ProductsTab'
 import { BlogsTab } from './BlogsTab'
+import { MessagesTab } from './MessagesTab'
 
-export type AdminTab = 'dashboard' | 'products' | 'blogs' | 'orders'
+export type AdminTab = 'dashboard' | 'products' | 'blogs' | 'orders' | 'messages'
 
 export const AdminDashboard = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const user = useAppSelector(s => s.auth.user)
   const [orders, setOrders] = useState<Order[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
 
   useEffect(() => {
     const unsub = subscribeAllOrders(setOrders)
+    return unsub
+  }, [])
+
+  useEffect(() => {
+    const unsub = subscribeAllMessages(setMessages)
     return unsub
   }, [])
 
@@ -59,10 +67,12 @@ export const AdminDashboard = () => {
   }
 
   const pendingCount = orders.filter(o => o.status === 'pending').length
+  const unreadMessagesCount = messages.filter(m => !m.read).length
 
   const navItems = [
     { key: 'dashboard' as AdminTab, icon: 'fa-chart-line', label: t('admin.dashboard') },
     { key: 'orders' as AdminTab,    icon: 'fa-shopping-bag', label: t('admin.orders'), badge: pendingCount },
+    { key: 'messages' as AdminTab,  icon: 'fa-envelope', label: t('admin.messages.title'), badge: unreadMessagesCount },
     { key: 'products' as AdminTab,  icon: 'fa-box', label: t('admin.products') },
     { key: 'blogs' as AdminTab,     icon: 'fa-newspaper', label: t('admin.blogs') },
   ]
@@ -167,6 +177,8 @@ export const AdminDashboard = () => {
           )}
 
           {tab === 'orders' && <OrdersTab orders={orders} />}
+
+          {tab === 'messages' && <MessagesTab messages={messages} />}
 
           {tab === 'products' && (
             <ProductsTab showProductForm={showProductForm} setShowProductForm={setShowProductForm} />

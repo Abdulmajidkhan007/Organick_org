@@ -886,3 +886,82 @@ haqiqiy himoya allaqachon bor.
   (`ShopSingle.tsx`) hamon localStorage'da — bu Storage bilan bog'liq
   emas, F-BO'LIM/CLAUDE.md'da yozilgan qarz — keyinroq (2026-09-16,
   `docs/ARXITEKTURA-TARIXI.md` 19-bo'lim) Cloud Function orqali hal qilindi.
+
+# H-BO'LIM — Kontakt/newsletter xabarlari (`messages`), telefondan, CLI'siz
+
+> Kontakt formasi va footer'dagi newsletter obunasi ilgari FAQAT
+> Telegram'ga yozardi — guruh xabari o'chsa yoki topilmasa, murojaat
+> butunlay yo'qolardi. Endi ikkinchi, mustaqil kanal bor: Firestore'dagi
+> `messages` kolleksiyasi, admin panelda ko'rinadi ("Xabarlar" tab'i).
+> Telegram oqimi o'chirilmadi — ikkalasi bir vaqtda, bir-biriga
+> bog'liqmasdan ishlaydi (`src/firebase/messages.ts`).
+> `orders`, `admins`, `users`, `products`, `blogs` qoidalariga bu
+> **tegmaydi**.
+
+## H1-QADAM. Qoidani Publish qilish
+
+1. Console → **Build → Firestore Database** → **Rules** tabi.
+2. Hozirgi matnni telefoningizga nusxa oling (orqaga qaytish nusxasi).
+3. Tahrirlagichdagi hamma matnni o'chirib, repodagi **`firestore.rules`**
+   faylining to'liq matnini qo'ying. Uning ichida quyidagi yangi blok bor:
+
+   ```
+   match /messages/{id} {
+     allow create: if true;
+     allow read, update: if isAdmin();
+     allow delete: if false;
+   }
+   ```
+
+4. **Publish** → tasdiqlash oynasi chiqsa **Publish**.
+
+**Nega `create: if true`** — kontakt formasi va newsletter obunasi
+kirmagan mehmonga ham ochiq (Checkout'dagi `orders` bilan bir xil
+mantiq). **Nega `read, update: if isAdmin()`** — mijoz email/xabar matni
+yangi ochiq joyga chiqmasligi kerak, faqat admin ko'radi va "o'qildi"
+belgisini o'zgartira oladi. **Nega `delete: if false`** — `orders`dagi
+kabi, tasodifan o'chirib yubormaslik uchun.
+
+## Ongli qarz — `create: if true` spam xavfi
+
+`create: if true` demak **istalgan odam** (auth'siz ham) cheksiz sonli
+`messages` hujjati yoza oladi — rate-limit yoki App Check hozircha YO'Q.
+Mijoz tomonda faqat bitta cheklov bor: xabar matni 4000 belgidan uzun
+bo'lsa forma o'zi rad etadi (`src/firebase/messages.ts` ->
+`isMessageTextTooLong`, `ContactForm.tsx` shu tekshiruvni chaqiradi) —
+bu FAQAT bitta hujjatning HAJMINI cheklaydi, ko'p sonli spam
+YOZUVIGA qarshi emas.
+
+Kelajakda yopish yo'llari (bu sessiyada QILINMADI):
+- **Firebase App Check** — brauzer so'rovi haqiqiy ilovadan kelayotganini
+  tasdiqlaydi (bot/skript so'rovlarini kamaytiradi, to'liq to'xtatmaydi).
+- **Cloud Function orqali yozish** (`functions/src/index.ts`) — IP-limit
+  bilan (loyihada allaqachon `sendTelegramMessage` uchun bor naqsh),
+  mijoz to'g'ridan-to'g'ri Firestore'ga emas, funksiyaga yozadi.
+
+Hozircha bu qarz sifatida qoldirilgan — kontakt formasi ochiq internetga
+qaratilgan har qanday saytda bor umumiy xavf, Telegram kanali ham xuddi
+shunday cheksiz chaqirilishi mumkin edi (u ham hozircha rate-limit'siz).
+
+## H2-QADAM. Ishlayotganini tekshirish
+
+| Tekshiruv | Kutilgan |
+|---|---|
+| Kirmagan holda `/contact` formasini to'ldirib yuborish | ✅ Telegram guruhga xabar keladi VA admin panelda "Xabarlar" tab'ida yangi yozuv chiqadi |
+| Footer'dagi newsletter maydoniga email kiritib "Obuna bo'lish" bosish | ✅ Xuddi shu — ikkala kanalga ham yoziladi |
+| Admin — "Xabarlar" tab'ida yozuvni ochib "O'qildi deb belgilash" bosish | ✅ Qizil "O'qilmagan" belgisi yo'qoladi, boshqa qurilmada ham (onSnapshot) |
+| Sidebar'dagi "Xabarlar" belgisi (badge) | ✅ Faqat o'qilmagan xabarlar soni ko'rsatiladi, `0` bo'lsa umuman chizilmaydi |
+| Internetni o'chirib kontakt formasini yuborish | ✅ Ikkala kanal ham "yiqildi" xabarini ko'rsatadi, forma qulflanib qolmaydi |
+
+## Rules Playground — 2 test
+
+Konsol → **Firestore Database → Rules → Rules Playground**.
+
+| # | Stsenariy | Sozlama | Kutilgan |
+|---|---|---|---|
+| a | **Kirmagan mehmon yozadi** | `create` `/messages/test1`, Auth **OFF** | ✅ **Allow** |
+| b | **Oddiy foydalanuvchi o'qiy olmaydi** | `get` `/messages/test1`, Auth **ON**, uid `USER_A_UID` (claim'siz, `admins/USER_A_UID` YO'Q) | ❌ **Deny** |
+
+Admin bilan (`get` va `update`, Custom claims `{"admin": true}`) ✅
+**Allow** bo'lishi kerak — bu boshqa bo'limlardagi admin testlari bilan
+bir xil naqsh, alohida takrorlanmadi.
