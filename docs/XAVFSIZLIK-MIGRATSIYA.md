@@ -423,7 +423,7 @@ Authentication → Sign-in method: **Phone** va **Email/Password**
 ikkalasi ham **Enabled** bo'lishi shart. Ikkinchisi o'chiq bo'lsa
 `linkWithCredential` `auth/operation-not-allowed` bilan yiqiladi.
 
-## D4. Telefon+parol — QOLGAN XAVF va uni yopish
+## D4. Telefon+parol — QOLGAN XAVF va uni yopish (2026-09-17, YOPILDI)
 
 **Hujum:** hujumchi `998901234567@<domen>` manzilini **oldindan** band
 qilib qo'ysa, o'sha raqamning haqiqiy egasi SMS'dan o'tsa ham parol
@@ -434,43 +434,76 @@ Hozir qo'yilgan to'siqlar va ularning **haqiqiy kuchi**:
 | # | To'siq | Qayerda | Kuchi |
 |---|---|---|---|
 | 1 | Domen tasodifiy | `VITE_PHONE_AUTH_DOMAIN` | **Faqat obskurlik.** Frontend-only ilovada domen bundle ichida ko'rinadi — bu sir emas |
-| 2 | Ro'yxatdan o'tish formasida domen bloklanadi | `isReservedAuthEmail()`, `registerWithEmail()`, AuthPage | **Bizning formadan** hujumni to'liq yopadi |
-| 3 | Firebase Auth blocking function | ⛔ **hali qo'yilmagan** | Yagona to'liq yechim |
+| 2 | Ro'yxatdan o'tish formasida domen bloklanadi | `isReservedAuthEmail()`, `registerWithEmail()`, AuthPage | **Bizning formadan** hujumni to'liq yopadi, FAQAT brauzerda |
+| 3 | Firebase Auth blocking function | ✅ **qo'yildi** — `functions/src/index.ts` → `blockPseudoEmailSignup` | Yagona to'liq yechim — REST orqali chetlab o'tishni ham yopadi |
 
 Firebase'ning `signUp` REST endpoint'i ochiq, API kalit ham ochiq —
 ya'ni 1-2 to'siqni bilgan hujumchi bizning formani chetlab o'tib
-to'g'ridan-to'g'ri hisob yarata oladi. Buni faqat server to'xtatadi.
+to'g'ridan-to'g'ri hisob yarata olardi. Endi 3-to'siq buni server
+tomondan yopadi: `beforeUserCreated` (Auth blocking function) HAR bir
+yangi hisob yaratishda ishga tushadi, `signUp` REST'ga to'g'ridan-to'g'ri
+murojaat qilingandagi ham.
 
-**Yopish (Blaze rejasi va CLI talab qiladi):**
+**Qanday ishlaydi (`functions/src/index.ts` → `blockPseudoEmailSignup`):**
 
-Firebase Console → Authentication → Settings → **Blocking functions** →
-`beforeCreate` ga quyidagi funksiyani ulang:
+Yaratilayotgan hisob emaili `^\d{9,15}@<PHONE_AUTH_DOMAIN>$` shakliga mos
+kelsa VA hisob shu raqamga bog'langan, tasdiqlangan `phone` provayderi
+orqali yaratilmayotgan bo'lsa (yoki telefon raqami email'dagi raqamga mos
+kelmasa) — `HttpsError('permission-denied', ...)` bilan rad etiladi.
+Legitim oqim (SMS → `linkWithCredential`) bu funksiyani UMUMAN ishga
+tushirmaydi, chunki u MAVJUD hisobga provayder biriktiradi — YANGI hisob
+yaratmaydi, `beforeUserCreated` esa faqat yaratishda chaqiriladi. Shuning
+uchun oddiy mijozlar bu funksiyani hech qachon "sezmaydi".
 
-```js
-// functions/index.js — Cloud Functions for Firebase (2nd gen)
-const { beforeUserCreated, HttpsError } = require('firebase-functions/v2/identity')
-
-// AYNAN VITE_PHONE_AUTH_DOMAIN dagi qiymat:
-const PHONE_AUTH_DOMAIN = '4f9c2a71b03de85a.local'
-
-exports.blockPseudoEmailSignup = beforeUserCreated((event) => {
-  const email = (event.data?.email || '').toLowerCase()
-  if (!email.endsWith('@' + PHONE_AUTH_DOMAIN)) return
-
-  // Psevdo-domen bilan hisob FAQAT tasdiqlangan telefon raqamga
-  // biriktirilganda paydo bo'lishi mumkin. Telefon raqamsiz kelgan
-  // har qanday urinish — hujum.
-  const phone = (event.data?.phoneNumber || '').replace(/\D/g, '')
-  if (!phone || email !== phone + '@' + PHONE_AUTH_DOMAIN) {
-    throw new HttpsError('permission-denied', 'Reserved email domain')
-  }
-})
+**Domen qiymati qayerdan keladi:** `defineString('PHONE_AUTH_DOMAIN', ...)`
+— `defineSecret` EMAS, chunki qiymat sir emas (yuqoridagi 1-to'siqqa
+qarang). U `functions/.env.<FIREBASE_PROJECT_ID>` faylidan o'qiladi
+(masalan `functions/.env.organick-e1c5a` — loyiha ID'si `.firebaserc`da).
+Bu fayl **sir emas**, xuddi `VITE_PHONE_AUTH_DOMAIN` kabi ochiq matn —
+shuning uchun uni oddiy `.env` kabi `.gitignore`ga qo'ymang, GitHub'da
+telefondan to'g'ridan-to'g'ri fayl yaratib COMMIT QILING (repo Settings →
+CLI shart emas, "Add file" tugmasi bilan). Mazmuni:
 ```
+PHONE_AUTH_DOMAIN=<VITE_PHONE_AUTH_DOMAIN dagi AYNAN BIR XIL qiymat>
+```
+⚠️ Ikkisi mos kelmasa funksiya HAMMA psevdo-email ro'yxatdan o'tishni
+(hattoki legitim `linkWithCredential`dan OLDINGI bosqichni ham emas —
+u buni umuman ko'rmaydi — balki kelajakda shu domen bilan yaratiladigan
+har qanday YANGI hisobni) rad etadi. Deploy (`deploy.yml`) bu faylni
+maxsus qadamsiz, `functions/` manbasi bilan birga o'zi o'qiydi — CI'ga
+hech narsa qo'shilmagan.
 
-Bu qo'yilmaguncha xavf **ochiq turadi**, lekin uni amalga oshirish uchun
-hujumchi domenni bundle ichidan topishi kerak. Mijozga ta'siri:
-ro'yxatdan o'tishda «Bu raqamga parol biriktirib bo'lmadi — u boshqa
-hisobga bog'langan…» xabari chiqadi (jimgina yiqilmaydi).
+**FAIL-OPEN qarorlari (ATAYLAB, kod ichida ham izohlangan):**
+- `PHONE_AUTH_DOMAIN` bo'sh (fayl hali qo'yilmagan) bo'lsa — funksiya
+  HECH KIMNI rad etmaydi, darhol qaytadi. Aks holda domen hali
+  sozlanmagan muhitda **hamma** ro'yxatdan o'tish (oddiy email bilan ham)
+  to'xtab qolardi.
+- Tekshiruv davomida kutilmagan xato chiqsa (masalan `event.data`
+  shakli o'zgarsa) — rad etilmaydi, faqat `logger.error`ga yoziladi.
+  Ataylab rad etish (`HttpsError`) bundan mustasno — u qayta uloqtiriladi.
+
+Mijozga ta'siri: hujum urinishi bo'lganda ro'yxatdan o'tishda «Bu raqamga
+parol biriktirib bo'lmadi — u boshqa hisobga bog'langan bo'lishi mumkin»
+xabari chiqadi (jimgina yiqilmaydi). Legitim mijozga hech qanday ta'siri
+yo'q — yuqorida aytilganidek, u bu funksiyani ishga tushirmaydi.
+
+**Emulator bilan tekshirilgan (2026-09-17):** to'liq HTTP round-trip
+(Auth emulator → JWT imzosi → Functions emulator) shu konteynerda
+`firebase-functions@7.3.2` + Node 22 (loyiha Node 20 so'raydi) birikmasida
+`beforeUserCreated`ning ichki so'rov-tasdiqlash bosqichida (worker
+jarayoni javob qaytarmasdan chiqib ketadi, aniq stack yo'q) barqaror
+ishlamadi — bu **environment/versiya nomuvofiqligi**, kod mantiqiga
+aloqasi yo'q (boshqa uchta `onCall` funksiya xuddi shu emulyatorda muammosiz
+yuklandi). Shuning uchun `blockPseudoEmailSignup.run(event)` — Firebase'ning
+o'zi HTTP qatlamidan keyin bir xil handler'ni chaqiradigan usul — bilan
+funksiya to'g'ridan-to'g'ri, qurilgan `lib/index.js`dan chaqirildi va 7
+stsenariy tasdiqlandi: (1) psevdo-email + phone provider yo'q → rad
+etildi; (2) psevdo-email + mos telefon provider → ruxsat; (3) psevdo-email
++ mos KELMAYDIGAN telefon → rad etildi; (4) oddiy email → ruxsat;
+(5) email yo'q (faqat telefon bilan yaratilish) → ruxsat; (6) domen
+bo'sh (sozlanmagan) + psevdo-email → ruxsat (fail-open); (7) `providerData`
+massiv emas (kutilmagan shakl) → ichkarida ushlanadi, tashqariga
+chiqmadi (fail-open). Hammasi kutilganidek ishladi.
 
 ## D5. Eski, "faqat SMS" hisoblari
 
