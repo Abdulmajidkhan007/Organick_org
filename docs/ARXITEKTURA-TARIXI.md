@@ -857,27 +857,32 @@ Tekshirish (har build'dan keyin):
 grep -l "firebase/firestore" dist/assets/index-*.js   # bo'sh chiqishi SHART
 ```
 
-### Qolgan qarz (13-sessiya uchun)
+### Qolgan qarz (keyingi sessiya uchun — quyida 18/19-bo'limlarda yopildi)
+
+> Bu ro'yxat yozilganda "keyingi sessiya" deb nomlangan edi; hujjat
+> ichidagi bo'lim raqami (18, 19) va haqiqiy sessiya hisobi mos
+> kelmasligi mumkin (sessiyalar o'zlarini o'zicha raqamlagan) — shuning
+> uchun bu yerda raqam o'rniga natija qaysi bo'limda ekani ko'rsatiladi.
 
 1. **`decreaseStock` (Checkout.tsx) va `updateProductRating`
    (ShopSingle.tsx) hali ham localStorage'da.** Ular Firestore'ga
    ko'chirilmadi, chunki ikkalasi ham **oddiy mijozdan** `products` ga
    yozishni talab qiladi — ya'ni `allow write` ni hammaga ochib qo'yish
    kerak bo'lardi. To'g'ri yechim — atomik server yozuvi
-   (Cloud Function + `FieldValue.increment`), 13-sessiyada.
+   (Cloud Function + `FieldValue.increment`) — **19-bo'limda hal qilindi**.
 
    Oqibati bugun: mijoz buyurtma bergach stock uning brauzerida kamayadi,
    lekin serverdagi katalogda emas. Keyingi REST o'qishda (sahifa
    yangilanganda) serverdagi qiymat qaytib keladi, ya'ni **lokal kamayish
    yo'qoladi**. Reyting ham shunday. Ilgari bu qiymatlar o'sha brauzerda
    abadiy qolardi — bu o'zgarish ataylab: katalogning haqiqat manbai endi
-   server. Bu vaqtincha va 13-sessiyada yopiladi.
+   server. Bu vaqtincha — **19-bo'limda** (2026-09-16) yopildi.
 
 2. **Firebase Storage yo'q.** Admin rasmni hamon **qo'lda URL** sifatida
    kiritadi (`ProductsTab.tsx` → "Rasm URL" maydoni oddiy matn).
-   Storage 13-sessiyada, alohida `storage.rules` va Console sozlamasi
-   bilan keladi. `img` maydoni oddiy satr bo'lib qolgani uchun bu
-   keyinchalik sxemani o'zgartirmaydi.
+   Storage — alohida `storage.rules` va Console sozlamasi bilan —
+   **18-bo'limda hal qilindi** (2026-09-16). `img` maydoni oddiy satr
+   bo'lib qolgani uchun bu keyinchalik sxemani o'zgartirmaydi.
 
 3. **3-bo'limdagi `orders` uchun "ikki manba" muammosi** o'z joyida
    qoldi — bu sessiya faqat katalogga tegdi.
@@ -965,8 +970,8 @@ G-BO'LIM.
 
 ### Ma'lumot sxemasi o'zgarmadi
 
-`Product.img` / `BlogPost.img` hamon oddiy `string` (12-sessiyada
-shunday rejalashtirilgan edi — 17-bo'lim). Storage'dan qaytgan
+`Product.img` / `BlogPost.img` hamon oddiy `string` (shunday
+rejalashtirilgan edi — 17-bo'lim). Storage'dan qaytgan
 `getDownloadURL()` natijasi ham oddiy URL satri, qo'lda yozilgan URL
 bilan bir xil formatda — Firestore hujjati, `catalogRest.ts` parser,
 `firestore.rules` — hech biriga tegilmadi.
@@ -997,8 +1002,8 @@ bosh sahifa bundle'ida YO'Q (yuqoridagi `grep` bilan tasdiqlangan).
    sessiyaga kiritilmadi (kichik xavf: eski fayl hech qachon
    ko'rsatilmaydi, faqat saqlash joyi sarflanadi).
 2. **`decreaseStock` / `updateProductRating` hamon localStorage'da** —
-   17-bo'limdagi qarz, Storage bilan bog'liq emas, hali ham 14-sessiya
-   rejasida (Cloud Function + atomik yozuv).
+   17-bo'limdagi qarz, Storage bilan bog'liq emas — **19-bo'limda**
+   (2026-09-16, Cloud Function + atomik yozuv) hal qilindi.
 3. **`firestore.rules`, Cloud Function, auth, kabinet, dizayn tili
    O'ZGARMADI** — bu sessiyaning maqsadi faqat rasm yuklash edi.
 

@@ -713,7 +713,7 @@ Konsol → **Firestore Database → Rules → Rules Playground**. Testdan oldin
 
 # F-BO'LIM — Katalog (`products` / `blogs`), telefondan, CLI'siz
 
-> 12-sessiyadan boshlab mahsulot va bloglar Firestore'da yashaydi: admin
+> 2026-09-15'dan boshlab mahsulot va bloglar Firestore'da yashaydi: admin
 > qo'shgani **hamma mijozga** ko'rinadi (ilgari faqat adminning o'z
 > brauzerida edi). Bu bo'lim shu ikki kolleksiyaning qoidasini Publish
 > qilish va tekshirish tartibi. `orders`, `admins`, `users` qoidalariga bu
@@ -808,7 +808,7 @@ Konsol → **Firestore Database → Rules → Rules Playground**. Testdan oldin
 
 # G-BO'LIM — Firebase Storage (admin rasm yuklash), telefondan, CLI'siz
 
-> 15-sessiyadan boshlab admin mahsulot/blog rasmini telefondan to'g'ridan-
+> 2026-09-16'dan boshlab admin mahsulot/blog rasmini telefondan to'g'ridan-
 > to'g'ri yuklay oladi: fayl tanlanadi, brauzerda siqiladi
 > (`src/utils/compressImage.ts`), Firebase Storage'ga yuklanadi
 > (`src/firebase/storage.ts`), qaytgan URL `img` maydoniga o'zi yoziladi.
@@ -884,7 +884,8 @@ haqiqiy himoya allaqachon bor.
   O'chirish keyingi sessiyaga qoldirildi (`docs/ARXITEKTURA-TARIXI.md`).
 - `decreaseStock` (`Checkout.tsx`) va `updateProductRating`
   (`ShopSingle.tsx`) hamon localStorage'da — bu Storage bilan bog'liq
-  emas, F-BO'LIM/CLAUDE.md'da yozilgan qarz, 14-sessiyaga rejalashtirilgan.
+  emas, F-BO'LIM/CLAUDE.md'da yozilgan qarz — keyinroq (2026-09-16,
+  `docs/ARXITEKTURA-TARIXI.md` 19-bo'lim) Cloud Function orqali hal qilindi.
 
 # H-BO'LIM — Kontakt/newsletter xabarlari (`messages`), telefondan, CLI'siz
 
