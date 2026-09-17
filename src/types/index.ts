@@ -114,6 +114,28 @@ export interface UserProfile {
   updatedAt: string
 }
 
+export type MessageKind = 'contact' | 'newsletter'
+
+export interface ContactMessagePayload {
+  fullName: string
+  email: string
+  company?: string
+  subject?: string
+  message: string
+}
+
+export interface NewsletterMessagePayload {
+  email: string
+}
+
+export interface Message {
+  id: string
+  kind: MessageKind
+  payload: ContactMessagePayload | NewsletterMessagePayload
+  createdAt: string
+  read: boolean
+}
+
 export interface DataState {
   products: Product[]
   teams: TeamMember[]

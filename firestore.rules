@@ -105,6 +105,24 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Kontakt murojaatlari va newsletter obunalari. `create: if true` —
+    // kirmagan mehmon ham yubora oladi (kontakt forma, footer'dagi
+    // obuna). O'QISH va O'QILGAN belgisini o'zgartirish faqat admin
+    // uchun — mijoz email/xabari yangi ochiq joyga chiqmasligi kerak.
+    // `delete: if false` — tasodifan yo'qotilmasin (`orders`dagi kabi).
+    //
+    // DIQQAT — ONGLI QARZ: `create: if true` spam yozishga ochiq (hech
+    // qanday rate-limit yo'q). Mijoz tomonda matn 4000 belgidan uzun
+    // bo'lsa rad etiladi (`src/firebase/messages.ts` ->
+    // `isMessageTextTooLong`), lekin bu faqat hajmni cheklaydi, spam
+    // OQIMINI emas. Kelajakda App Check yoki Cloud Function orqali
+    // yopiladi (docs/XAVFSIZLIK-MIGRATSIYA.md, H-BO'LIM).
+    match /messages/{id} {
+      allow create: if true;
+      allow read, update: if isAdmin();
+      allow delete: if false;
+    }
+
     // Qolgan hamma narsa yopiq.
     match /{document=**} {
       allow read, write: if false;

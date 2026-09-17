@@ -187,12 +187,14 @@
       "messagePlaceholder": "Hello there, I would like to talk about...",
       "sendBtn": "Send Message",
       "success": "Message sent!",
+      "partialSuccess": "Message partially sent (one channel failed)",
       "error": "Failed to send",
       "errors": {
         "nameRequired": "Name is required",
         "emailRequired": "Email is required",
         "emailInvalid": "Email address is not valid",
-        "messageRequired": "Message is required"
+        "messageRequired": "Message is required",
+        "messageTooLong": "Message must not exceed 4000 characters"
       }
     }
   },
@@ -439,7 +441,16 @@
     "uploadFailed": "Couldn't upload the image. Check your connection and try again.",
     "uploadTooLarge": "Couldn't compress the image below 1 MB. Choose a different image.",
     "uploadUnsupported": "Your browser doesn't support image compression.",
-    "uploadUnreadable": "Couldn't read the file as an image. Choose a different file."
+    "uploadUnreadable": "Couldn't read the file as an image. Choose a different file.",
+    "messages": {
+      "title": "Messages",
+      "kindContact": "Contact",
+      "kindNewsletter": "Newsletter",
+      "unread": "🔴 Unread",
+      "noMessages": "No messages yet",
+      "markRead": "Mark as read",
+      "markUnread": "Mark as unread"
+    }
   },
   "footer": {
     "newsletter": "Subscribe to our Newsletter",

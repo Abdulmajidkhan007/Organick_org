@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sendTelegram } from '../utils/telegram'
+import { addMessageToFirestore, isMessageTextTooLong } from '../firebase/messages'
 import { isValidEmail } from '../utils/validate'
 
 export const ContactForm = () => {
   const { t } = useTranslation()
   const [form, setForm] = useState({ fullName: '', email: '', company: '', subject: '', message: '' })
-  const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'partial' | 'err'>('idle')
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const set = (field: string, val: string) => {
@@ -20,6 +21,7 @@ export const ContactForm = () => {
     if (!form.email.trim()) errs.email = t('contact.form.errors.emailRequired')
     else if (!isValidEmail(form.email)) errs.email = t('contact.form.errors.emailInvalid')
     if (!form.message.trim()) errs.message = t('contact.form.errors.messageRequired')
+    else if (isMessageTextTooLong(form.message)) errs.message = t('contact.form.errors.messageTooLong')
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
     setErrors({})
 
@@ -34,10 +36,20 @@ export const ContactForm = () => {
       '',
       `💬 Xabar:\n${form.message}`,
     ].filter(Boolean).join('\n')
-    const ok = await sendTelegram(text, 'contact')
-    setStatus(ok ? 'ok' : 'err')
-    if (ok) setForm({ fullName: '', email: '', company: '', subject: '', message: '' })
-    setTimeout(() => setStatus('idle'), ok ? 4000 : 3000)
+    const payload: Record<string, string> = { fullName: form.fullName, email: form.email, message: form.message }
+    if (form.company) payload.company = form.company
+    if (form.subject) payload.subject = form.subject
+
+    // Telegram va Firestore MUSTAQIL kanallar: biri yiqilsa ikkinchisi
+    // baribir ishlaydi (Checkout.tsx dagi `delivery` naqshi).
+    const [telegramOk, firestoreOk] = await Promise.all([
+      sendTelegram(text, 'contact'),
+      addMessageToFirestore('contact', payload),
+    ])
+    const anyOk = telegramOk || firestoreOk
+    setStatus(anyOk ? (telegramOk && firestoreOk ? 'ok' : 'partial') : 'err')
+    if (anyOk) setForm({ fullName: '', email: '', company: '', subject: '', message: '' })
+    setTimeout(() => setStatus('idle'), anyOk ? 4000 : 3000)
   }
 
   return (
@@ -126,6 +138,11 @@ export const ContactForm = () => {
         {status === 'ok' && (
           <span className="text-green-600 font-semibold flex items-center gap-1">
             <i className="fas fa-check-circle"></i> {t('contact.form.success')}
+          </span>
+        )}
+        {status === 'partial' && (
+          <span className="text-amber-600 font-semibold flex items-center gap-1">
+            <i className="fas fa-triangle-exclamation"></i> {t('contact.form.partialSuccess')}
           </span>
         )}
         {status === 'err' && (

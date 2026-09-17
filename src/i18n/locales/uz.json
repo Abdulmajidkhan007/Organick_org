@@ -259,12 +259,14 @@
       "messagePlaceholder": "Salom, men... haqida gaplashmoqchiman",
       "sendBtn": "Xabar yuborish",
       "success": "Xabar yuborildi!",
+      "partialSuccess": "Xabar qisman yuborildi (bitta kanal ishlamadi)",
       "error": "Xatolik yuz berdi",
       "errors": {
         "nameRequired": "Ism kiritish shart",
         "emailRequired": "Email kiritish shart",
         "emailInvalid": "Email manzil noto'g'ri formatda",
-        "messageRequired": "Xabar kiritish shart"
+        "messageRequired": "Xabar kiritish shart",
+        "messageTooLong": "Xabar 4000 belgidan uzun bo'lmasligi kerak"
       }
     }
   },
@@ -439,7 +441,16 @@
     "uploadFailed": "Rasmni yuklab bo'lmadi. Internetni tekshirib qayta urining.",
     "uploadTooLarge": "Rasmni 1 MB dan kichik qilib siqib bo'lmadi. Boshqa rasm tanlang.",
     "uploadUnsupported": "Brauzer rasm siqishni qo'llab-quvvatlamaydi.",
-    "uploadUnreadable": "Faylni rasm sifatida o'qib bo'lmadi. Boshqa fayl tanlang."
+    "uploadUnreadable": "Faylni rasm sifatida o'qib bo'lmadi. Boshqa fayl tanlang.",
+    "messages": {
+      "title": "Xabarlar",
+      "kindContact": "Kontakt",
+      "kindNewsletter": "Newsletter",
+      "unread": "🔴 O'qilmagan",
+      "noMessages": "Xabarlar yo'q",
+      "markRead": "O'qildi deb belgilash",
+      "markUnread": "O'qilmagan deb belgilash"
+    }
   },
   "footer": {
     "newsletter": "Yangiliklar xabariga obuna bo'ling",

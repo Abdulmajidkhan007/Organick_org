@@ -86,15 +86,16 @@ npm run preview       # build'ni lokal ko'rish
   `docs/QOLDA-SINASH-TELEFON-PAROL.md`).
 - `npm run build` → exit 0, ~0.4-0.6s. **Code-splitting BOR** (route'lar `React.lazy`).
   Eng katta chunk'lar: `firebase-firestore` 553 kB (LAZY — bosh sahifa uni
-  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 125 kB,
-  `ui` 54 kB, `Admin/Dashboard` (rasm yuklash kodi shu yerda, LAZY) 39 kB.
+  yuklamaydi), `react-vendor` 252 kB, `firebase-auth` 117 kB, `index` 127 kB,
+  `ui` 54 kB, `Admin/Dashboard` (rasm yuklash kodi + Xabarlar tab'i, LAZY) 43 kB.
   `dist/` ≈ 4.2 MB.
-  Bosh sahifa yuklaydigan JS: **≈548.2 kB raw / ≈175.0 kB gzip**
-  (ilgari 547.1/174.8 — farq `checkout.stockWarning` va
-  `productDetail.ratingError` — 2 ta yangi i18n kalit, uchala tilda — va
-  `Data.ts` dagi yangi `setProductRatingSummary` reducer'idan; ular
-  statik import qilinadi, home bundle'da). O'lchash: `dist/index.html`
-  dagi `<script>` va `modulepreload` havolalari yig'indisi.
+  Bosh sahifa yuklaydigan JS: **≈550.4 kB raw / ≈174.3 kB gzip**
+  (ilgari 548.2/175.0 — farq `contact.form.partialSuccess` /
+  `errors.messageTooLong` va `admin.messages.*` — yangi i18n kalitlar,
+  uchala tilda; `admin.messages.*` o'zi Admin/Dashboard lazy chunk'ida
+  ishlatiladi, lekin i18n fayllari butunligicha home bundle'da statik).
+  O'lchash: `dist/index.html` dagi `<script>` va `modulepreload`
+  havolalari yig'indisi.
   Katalog REST moduli (`catalogRest.ts`) ALOHIDA 2.3 kB chunk — u
   `App.tsx` da dinamik import qilingani uchun bosh sahifa bundle'iga
   tushmaydi.
@@ -112,6 +113,11 @@ npm run preview       # build'ni lokal ko'rish
   `grep -l "firebase/storage" dist/assets/index-*.js` bo'sh natija beradi —
   `uploadCatalogImage`/`compressImage` faqat `Admin/Dashboard` lazy
   chunk'ida (2026-09-16, 18-sessiya, `src/firebase/storage.ts`).
+  `src/firebase/messages.ts` (19-sessiya) ham xuddi shunday tasdiqlangan
+  — u `Footer.tsx`/`ContactForm.tsx` orqali BOSH SAHIFA bundle'ida
+  yuklanadi, lekin `firebase/firestore`ni faqat DINAMIK import qiladi
+  (`telegram.ts`/`stock.ts` naqshi), shuning uchun yuqoridagi grep
+  natijasi baribir bo'sh.
 
 ### `.env`
 ```bash
@@ -281,7 +287,7 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 ├── .firebaserc             # default Firebase project ID (loyiha ID shu yerda, boshqa joyda YO'Q)
 ├── .github/workflows/deploy.yml    # master push -> lint+build -> firebase deploy --only hosting,functions
 ├── .github/workflows/pr-check.yml  # PR -> lint+build+functions build (deploy YO'Q)
-├── firestore.rules         # Firestore qoidalari: orders / admins / users / products / blogs (Console'dan qo'lda Publish)
+├── firestore.rules         # Firestore qoidalari: orders / admins / users / products / blogs / messages (Console'dan qo'lda Publish)
 ├── firestore.indexes.json  # orders(userId, createdAt) composite index
 ├── storage.rules           # Storage qoidalari: catalog/** — kirgan foydalanuvchi+1MB+rasm (Console'dan qo'lda Publish, isAdmin() YO'Q)
 ├── scripts/optimize-images.mjs # PNG -> WebP (quality 80, max 1920px) — faqat src/assets/, admin yuklagan rasmga TEGMAYDI
@@ -313,7 +319,8 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
     │   ├── userProfile.ts  # users/{uid} CRUD: getUserProfile / saveUserProfile (firestore.ts naqshiga ergashadi)
     │   ├── catalog.ts      # products/blogs YOZISH — SDK bilan, FAQAT admin (lazy route)
     │   ├── catalogRest.ts  # products/blogs O'QISH — sof fetch (REST), `firebase/*` SIZ
-    │   └── storage.ts      # uploadCatalogImage — `firebase/storage` DINAMIK import, FAQAT admin fayllaridan chaqiriladi
+    │   ├── storage.ts      # uploadCatalogImage — `firebase/storage` DINAMIK import, FAQAT admin fayllaridan chaqiriladi
+    │   └── messages.ts     # messages/{id} (kontakt/newsletter): `firebase/firestore` DINAMIK import (Footer.tsx bosh sahifada), addMessageToFirestore/subscribeAllMessages/markMessageRead
     ├── utils/
     │   ├── telegram.ts     # sendTelegram(text, kind) — Cloud Function'ni chaqiradi
     │   ├── stock.ts        # applyOrderStock(orderId) — Cloud Function, zaxirani atomik kamaytiradi (telegram.ts naqshi)
@@ -345,9 +352,10 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
     │   ├── UserDashboard.tsx     # (556 q.) tab'lar: Buyurtmalarim (o'zgarishsiz) + Profil (ism/manzillar/parol)
     │   ├── OrderItemThumb.tsx    # buyurtma qatoridagi mahsulot rasmi (productId orqali qayta topiladi, zaxira — ikonka)
     │   └── Admin/                # admin panel — tab'larga bo'lingan, hammasi STATIK import (lazy route ichida yana lazy shart emas)
-    │       ├── Dashboard.tsx     # (182 q.) sidebar + tab tanlash + umumiy state (orders, showProductForm/showBlogForm)
+    │       ├── Dashboard.tsx     # (194 q.) sidebar + tab tanlash + umumiy state (orders, messages, showProductForm/showBlogForm)
     │       ├── StatsTab.tsx      # (88 q.) "Boshqaruv paneli" tab'i
     │       ├── OrdersTab.tsx     # (222 q.) buyurtmalar ro'yxati + javob berish
+    │       ├── MessagesTab.tsx   # (110 q.) kontakt/newsletter xabarlari — filtr, o'qilgan/o'qilmagan belgisi
     │       ├── ProductsTab.tsx   # (377 q.) mahsulotlar CRUD
     │       ├── BlogsTab.tsx      # (183 q.) bloglar CRUD
     │       └── ImageUploadField.tsx # (87 q.) rasm URL input + "Rasm yuklash" tugmasi — ProductsTab/BlogsTab ikkalasi ishlatadi
@@ -490,6 +498,29 @@ hujjatiga o'qiydi/yozadi (`getUserProfile` / `saveUserProfile`,
 `firestore.rules` → `users/{uid}`: **faqat egasi**, admin ham o'qimaydi
 (`docs/XAVFSIZLIK-MIGRATSIYA.md` E-bo'lim).
 
+**Kontakt/newsletter xabarlari (19-sessiya, `messages` kolleksiyasi):**
+`ContactForm.tsx` va `Footer.tsx` (`FooterTop` newsletter) endi ikkita
+**mustaqil** kanalga yozadi — Telegram (o'zgarishsiz, `sendTelegram`)
+VA Firestore (`src/firebase/messages.ts` → `addMessageToFirestore`).
+Ilgari faqat Telegram bor edi — guruh xabari o'chsa murojaat butunlay
+yo'qolardi. Ikkalasi `Promise.all` bilan bir vaqtda chaqiriladi, biri
+yiqilsa ikkinchisi baribir ishlaydi (Checkout'dagi `delivery` naqshi);
+`ContactForm` natijani mijozga rostini ko'rsatadi (`ok` / `partial` /
+`err`), Footer esa kamida bittasi o'tsa muvaffaqiyatli hisoblaydi.
+`src/firebase/messages.ts` `firebase/firestore`ni `telegram.ts`/`stock.ts`
+bilan bir xil naqsh — DINAMIK import qiladi, chunki bu fayl `Footer.tsx`
+orqali BOSH SAHIFA bundle'ida ham yuklanadi (`firestore.ts`dagi kabi
+statik import bu yerda YARAMAYDI). Admin panelda yangi **"Xabarlar"**
+tab'i (`Admin/MessagesTab.tsx`, `Admin/Dashboard.tsx` sidebar'ida
+o'qilmaganlar soni bilan) — `subscribeAllMessages` (onSnapshot) ro'yxatni
+ko'rsatadi, `markMessageRead` "o'qildi/o'qilmagan" belgisini almashtiradi.
+`firestore.rules` → `messages/{id}`: `create: if true` (mehmon ham
+yubora oladi), `read, update: if isAdmin()`, `delete: if false`.
+ONGLI QARZ: `create: if true` rate-limit'siz — spam'ga ochiq, mijoz
+tomonda faqat 4000 belgi chegarasi bor (`isMessageTextTooLong`), bu
+kelajakda App Check yoki Cloud Function bilan yopiladi
+(`docs/XAVFSIZLIK-MIGRATSIYA.md` H-BO'LIM).
+
 ---
 
 ## 6. Hujjatlar ro'yxati
@@ -498,7 +529,7 @@ hujjatiga o'qiydi/yozadi (`getUserProfile` / `saveUserProfile`,
 |---|---|---|
 | `CLAUDE.md` | Qoidalar va xarita (shu fayl) | Dolzarb |
 | `docs/ARXITEKTURA-TARIXI.md` | Qarorlar, sabablar, ma'lum qarzlar | Dolzarb |
-| `docs/XAVFSIZLIK-MIGRATSIYA.md` | Admin huquqi (claim + `admins/{uid}`), qoidalar, index — **telefondan, CLI'siz** tartib va Rules Playground testlari; D-bo'lim: telefon+parol sozlash va qolgan xavf; E-bo'lim: `users/{uid}` (foydalanuvchi kabineti) qoidasi va testlari; F-bo'lim: `products`/`blogs` (katalog) qoidasi, bir martalik ko'chirish va 3 ta Playground testi; G-bo'lim: Firebase Storage yoqish va `storage.rules` Publish qilish (admin rasm yuklash) | Dolzarb |
+| `docs/XAVFSIZLIK-MIGRATSIYA.md` | Admin huquqi (claim + `admins/{uid}`), qoidalar, index — **telefondan, CLI'siz** tartib va Rules Playground testlari; D-bo'lim: telefon+parol sozlash va qolgan xavf; E-bo'lim: `users/{uid}` (foydalanuvchi kabineti) qoidasi va testlari; F-bo'lim: `products`/`blogs` (katalog) qoidasi, bir martalik ko'chirish va 3 ta Playground testi; G-bo'lim: Firebase Storage yoqish va `storage.rules` Publish qilish (admin rasm yuklash); H-bo'lim: `messages` (kontakt/newsletter) qoidasi, `create: if true` spam qarzi va 2 ta Playground testi | Dolzarb |
 | `docs/QOLDA-SINASH-TELEFON-PAROL.md` | Telefon+parol oqimini qo'lda sinash rejasi (telefonda bajariladi) | Dolzarb |
 | `docs/DEPLOY.md` | Firebase Hosting deploy: GitHub Secrets, service account, Authorized domains — **telefondan, CLI'siz** tartib | Dolzarb |
 | `README.md` | O'rnatish/deploy yo'riqnomasi (inglizcha) | **Qisman eskirgan** — 2 ta thread env kaliti yozilmagan, `src/firebase/config.ts` da `getFirestore` borligi aytilmagan |
