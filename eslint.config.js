@@ -2,8 +2,9 @@ import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
+import tseslint from 'typescript-eslint'
 
-export default [
+export default tseslint.config(
   // `functions/` alohida Node/TS loyihasi (o'z tsconfig'i bilan tekshiriladi,
   // `npm run build --prefix functions`) — bu yerdagi browser-globals konfiguratsiyasi
   // unga mos emas, kompilyatsiya chiqishi (`lib/`) esa umuman tekshirilmasin.
@@ -33,4 +34,33 @@ export default [
       ],
     },
   },
-]
+  {
+    // Type-aware `strictTypeChecked` emas — loyihada `tsconfig.json` da
+    // `strict: false`, u yuzlab xato berardi. Boshlang'ich qat'iylik past:
+    // faqat `recommended` (type-aware EMAS, tezroq va kamroq shovqin).
+    files: ['**/*.{ts,tsx}'],
+    extends: [tseslint.configs.recommended],
+    languageOptions: {
+      globals: globals.browser,
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+      },
+    },
+    plugins: {
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { varsIgnorePattern: '^[A-Z_]' },
+      ],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
+    },
+  },
+)

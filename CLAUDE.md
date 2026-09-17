@@ -33,8 +33,8 @@ Stack: React 19 + TypeScript + Vite 8 + Redux Toolkit 2 + Tailwind v4 + i18next 
 
 ```bash
 npm ci                # bog'liqliklarni o'rnatish (node_modules repo'da yo'q)
-npm run lint          # ESLint — DIQQAT: hozir faqat .js/.jsx ni tekshiradi (2-bo'limga qarang)
-npx tsc --noEmit      # TypeScript tekshiruvi — build buni O'ZI qilmaydi
+npm run lint          # ESLint — .js/.jsx VA .ts/.tsx
+npx tsc --noEmit      # TypeScript tekshiruvi — build buni O'ZI qilmaydi, CI'da alohida qadam
 npm run build         # Vite production build (dist/)
 npm run test:e2e      # Playwright: /auth 8 kenglikda gorizontal scroll bermasligi
 ```
@@ -53,12 +53,21 @@ npm run preview       # build'ni lokal ko'rish
 ```
 
 **Ma'lum holat (bu yozilganda tasdiqlangan):**
-- `npm run lint` → exit 0, LEKIN `eslint.config.js` da `files: ['**/*.{js,jsx}']` yozilgan,
-  shuning uchun `src/` dagi 37 ta `.ts/.tsx` fayl **umuman tekshirilmaydi**.
-  Tasdiq: `npx eslint src/App.tsx` → `File ignored because no matching configuration was supplied`.
-  `functions/` ham `ignores`ga qo'shilgan — u alohida TS loyihasi, o'z `tsc`i bilan tekshiriladi.
-- `npx tsc --noEmit` → **exit 2**, sabab: `tsconfig.json:17` `baseUrl` deprecated (TS 6).
-  Ya'ni typecheck hozir "qizil". Buni tuzatmasdan CI qo'shilmaydi.
+- `npm run lint` → exit 0, `eslint.config.js` da endi ikkita blok bor:
+  `**/*.{js,jsx}` (hozircha 0 ta fayl — loyiha to'liq `.tsx`ga ko'chirilgan,
+  1-bo'limga qarang) va `**/*.{ts,tsx}` (`typescript-eslint`,
+  `tseslint.configs.recommended` — type-aware EMAS, `strictTypeChecked`
+  emas, chunki `tsconfig.json`da `strict: false`). Ikkalasi ham
+  `react-hooks`/`react-refresh` qoidalarini ulashadi.
+  `src/` dagi 54 ta `.ts/.tsx` fayl endi TEKSHIRILADI.
+  Tasdiq: `npx eslint src/App.tsx` → endi "File ignored" DEMAYDI, exit 0.
+  `@typescript-eslint/no-unused-vars` → error, `@typescript-eslint/no-explicit-any` → warn.
+  `functions/` hamon `ignores`da — u alohida TS loyihasi, o'z `tsc`i bilan tekshiriladi.
+- `npx tsc --noEmit` → exit 0. `tsconfig.json`dan `baseUrl`/`paths`
+  butunlay olib tashlandi (TS 6da `baseUrl` deprecated edi, `paths` esa
+  `vite.config.js`da mos alias yo'qligi sababli ishlatilsa build sinardi —
+  ikkalasi ham endi yo'q). CI'da `npm run lint`dan keyin alohida qadam
+  (`.github/workflows/pr-check.yml`, `deploy.yml`).
 - `npm run test:e2e` → 14 test, hammasi o'tadi (~10-12s): 8 tasi `/auth` layout
   (eski), 1 tasi `tests/e2e/contact-form-validation.spec.ts`
   (`/contact` noto'g'ri email bilan sendTelegram chaqirilmasligini
@@ -111,7 +120,7 @@ npm run preview       # build'ni lokal ko'rish
   `firebase/storage` ham SHU XIL tasdiqlangan:
   `grep -l "firebase/storage" dist/assets/index-*.js` bo'sh natija beradi —
   `uploadCatalogImage`/`compressImage` faqat `Admin/Dashboard` lazy
-  chunk'ida (2026-09-16, 18-sessiya, `src/firebase/storage.ts`).
+  chunk'ida (2026-09-16, `src/firebase/storage.ts`).
 
 ### `.env`
 ```bash
@@ -191,8 +200,10 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 - **Mahsulot kodi `any` bilan "tuzatilmaydi"** — `tsconfig.json` da `strict: false`,
   shuning uchun tipni to'g'ri yozish sizning zimmangizda.
 - **Yangi `.jsx` fayl qo'shilmaydi** — loyiha to'liq `.tsx` ga ko'chirilgan.
-- **`@/...` importi ishlatilmaydi** — `tsconfig.json:18` da `paths` bor, lekin
-  `vite.config.js` da mos alias YO'Q, ya'ni ishlatilsa build sinadi.
+- **`@/...` importi ishlatilmaydi** — `tsconfig.json`da `baseUrl`/`paths`
+  yo'q (olib tashlandi), `vite.config.js`da ham mos alias YO'Q. Ya'ni bu
+  endi jismonan mumkin emas: ishlatilsa `tsc` ham, build ham sinadi.
+  Nisbiy import (`../hooks`, `./Navbar`) ishlatilaveradi.
 - **Route qo'shsangiz** — `src/App.tsx` dagi `<Routes>` ga qo'shing, va uni
   **`lazy(() => import(...))`** bilan qo'shing (Home'dan tashqari hammasi shunday;
   komponentlar named eksport, shuning uchun `.then(m => ({ default: m.X }))` kerak).
@@ -275,12 +286,12 @@ qadamlar `docs/DEPLOY.md` da (telefondan, CLI'siz).
 ├── docs/QOLDA-SINASH-TELEFON-PAROL.md # telefon+parol uchun qo'lda sinash rejasi
 ├── package.json            # skriptlar: dev / build / lint / preview
 ├── vite.config.js          # react + tailwind plaginlari (alias YO'Q)
-├── tsconfig.json           # strict: false, noEmit, paths (ishlatilmaydi)
-├── eslint.config.js        # faqat js/jsx ni qamraydi (kamchilik)
+├── tsconfig.json           # strict: false, noEmit (baseUrl/paths yo'q)
+├── eslint.config.js        # js/jsx VA ts/tsx (typescript-eslint, recommended)
 ├── firebase.json           # hosting (public "dist", SPA rewrite, kesh sarlavhalari) + firestore rules+indexes yo'llari
 ├── .firebaserc             # default Firebase project ID (loyiha ID shu yerda, boshqa joyda YO'Q)
-├── .github/workflows/deploy.yml    # master push -> lint+build -> firebase deploy --only hosting,functions
-├── .github/workflows/pr-check.yml  # PR -> lint+build+functions build (deploy YO'Q)
+├── .github/workflows/deploy.yml    # master push -> lint+typecheck+build -> firebase deploy --only hosting,functions
+├── .github/workflows/pr-check.yml  # PR -> lint+typecheck+build+functions build (deploy YO'Q)
 ├── firestore.rules         # Firestore qoidalari: orders / admins / users / products / blogs (Console'dan qo'lda Publish)
 ├── firestore.indexes.json  # orders(userId, createdAt) composite index
 ├── storage.rules           # Storage qoidalari: catalog/** — kirgan foydalanuvchi+1MB+rasm (Console'dan qo'lda Publish, isAdmin() YO'Q)
@@ -427,7 +438,7 @@ Bir martalik ko'chirish: `/admin` -> Mahsulotlar -> "Boshlang'ich
 katalogni Firestore'ga yozish" tugmasi. Ikkala kolleksiya ham BO'SH
 bo'lgandagina yozadi (`docs/XAVFSIZLIK-MIGRATSIYA.md` F-BO'LIM).
 
-**Zaxira va reyting (19-sessiya, Cloud Function orqali atomik):**
+**Zaxira va reyting (2026-09-16, Cloud Function orqali atomik):**
 `decreaseStock` (`Data.ts`) va `updateProductRating` (`Data.ts` /
 `ShopSingle.tsx`) endi ISHLATILMAYDI — ular faqat SHU brauzerning
 localStorage keshini o'zgartirardi, boshqa mijozga ko'rinmasdi va ikki
@@ -457,7 +468,7 @@ qoidasini kengaytirmasdan:
 `Product.ratingCount` / `ratingSum` — yangi ixtiyoriy maydonlar (eski
 hujjatlar buzilmaydi).
 
-**Admin rasm yuklash (18-sessiya, 2026-09-16):** admin endi rasmni
+**Admin rasm yuklash (2026-09-16):** admin endi rasmni
 telefondan to'g'ridan-to'g'ri yuklay oladi — qo'lda URL yozish shart
 emas (lekin hali ham ishlaydi, matn maydoni qolgan). Oqim:
 `ProductsTab`/`BlogsTab` → `ImageUploadField` → `compressImage`
