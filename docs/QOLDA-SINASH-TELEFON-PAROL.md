@@ -95,11 +95,18 @@ ishlaydi. Bu ataylab shunday (pastda 5.4 ga qarang).
 | 6.1 | `/auth` → «Ro'yxatdan o'tish» → **«Email orqali kirish»** tab → email sifatida `998901234567@4f9c2a71b03de85a.local` (ya'ni sizning domeningiz) yozing | «Bu email domeni bilan ro'yxatdan o'tib bo'lmaydi…» — hisob **YARATILMAYDI** |
 | 6.2 | Xuddi shunday `test@nimadir.local` va `test@x.invalid` bilan urinib ko'ring | Ular ham bloklanadi |
 | 6.3 | Firebase Console → Authentication → Users ro'yxatiga qarang | Telefon bilan ro'yxatdan o'tgan mijozda **Providers ustunida ikkita belgi** bo'ladi: telefon va email. Email — `998…@<domen>` |
+| 6.4 | **Formani chetlab o'tib**, to'g'ridan-to'g'ri Firebase Auth REST'ga so'rov yuboring (masalan terminal/Postman'dan): `POST https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=<VITE_FIREBASE_API_KEY>` bo'sh body `{"email":"998901234567@<domen>","password":"istalgan8belgi","returnSecureToken":true}` bilan — bu yerda `998901234567` hali hech kim ro'yxatdan o'tmagan RAQAM bo'lsin | `PERMISSION_DENIED` / "Bu raqamga parol biriktirib bo'lmadi…" bilan rad etiladi — hisob **YARATILMAYDI** (`blockPseudoEmailSignup`, `functions/src/index.ts`) |
 
-> 6.1 bizning formani qo'riqlaydi. **Formani chetlab o'tib** (to'g'ridan-to'g'ri
-> Firebase REST API orqali) o'sha manzilni band qilish hali ham mumkin —
-> buni faqat server tomon to'xtatadi. Tavsiya etilgan qadam
-> `docs/XAVFSIZLIK-MIGRATSIYA.md` → «Telefon+parol — qolgan xavf» da.
+> 6.1–6.3 bizning formani qo'riqlaydi, lekin FAQAT brauzerda. 6.4 —
+> formani chetlab o'tib to'g'ridan-to'g'ri Firebase REST API orqali
+> urinish — bu ilgari (2026-09-17'gacha) hali yopilmagan xavf edi.
+> Endi buni server tomon (`beforeUserCreated` blocking function)
+> to'xtatadi, tafsilot: `docs/XAVFSIZLIK-MIGRATSIYA.md` → D4-bo'lim
+> «Telefon+parol — qolgan xavf va uni yopish».
+> ⚠️ 6.4'dan keyin **haqiqiy raqamingiz bilan SMS orqali ro'yxatdan
+> o'tishga urinmang** — agar 6.4 xato ketib hisob yaratilib qolgan bo'lsa,
+> o'zingizni bloklab qo'yasiz. Avval Firebase Console → Authentication →
+> Users'da shu email bilan hisob YO'Qligini tasdiqlang.
 
 ## 7. Ko'rinish (avtomatik sinaladi, lekin ko'z bilan ham qarang)
 

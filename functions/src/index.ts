@@ -1,5 +1,6 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
-import { defineSecret } from 'firebase-functions/params'
+import { beforeUserCreated } from 'firebase-functions/v2/identity'
+import { defineSecret, defineString } from 'firebase-functions/params'
 import { logger } from 'firebase-functions'
 import { initializeApp } from 'firebase-admin/app'
 import { getFirestore, FieldValue, Transaction } from 'firebase-admin/firestore'
@@ -266,4 +267,79 @@ export const rateProduct = onCall(async request => {
 
     return { rating: newRating, ratingSum: newSum, ratingCount: newCount }
   })
+})
+
+// ============================================================================
+// PSEVDO-EMAIL RO'YXATDAN O'TISHNI BLOKLASH (telefon+parol, oxirgi chegara).
+//
+// Xavf: `src/utils/phoneAuth.ts` dagi psevdo-email (`998901234567@<domen>`)
+// himoyasi (`isReservedAuthEmail()`) FAQAT bizning React formamizda ishlaydi.
+// Firebase Auth'ning `signUp` REST endpoint'i ochiq, API kalit ham ochiq
+// (frontend-only ilova), shuning uchun hujumchi formani chetlab o'tib
+// to'g'ridan-to'g'ri "998901234567@<domen>" bilan oddiy email+parol hisobi
+// yaratishi mumkin. Shu bilan raqamning haqiqiy egasi keyinroq SMS'dan
+// o'tib parol qo'ymoqchi bo'lsa, `linkWithCredential`
+// "auth/email-already-in-use" bilan yiqiladi — ya'ni band qilib bloklanadi.
+// To'liq tasvir: docs/XAVFSIZLIK-MIGRATSIYA.md D4-bo'lim.
+//
+// Bu YAGONA server tomon chegara: `beforeUserCreated` (Auth blocking
+// function) HAR bir yangi hisob yaratishda ishga tushadi va psevdo-email
+// domenida, lekin haqiqiy telefon provayderiga bog'lanmagan hisobni rad
+// etadi. Legitim oqim (SMS -> `linkWithCredential`) buni UMUMAN
+// ishga tushirmaydi — u MAVJUD hisobga provayder biriktiradi, YANGI hisob
+// yaratmaydi (`beforeUserCreated` faqat yaratishda chaqiriladi).
+//
+// DOMEN QIYMATI SIR EMAS (frontendda ham ochiq turadi), shuning uchun
+// `defineSecret` EMAS, oddiy `defineString` — Secret Manager shart emas,
+// deploy paytida oddiy parametr sifatida so'raladi (yoki `functions/.env`
+// faylida). Qiymati brauzerdagi `VITE_PHONE_AUTH_DOMAIN` bilan AYNAN BIR
+// XIL bo'lishi kerak, aks holda bu funksiya HAMMA psevdo-emailni rad etadi.
+//
+// FAIL-OPEN, ATAYLAB:
+//   - `PHONE_AUTH_DOMAIN` env berilmagan (bo'sh) bo'lsa — funksiya HECH
+//     KIMNI rad etmaydi (darhol qaytadi). Aks holda domen hali
+//     sozlanmagan muhitda HAMMA ro'yxatdan o'tish (oddiy email bilan ham)
+//     to'xtab qolardi.
+//   - Tekshiruv davomida KUTILMAGAN xato chiqsa (masalan `event.data`
+//     shakli o'zgargan) — RAD ETILMAYDI, xato faqat `logger.error`ga
+//     yoziladi. Bitta noto'g'ri yozilgan qatordan butun sayt ro'yxatdan
+//     o'tishi to'xtab qolishi bu funksiyaning o'zi to'sishga urinayotgan
+//     xavfdan ko'ra kattaroq zarar bo'lardi. ATAYLAB rad etish
+//     (`HttpsError` — pastda) bundan mustasno, u qayta uloqtiriladi.
+// ============================================================================
+
+// Faqat konfiguratsiya (ochiq), shuning uchun defineSecret EMAS.
+const PHONE_AUTH_DOMAIN = defineString('PHONE_AUTH_DOMAIN', { default: '' })
+
+// `^\d{9,15}@<domen>$` — `src/utils/phoneAuth.ts`dagi `isValidPhone`
+// (mamlakat kodi bilan 9-15 raqam) bilan bir xil uzunlik oralig'i.
+const PSEUDO_EMAIL_RE = /^(\d{9,15})@(.+)$/
+
+export const blockPseudoEmailSignup = beforeUserCreated(event => {
+  try {
+    const domain = PHONE_AUTH_DOMAIN.value().trim().toLowerCase()
+    if (!domain) return // fail-open: domen sozlanmagan
+
+    const email = (event.data?.email || '').trim().toLowerCase()
+    const match = PSEUDO_EMAIL_RE.exec(email)
+    if (!match || match[2] !== domain) return // psevdo-email shakliga mos emas
+
+    // Legitim holat: hisob aynan shu raqamga bog'langan, tasdiqlangan
+    // `phone` provayderi orqali yaratilmoqda (masalan kelajakda telefon
+    // OTP va parol bir vaqtda biriktirilsa). Bunday bo'lmasa — hujum.
+    const digitsFromEmail = match[1]
+    const digitsFromPhone = (event.data?.phoneNumber || '').replace(/\D/g, '')
+    const providers = event.data?.providerData || []
+    const hasPhoneProvider = providers.some(p => p?.providerId === 'phone')
+
+    if (!hasPhoneProvider || !digitsFromPhone || digitsFromPhone !== digitsFromEmail) {
+      throw new HttpsError(
+        'permission-denied',
+        "Bu raqamga parol biriktirib bo'lmadi — u boshqa hisobga bog'langan bo'lishi mumkin."
+      )
+    }
+  } catch (e) {
+    if (e instanceof HttpsError) throw e // ataylab rad etish — o'tkazamiz
+    logger.error('[blockPseudoEmailSignup] kutilmagan xato — fail-open', e)
+  }
 })
