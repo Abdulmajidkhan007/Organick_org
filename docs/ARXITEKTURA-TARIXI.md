@@ -325,7 +325,8 @@ yashirmaslik kerak:
    kalit ochiq, ya'ni domenni bundle'dan topgan hujumchi formani chetlab
    o'ta oladi. Buni faqat server to'xtatadi — Firebase Auth blocking
    function (`beforeUserCreated`). Namuna kodi va o'rnatish tartibi:
-   `docs/XAVFSIZLIK-MIGRATSIYA.md` D4. **Hozircha qo'yilmagan.**
+   `docs/XAVFSIZLIK-MIGRATSIYA.md` D4. **2026-09-17 da qo'yildi** —
+   `functions/src/index.ts` → `blockPseudoEmailSignup` (PR #30).
 
 Ya'ni bu o'zgarish SMS xarajati va OTP firibgarligini kamaytirdi, lekin
 o'rniga kichikroq, aniq nomlangan yangi xavfni oldi.
