@@ -7,15 +7,18 @@
 
 ## 1. Loyiha nima
 
-Organick — organik oziq-ovqat do'koni uchun **frontend-only SPA**, bitta
-tor maqsadli istisno bilan: Telegram bot tokenini sir saqlash uchun bitta
-Cloud Function (`functions/`). An'anaviy backend (API server, ma'lumotlar
+Organick — organik oziq-ovqat do'koni uchun **frontend-only SPA**, tor
+maqsadli istisno bilan: brauzerga ishonib bo'lmaydigan ishlar uchun
+Cloud Function'lar (`functions/`). An'anaviy backend (API server, ma'lumotlar
 bazasi serveri) YO'Q. Ma'lumot uch joyda yashaydi:
 
 - **localStorage** — savat, til, dark mode, buyurtma nusxasi va katalog KESHI
   (mahsulot/blog uchun endi haqiqat manbai emas — pastga qarang)
 - **Firebase** — Auth (Google / Email / Telefon), Firestore (`orders`, `users`,
-  `products`, `blogs` kolleksiyalari) va bitta Cloud Function (`sendTelegramMessage`)
+  `products`, `blogs`, `messages` kolleksiyalari) va 4 ta Cloud Function
+  (`functions/src/index.ts`): `sendTelegramMessage` (bot tokeni serverda),
+  `applyOrderStock` va `rateProduct` (zaxira/reyting atomik), `blockPseudoEmailSignup`
+  (`beforeUserCreated` — psevdo-email bilan REST orqali ro'yxatdan o'tishni bloklaydi)
 - **Telegram Bot API** — xabar (buyurtma, kontakt, newsletter) shu Cloud Function orqali yuboriladi; brauzer Telegram'ga to'g'ridan-to'g'ri murojaat qilmaydi
 
 Stack: React 19 + TypeScript + Vite 8 + Redux Toolkit 2 + Tailwind v4 + i18next (uz/en/ru) + React Router 7. Deploy: Firebase Hosting, GitHub Actions orqali `master`ga push bo'lganda avtomatik (`docs/DEPLOY.md`).
@@ -547,3 +550,5 @@ kelajakda App Check yoki Cloud Function bilan yopiladi
 | `.env.example` | Kerakli env kalitlarning to'liq ro'yxati | Dolzarb (README dan to'liqroq) |
 
 README va `.env.example` ziddiyatga tushsa — **`.env.example` to'g'ri**.
+
+*Hujjat holati tekshirildi: 2026-10-21 (oxirgi kod o'zgarishi 2026-09-29, PR #30).*
