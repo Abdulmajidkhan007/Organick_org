@@ -13,7 +13,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: npm
 
       - name: Install dependencies
@@ -45,6 +45,14 @@ jobs:
       # Telegram sirlari (bot tokeni, guruh va mavzu ID'lari) ham bu yerda
       # YO'Q — ular Secret Manager'da, Cloud Shell orqali bir marta
       # qo'yiladi (docs/DEPLOY.md) va funksiyaga deploy vaqtida o'zi bog'lanadi.
+      # Cloud Function parametri (defineString, sir emas). Qiymati brauzerdagi
+      # VITE_PHONE_AUTH_DOMAIN bilan AYNAN BIR XIL bo'lishi shart. Usiz
+      # `--non-interactive` deploy "no value for PHONE_AUTH_DOMAIN" bilan yiqiladi.
+      - name: Write functions/.env
+        env:
+          PHONE_AUTH_DOMAIN: ${{ secrets.VITE_PHONE_AUTH_DOMAIN }}
+        run: echo "PHONE_AUTH_DOMAIN=$PHONE_AUTH_DOMAIN" > functions/.env
+
       - name: Write Firebase service account key
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
