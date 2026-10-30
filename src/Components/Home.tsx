@@ -53,7 +53,7 @@ export const Home = () => {
           <button
             type="button"
             onClick={() => navigate('/shop')}
-            className="w-[160px] h-[50px] rounded-2xl text-[#274C5B] bg-[#EFD372] flex items-center justify-center gap-2 font-bold hover:bg-[#dbc55e] transition-colors"
+            className="w-fit h-[50px] px-6 rounded-2xl text-[#274C5B] bg-[#EFD372] flex items-center justify-center gap-3 font-bold whitespace-nowrap hover:bg-[#dbc55e] transition-colors"
           >
             {t('home.hero.exploreBtn')}
             <div className="w-[25px] h-[25px] flex items-center justify-center bg-[#274C5B] rounded-full text-white text-[13px]">
@@ -65,18 +65,21 @@ export const Home = () => {
 
       {/* Banner Cards */}
       <article className="cards w-full py-12 flex flex-col sm:flex-row items-center justify-center gap-6 px-4">
+        {/* Rasm ustidagi matn o'qilishi uchun: chapdan gradient qatlam + matn kengligi cheklangan */}
         <div style={{ backgroundImage: `url(${card1})` }}
-             className="w-full max-w-[500px] h-[250px] sm:h-[300px] bg-cover bg-center rounded-3xl flex items-center pl-10">
-          <div className="text-white">
-            <h3 className="font-[YellowTail] text-2xl md:text-3xl">{t('home.cards.natural')}</h3>
-            <h1 className="font-bold text-2xl md:text-3xl">{t('home.cards.freshFruits')}</h1>
+             className="relative overflow-hidden w-full max-w-[500px] h-[250px] sm:h-[300px] bg-cover bg-center rounded-3xl flex items-center px-8 sm:px-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#274C5B]/85 via-[#274C5B]/50 to-transparent" aria-hidden="true" />
+          <div className="relative max-w-[60%] text-white">
+            <h3 className="font-[YellowTail] text-2xl md:text-3xl text-[#EFD372]">{t('home.cards.natural')}</h3>
+            <h2 className="font-bold text-2xl md:text-3xl leading-tight">{t('home.cards.freshFruits')}</h2>
           </div>
         </div>
         <div style={{ backgroundImage: `url(${card2})` }}
-             className="w-full max-w-[500px] h-[250px] sm:h-[300px] bg-cover bg-center rounded-3xl flex items-center pl-10">
-          <div>
-            <h3 className="text-[#7EB693] font-[YellowTail] text-xl md:text-2xl">{t('home.cards.offer')}</h3>
-            <h1 className="text-[#274C5B] font-bold text-2xl md:text-3xl">{t('home.cards.discount')}</h1>
+             className="relative overflow-hidden w-full max-w-[500px] h-[250px] sm:h-[300px] bg-cover bg-center rounded-3xl flex items-center px-8 sm:px-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/60 to-transparent" aria-hidden="true" />
+          <div className="relative max-w-[60%]">
+            <h3 className="text-[#4F8A63] font-[YellowTail] text-xl md:text-2xl">{t('home.cards.offer')}</h3>
+            <h2 className="text-[#274C5B] font-bold text-2xl md:text-3xl leading-tight">{t('home.cards.discount')}</h2>
           </div>
         </div>
       </article>
@@ -120,10 +123,10 @@ export const Home = () => {
           </div>
           <button
             onClick={() => navigate('/shop')}
-            className="w-[150px] h-[50px] rounded-2xl bg-[#274C5B] text-white flex items-center justify-center gap-2 font-bold hover:bg-[#1d3a47] transition-colors mt-2"
+            className="w-fit h-[50px] px-6 rounded-2xl bg-[#274C5B] text-white flex items-center justify-center gap-3 font-bold whitespace-nowrap hover:bg-[#1d3a47] transition-colors mt-2"
           >
             {t('home.aboutUs.shopBtn')}
-            <div className="w-[22px] h-[22px] flex items-center justify-center bg-[#335b6b] rounded-full text-white text-xs">
+            <div className="w-[25px] h-[25px] flex items-center justify-center bg-[#EFD372] rounded-full text-[#274C5B] text-xs">
               <i className="fas fa-arrow-right"></i>
             </div>
           </button>
@@ -173,10 +176,10 @@ export const Home = () => {
         </div>
         <button
           onClick={() => navigate('/shop')}
-          className="w-[160px] h-[55px] rounded-xl bg-[#274C5B] text-white flex items-center justify-center gap-2 mt-10 mx-auto font-bold hover:bg-[#1d3a47] transition-colors"
+          className="w-fit h-[55px] px-6 rounded-xl bg-[#274C5B] text-white flex items-center justify-center gap-3 mt-10 mx-auto font-bold whitespace-nowrap hover:bg-[#1d3a47] transition-colors"
         >
           {t('home.categories.loadMore')}
-          <div className="w-[22px] h-[22px] flex items-center justify-center bg-[#335b6b] rounded-full text-white text-xs">
+          <div className="w-[25px] h-[25px] flex items-center justify-center bg-[#EFD372] rounded-full text-[#274C5B] text-xs">
             <i className="fas fa-arrow-right"></i>
           </div>
         </button>
